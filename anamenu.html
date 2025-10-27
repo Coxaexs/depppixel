@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monopoly Game Lobby</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    @layer base {
+      :root {
+        --primary-50: #f0fdf4;
+        --primary-100: #dcfce7;
+        --primary-200: #bbf7d0;
+        --primary-300: #86efac;
+        --primary-400: #4ade80;
+        --primary-500: #22c55e;
+        --primary-600: #16a34a;
+        --primary-700: #15803d;
+        --primary-800: #166534;
+        --primary-900: #14532d;
+        --primary-950: #052e16;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 120
+      }
+      body {
+        background-color: #030712;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      #background-dots {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      }
+      
+      .dot {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        border-radius: 40%;
+        transition: all 0.1s ease-out;
+        opacity: 0.7;
+      }
+      
+      /* Card halo / contour styling */
+      #lobby-card {
+        position: relative;
+        z-index: 0;
+      }
+
+       .card-halo {
+        pointer-events: none;
+        position: absolute;
+        inset: -18px; 
+        border-radius: 1rem;
+        z-index: -1;
+        mix-blend-mode: screen;
+        filter: blur(18px);
+        transition: background 120ms linear, box-shadow 120ms linear;
+      } 
+      
+      /* Yansıma efekti kaldırıldı */
+      .card-reflection {
+        display: none;
+      }
+    }
+    @layer components {
+      .btn-character.active {
+        @apply bg-[--primary-100] border-[--primary-500] ring-2 ring-offset-2 ring-offset-slate-900 ring-[--primary-500] text-[--primary-700];
+      }
+      .btn-map.active {
+        @apply bg-[--primary-100] border-[--primary-500] ring-2 ring-offset-2 ring-offset-slate-900 ring-[--primary-500] text-[--primary-700];
+      }
+    }
+</style>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Poppins", "sans-serif"],
+          },
+        },
+      },
+    };
+</script>
+</head>
+<body class="font-display text-slate-300 antialiased">
+  <div id="background-dots"></div>
+  
+  <main class="min-h-screen flex flex-col items-center justify-center p-4">
+      <div class="w-full max-w-lg">
+      <div id="lobby-card" class="bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-700/60 relative overflow-visible">
+        <!-- Halo ve reflection elemanları -->
+        <div class="card-halo" aria-hidden="true"></div>
+        <div class="card-reflection" aria-hidden="true"></div>
+        <div class="text-center mb-8">
+          <h1 class="text-3xl sm:text-4xl font-bold text-slate-100">MONOPOLY</h1>
+          <p class="text-slate-400 mt-1">Start a new game or join your friends</p>
+        </div>
+        <form class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1.5" for="player-name">Player Name</label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+              <input class="w-full bg-slate-800 border-slate-700 rounded-lg shadow-sm focus:ring-[var(--primary-500)] focus:border-[var(--primary-500)] text-slate-200 transition pl-10 pr-4 py-2.5" id="player-name" placeholder="Enter your name" type="text" value="Player1"/>
+            </div>
+          </div>
+          <fieldset>
+            <legend class="text-sm font-medium text-slate-300 mb-2">Select Your Character</legend>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-3">
+              <button class="btn-character active aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">directions_car</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">theater_comedy</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">pets</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">directions_boat</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">nest_cam_magnet_mount</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">cruelty_free</span>
+              </button>
+              <button class="btn-character aspect-square flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition" type="button">
+                <span class="material-symbols-outlined text-3xl">monetization_on</span>
+              </button>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend class="text-sm font-medium text-slate-300 mb-2">Select Map</legend>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <button class="btn-map text-left font-medium p-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition flex items-center gap-2" type="button">
+                <span class="material-symbols-outlined text-xl text-slate-400">castle</span> Classic
+              </button>
+              <button class="btn-map text-left font-medium p-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition flex items-center gap-2" type="button">
+                <span class="font-normal text-slate-400">TR</span> Turkey
+              </button>
+              <button class="btn-map active text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" type="button">
+                <span class="material-symbols-outlined text-xl">public</span> World
+              </button>
+              <button class="btn-map text-left font-medium p-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition flex items-center gap-2" type="button">
+                <span class="font-normal text-slate-400">NL</span> Holland
+              </button>
+              <button class="btn-map text-left font-medium p-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition flex items-center gap-2" type="button">
+                <span class="material-symbols-outlined text-xl text-slate-400">diamond</span> Mega Rich
+              </button>
+              <button class="btn-map text-left font-medium p-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition flex items-center gap-2" type="button">
+                <span class="material-symbols-outlined text-xl text-slate-400">tune</span> Custom
+              </button>
+            </div>
+          </fieldset>
+          <div class="grid sm:grid-cols-2 gap-4 pt-4">
+            <button class="w-full bg-[var(--primary-600)] text-white font-bold py-3 px-4 rounded-lg hover:bg-[var(--primary-700)] transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary-500)] dark:focus:ring-offset-slate-900 flex items-center justify-center gap-2" type="submit">
+              <span class="material-symbols-outlined">add</span> Create New Game
+            </button>
+            <button class="w-full bg-slate-700 text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-600 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 dark:focus:ring-offset-slate-900 flex items-center justify-center gap-2" type="button">
+              <span class="material-symbols-outlined">group</span> Join Game
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Arka plan noktalarını oluştur
+    function createBackgroundDots() {
+      const container = document.getElementById('background-dots');
+      const dotCount = 800;
+
+      for (let i = 0; i < dotCount; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+
+        // Rastgele pozisyon
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+
+        // Tüm noktalar için daha grimsi-mavimsi, nötr bir baz renk ata (HSL)
+        const baseHue = 210; // maviye daha yakın, hafif soğuk ton
+        const baseSat = 10; // çok düşük doygunluk => grimsi
+        const baseLight = Math.floor(76 + Math.random() * 6); // %76 - %82 arası küçük varyasyon
+
+        dot.dataset.baseHue = baseHue;
+        dot.dataset.baseSat = baseSat;
+        dot.dataset.baseLight = baseLight;
+
+        // Hover sırasında üretilecek canlı rengin son halini saklamak için alan
+        dot.dataset.activeHue = '';
+        dot.dataset.activeSat = '';
+        dot.dataset.activeLight = '';
+        dot.dataset.hoverActive = 'false';
+
+        // Başlangıç rengini uygula (pale beyazımsı)
+        dot.style.backgroundColor = `hsl(${baseHue} ${baseSat}% ${baseLight}%)`;
+        container.appendChild(dot);
+      }
+    }
+    
+    // Mouse hareketini takip et: normalde pale kalır, girişte canlı renk üretilir
+    function handleMouseMove(e) {
+      const dots = document.querySelectorAll('.dot');
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      const threshold = 150;
+
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        const rect = dot.getBoundingClientRect();
+        const dotX = rect.left + rect.width / 2;
+        const dotY = rect.top + rect.height / 2;
+
+        const distance = Math.hypot(mouseX - dotX, mouseY - dotY);
+
+        const baseHue = Number(dot.dataset.baseHue) || 200;
+        const baseSat = Number(dot.dataset.baseSat) || 8;
+        const baseLight = Number(dot.dataset.baseLight) || 85;
+
+        if (distance < threshold) {
+          const intensity = 1 - distance / threshold;
+
+          // Eğer daha önce aktif değilse (yeni giriş) canlı, vibrant bir renk üret
+          if (dot.dataset.hoverActive !== 'true') {
+            // Vibrant renk üret: yüksek doygunluk, orta-yüksek parlaklık
+            const vHue = Math.floor(Math.random() * 360);
+            const vSat = Math.floor(80 + Math.random() * 20); // %80-%100
+            const vLight = Math.floor(45 + Math.random() * 15); // %45-%60
+
+            dot.dataset.activeHue = vHue;
+            dot.dataset.activeSat = vSat;
+            dot.dataset.activeLight = vLight;
+            dot.dataset.hoverActive = 'true';
+          }
+
+          const h = Number(dot.dataset.activeHue);
+          const s = Number(dot.dataset.activeSat);
+          const l = Math.min(95, Number(dot.dataset.activeLight) + Math.round(15 * intensity));
+
+          dot.style.backgroundColor = `hsl(${h} ${s}% ${l}%)`;
+          dot.style.boxShadow = `0 0 ${6 + 14 * intensity}px hsla(${h} ${s}% ${l}% / ${0.45 + intensity * 0.45})`;
+          dot.style.transform = `scale(${1 + intensity * 0.7})`;
+        } else {
+          // Eğer daha önce aktif olduysa, çıkış olayında hoverActive'ı false yap ve baz renge döndür
+          if (dot.dataset.hoverActive === 'true') {
+            dot.dataset.hoverActive = 'false';
+          }
+          dot.style.backgroundColor = `hsl(${baseHue} ${baseSat}% ${baseLight}%)`;
+          dot.style.boxShadow = 'none';
+          dot.style.transform = 'scale(1)';
+        }
+      }
+    }
+    
+    // Sayfa yüklendiğinde noktaları oluştur, mouse hareketini dinle ve kart animasyonunu başlat
+    document.addEventListener('DOMContentLoaded', () => {
+      createBackgroundDots();
+      document.addEventListener('mousemove', handleMouseMove);
+      // Kart kontur ve halo animasyonunu başlat
+      animateCardContour();
+    });
+
+    // Kart etrafında hareket eden RGB kontur ve halo animasyonu
+    function animateCardContour() {
+      const card = document.getElementById('lobby-card');
+      if (!card) return;
+      const halo = card.querySelector('.card-halo');
+
+      let hue = 0; // 0..360
+      let saturation = 85; // %85 sabit yüksek doygunluk
+      let brightness = 50; // 0..100 arasında değişecek
+      let dir = 1; // 1 = artış, -1 = azalış
+      const speed = 60; // Renk değişim hızı
+      let last = performance.now();
+
+      function step(now) {
+        const dt = (now - last) / 1000;
+        last = now;
+
+        // Hue değerini sürekli artır (tüm renk spektrumu)
+        hue = (hue + speed * dt) % 360;
+        
+        // Brightness değerini nefes alma efekti için değiştir
+        brightness += dir * 40 * dt;
+        if (brightness >= 80) { brightness = 80; dir = -1; }
+        if (brightness <= 20) { brightness = 20; dir = 1; }
+
+        const h = Math.round(hue);
+        const s = Math.round(saturation);
+        const b = Math.round(brightness);
+
+        // RGB renk oluştur
+        const rgbColor = hslToRgb(h / 360, s / 100, b / 100);
+        const rgbString = `${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}`;
+
+        // HSL renk oluştur (halo için)
+        const hslString = `${h} ${s}% ${b}%`;
+
+        // Border rengini değiştir
+        card.style.borderColor = `hsl(${h}, ${s}%, ${b}%)`;
+
+        // Kartın dış glow / konturu - RGB renk kullan
+        card.style.boxShadow = `0 0 ${15 + (b/100) * 25}px rgba(${rgbString}, ${0.3 + (b/100) * 0.3}), 0 10px 30px rgba(0,0,0,0.55)`;
+
+        // Halo: radial-gradient ile renkli glow oluştur - HSL renk kullan
+        if (halo) {
+          halo.style.background = `radial-gradient(circle at 50% 50%, hsl(${h} ${s}% ${b}% / ${0.25 + (b/100) * 0.3}) 0%, hsl(${h} ${s}% ${b}% / 0) 70%)`;
+        }
+
+        requestAnimationFrame(step);
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // HSL'yi RGB'ye dönüştüren yardımcı fonksiyon
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+
+      if (s === 0) {
+        r = g = b = l; // gri ton
+      } else {
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+
+      return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+      };
+    }
+  </script>
+</body>
+</html>

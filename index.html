@@ -9,8 +9,39 @@
     <meta http-equiv="Expires" content="0">
     <title>Monopoly Game v3.2 (Bigger Board + End Turn)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: "#A78BFA",
+                            light: "#C4B5FD",
+                        },
+                        secondary: "#00F5D4",
+                        background: "#0D0C14",
+                        card: "#161523",
+                        border: "#2A283E",
+                    },
+                    fontFamily: {
+                        display: ["Rajdhani", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
     <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-icons-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
         @media (max-width: 900px) {
             /* ...existing mobile styles... */
             #mobile-controls-bar {
@@ -50,24 +81,26 @@
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Rajdhani', sans-serif;
             overflow-y: auto;
-            background: linear-gradient(135deg, #1a5f3f 0%, #2d8659 50%, #1a5f3f 100%);
+            background-color: #0D0C14;
+            background-image: radial-gradient(circle at 1px 1px, rgba(167, 139, 250, 0.1) 1px, transparent 0);
+            background-size: 30px 30px;
             background-attachment: fixed;
         }
         .board {
             display: grid;
-            grid-template-columns: 260px repeat(18, 400px) 260px;
-            grid-template-rows: 260px repeat(18, 400px) 260px;
-            gap: 3px;
-            width: 98vmin;
-            height: 98vmin;
-            max-width: 1400px;
-            max-height: 1400px;
+            grid-template-columns: 140px repeat(9, 1fr) 140px;
+            grid-template-rows: 140px repeat(9, 1fr) 140px;
+            gap: 2px;
+            width: 90vmin;
+            height: 90vmin;
+            max-width: 800px;
+            max-height: 800px;
             margin: auto;
-            border: 8px solid #1a5f3f;
-            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4ba 50%, #f5e6d3 100%);
-            box-shadow: 0 25px 80px rgba(0,0,0,0.4), inset 0 0 30px rgba(255,255,255,0.3);
+            border: 8px solid #374151;
+            background: #111827;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6), inset 0 0 30px rgba(167, 139, 250, 0.2);
             border-radius: 12px;
             position: relative;
         }
@@ -78,14 +111,14 @@
             left: -8px;
             right: -8px;
             bottom: -8px;
-            background: linear-gradient(135deg, #c9a66b 0%, #8b6f47 50%, #c9a66b 100%);
+            background: linear-gradient(135deg, #2A283E 0%, #161523 50%, #2A283E 100%);
             border-radius: 12px;
             z-index: -1;
         }
         .space {
-            border: 2px solid #2d3748;
+            border: 2px solid #374151;
             position: relative;
-            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            background: #1F2937;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -96,10 +129,11 @@
             overflow: hidden;
             transition: all 0.2s ease;
             border-radius: 4px;
+            color: #E5E7EB;
         }
         .space:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(167, 139, 250, 0.4);
             z-index: 5;
         }
         .corner { grid-column: span 1; grid-row: span 1; }
@@ -158,8 +192,8 @@
             align-items: center;
             gap: 1rem;
             padding: 1rem;
-            border: 3px solid #2d3748;
-            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid #374151;
+            background: rgba(17, 24, 39, 0.95);
             border-radius: 8px;
             backdrop-filter: blur(10px);
         }
@@ -171,17 +205,17 @@
         }
         .player-piece {
             position: absolute;
-            width: 72px;
-            height: 72px;
-            font-size: 120px;
-            line-height: 72px;
+            width: 32px;
+            height: 32px;
+            font-size: 28px;
+            line-height: 32px;
             text-align: center;
             transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
             animation: pieceFloat 2s ease-in-out infinite;
             scale: 1.3;
-padding-bottom: 20;
+            padding-bottom: 20px;
         }
         @keyframes pieceFloat {
             0%, 100% { transform: translateY(0px) scale(1); }
@@ -263,11 +297,12 @@ padding-bottom: 20;
             font-size: 3rem;
             padding: 1rem 1.5rem;
             border-radius: 12px;
-            border: 3px solid #2d3748;
-            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border: 3px solid #374151;
+            background: #1F2937;
+            box-shadow: 0 8px 16px rgba(167, 139, 250, 0.3);
             transition: all 0.3s ease;
             font-weight: bold;
+            color: #E5E7EB;
         }
         .dice:hover {
             transform: rotate(5deg) scale(1.05);
@@ -309,12 +344,13 @@ padding-bottom: 20;
             position: absolute;
         }
         .dice-rolling {
-            animation: shake 0.5s infinite;
+            animation: diceShake 0.1s infinite;
         }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            25% { transform: translateX(-5px) rotate(-5deg); }
-            75% { transform: translateX(5px) rotate(5deg); }
+        @keyframes diceShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-3px, -3px) rotate(-8deg); }
+            50% { transform: translate(3px, -2px) rotate(8deg); }
+            75% { transform: translate(-2px, 3px) rotate(-5deg); }
         }
         
         /* � Property Buy Panel Styles */
@@ -346,9 +382,10 @@ padding-bottom: 20;
         }
         
         .character-btn.border-blue-500 {
-            border-width: 4px !important;
-            background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%) !important;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
+            border-width: 3px !important;
+            border-color: #9333ea !important;
+            background: rgba(167, 139, 250, 0.2) !important;
+            box-shadow: 0 0 15px rgba(167, 139, 250, 0.6) !important;
             transform: scale(1.15) !important;
         }
         
@@ -360,7 +397,9 @@ padding-bottom: 20;
         
         .map-btn.border-blue-500 {
             border-width: 3px !important;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+            border-color: #9333ea !important;
+            background: rgba(167, 139, 250, 0.2) !important;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.5) !important;
         }
         
         /* Game mode button styles */
@@ -370,33 +409,36 @@ padding-bottom: 20;
         }
         .game-mode-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(167, 139, 250, 0.3);
+            border-color: #9333ea !important;
         }
         .game-mode-btn.border-blue-500 {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #9333ea !important;
+            background: rgba(167, 139, 250, 0.2) !important;
         }
         
         /* Enhanced space styles */
         .space.corner {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            background: #1F2937;
             font-size: 10px;
             font-weight: bold;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            color: #E5E7EB;
         }
         .space[id="space-0"] {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
             color: white;
         }
         .space[id="space-10"] {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            background: linear-gradient(135deg, #A78BFA 0%, #9333ea 100%) !important;
             color: white;
         }
         .space[id="space-20"] {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-            color: white;
+            background: linear-gradient(135deg, #00F5D4 0%, #00c9a7 100%) !important;
+            color: #030712;
         }
         .space[id="space-30"] {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
             color: white;
         }
         
@@ -493,12 +535,12 @@ padding-bottom: 20;
             
             /* Smaller board on mobile */
             .board {
-                width: 98vmin;
-                height: 98vmin;
-                grid-template-columns: 120px repeat(18, 2fr) 120px;
-                grid-template-rows: 120px repeat(18, 2fr) 120px;
-                gap: 2px;
-                border: 4px solid #1a5f3f;
+                width: 95vmin;
+                height: 95vmin;
+                grid-template-columns: 100px repeat(9, 1fr) 100px;
+                grid-template-rows: 100px repeat(9, 1fr) 100px;
+                gap: 1px;
+                border: 4px solid #374151;
             }
             
             /* Smaller spaces */
@@ -515,12 +557,11 @@ padding-bottom: 20;
             
             /* Smaller player pieces */
             .player-piece {
-                            scale: 1.3;
-padding-bottom: 20;
-
-                font-size: 28px;
-                width: 18px;
-                height: 18px;
+                scale: 1;
+                padding-bottom: 10px;
+                font-size: 20px;
+                width: 22px;
+                height: 22px;
             }
             
             /* Smaller houses */
@@ -585,6 +626,7 @@ padding-bottom: 20;
             
             /* 📱 GAME SETTINGS SCREEN - Mobile Optimizations */
             #game-settings {
+                display: none;
                 max-width: 95vw !important;
                 padding: 16px !important;
                 margin: 10px;
@@ -644,6 +686,7 @@ padding-bottom: 20;
             
             /* 📱 GAME SCREEN - Mobile Optimizations */
             #game-container {
+                display: none;
                 padding: 4px !important;
                 gap: 4px !important;
                 flex-direction: column !important;
@@ -683,11 +726,15 @@ padding-bottom: 20;
                 margin-bottom: 8px;
                 max-height: 300px;
                 overflow-y: auto;
+                background: #161523 !important;
+                border-color: #2A283E !important;
+                color: #E5E7EB;
             }
             
             #left-panel h2 {
                 font-size: 18px;
                 margin-bottom: 8px;
+                color: #ffffff;
             }
             
             /* Player cards - horizontal scroll */
@@ -962,8 +1009,8 @@ padding-bottom: 20;
             
             /* 📱 GAME BOARD - Extra Small */
             .board {
-                grid-template-columns: 100px repeat(18, 1fr) 100px;
-                grid-template-rows: 100px repeat(18, 1fr) 100px;
+                grid-template-columns: 80px repeat(9, 1fr) 80px;
+                grid-template-rows: 80px repeat(9, 1fr) 80px;
             }
             
             .space {
@@ -976,12 +1023,11 @@ padding-bottom: 20;
             }
             
             .player-piece {
-                            scale: 1.3;
-padding-bottom: 20;
-
-                font-size: 24px;
-                width: 16px;
-                height: 16px;
+                scale: 0.9;
+                padding-bottom: 10px;
+                font-size: 18px;
+                width: 20px;
+                height: 20px;
             }
             
             .dice {
@@ -1008,6 +1054,8 @@ padding-bottom: 20;
                 padding: 8px 12px;
             }
         }
+        
+        @media (max-width: 500px) {
             /* 📱 GAME BOARD - Extra Small */
             .board {
                 grid-template-columns: 50px repeat(9, 1fr) 50px;
@@ -1024,12 +1072,11 @@ padding-bottom: 20;
             }
             
             .player-piece {
-                            scale: 1.3;
-padding-bottom: 20;
-
-                font-size: 24px;
-                width: 16px;
-                height: 16px;
+                scale: 0.8;
+                padding-bottom: 8px;
+                font-size: 16px;
+                width: 18px;
+                height: 18px;
             }
             
             .dice {
@@ -1233,7 +1280,7 @@ padding-bottom: 20;
         }
     </style>
 </head>
-<body class="flex items-center justify-center h-screen">
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
 
     <!-- Mobilde sadece oyun içi menüde gösterilecek kontroller -->
     <div class="mobile-game-actions">
@@ -1245,103 +1292,146 @@ padding-bottom: 20;
     </div>
 
     <!-- Lobby Screen -->
-    <div id="lobby" class="w-full max-w-lg p-8 rounded-xl shadow-2xl text-center" style="background: linear-gradient(135deg, #f5e6d3 0%, #ffffff 50%, #f5e6d3 100%); border: 4px solid #c9a66b;">
-        <h1 class="text-4xl font-bold mb-4" style="color: #1a5f3f; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">🎲 Monopoly Game 🏠</h1>
-        <p class="text-gray-600 mb-8">Create a game and invite your friends, or join an existing game.</p>
+    <div id="lobby" class="w-full max-w-lg p-8 rounded-2xl shadow-2xl text-center border relative overflow-visible" style="background: rgba(22, 21, 35, 0.8); backdrop-filter: blur(10px); border-color: rgba(42, 40, 62, 0.6); color: #E5E7EB; z-index: 10;">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold uppercase tracking-wider" style="color: #ffffff; text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);">MONOPOLY</h1>
+            <p class="mt-2" style="color: #9CA3AF;">Start a new game or join your friends</p>
+        </div>
         
         <!-- Continue Game Button (shown only when there's a saved session) -->
         <div id="continue-game-section" class="mb-6 hidden">
-            <button id="continueGameBtn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-4 px-4 rounded-lg hover:from-purple-700 hover:to-purple-800 transition duration-300 shadow-lg transform hover:scale-105">
+            <button id="continueGameBtn" class="w-full text-white font-bold py-4 px-4 rounded-lg transition duration-300 shadow-lg transform hover:scale-105" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);">
                 🔄 Oyuna Devam Et
             </button>
-            <p class="text-sm text-gray-600 mt-2">Önceki oyununuza kaldığınız yerden devam edin</p>
+            <p class="text-sm mt-2" style="color: #9CA3AF;">Önceki oyununuza kaldığınız yerden devam edin</p>
             <button id="clearSessionBtn" class="text-sm text-red-500 hover:text-red-700 mt-2 underline">Oturumu Temizle</button>
         </div>
         
         <div class="space-y-4">
-            <input id="playerNameInput" type="text" placeholder="Enter Your Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div>
+                <label class="block text-sm font-medium mb-1.5 text-left" style="color: #E5E7EB;">Player Name</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style="color: #9CA3AF;">person</span>
+                    <input id="playerNameInput" type="text" placeholder="Enter your name" class="w-full border rounded-lg shadow-sm transition pl-10 pr-4 py-2.5" style="background: #1F2937; border-color: #374151; color: #E5E7EB;">
+                </div>
+            </div>
             
             <!-- Character Selection in Main Menu -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2 text-left">Select Your Character</label>
-                <div id="main-character-select" class="flex gap-2 flex-wrap justify-center">
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="car">🚗</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="hat">🎩</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="dog">🐕</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="shoe">👞</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="iron">🧲</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="ship">🚢</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="cat">🐈</button>
-                    <button type="button" class="character-btn text-3xl p-2 border-2 rounded-lg hover:border-blue-300 transition" data-char="money">💰</button>
+                <label class="block text-sm font-medium mb-2 text-left" style="color: #E5E7EB;">Select Your Character</label>
+                <div id="main-character-select" class="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="car" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">directions_car</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="hat" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">theater_comedy</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="dog" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">pets</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="shoe" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">directions_boat</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="iron" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">nest_cam_magnet_mount</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="ship" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="cat" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">cruelty_free</span>
+                    </button>
+                    <button type="button" class="character-btn aspect-square flex items-center justify-center border rounded-lg transition" data-char="money" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-3xl">monetization_on</span>
+                    </button>
                 </div>
             </div>
             
             <!-- Map Selection in Main Menu -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2 text-left">Select Map <span id="main-map-preview" class="text-xs text-blue-600 font-semibold ml-2"></span></label>
-                <div id="main-map-select" class="grid grid-cols-2 gap-2">
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="classic">🏛️ Classic</button>
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="turkey">🇹🇷 Turkey</button>
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="world">🌍 World</button>
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="holland">🇳🇱 Holland</button>
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="megarich">💎 Mega Rich</button>
-                    <button type="button" class="map-btn px-3 py-2 border-2 rounded-lg hover:bg-blue-50 transition text-sm" data-map="custom">⚙️ Custom</button>
+                <label class="block text-sm font-medium mb-2 text-left" style="color: #E5E7EB;">Select Map <span id="main-map-preview" class="text-xs font-semibold ml-2" style="color: #A78BFA;"></span></label>
+                <div id="main-map-select" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="classic" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-xl" style="color: #9CA3AF;">castle</span> <span style="color: #E5E7EB;">Classic</span>
+                    </button>
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="turkey" style="background: #1F2937; border-color: #374151;">
+                        <span class="font-normal" style="color: #9CA3AF;">TR</span> <span style="color: #E5E7EB;">Turkey</span>
+                    </button>
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="world" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-xl" style="color: #9CA3AF;">public</span> <span style="color: #E5E7EB;">World</span>
+                    </button>
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="holland" style="background: #1F2937; border-color: #374151;">
+                        <span class="font-normal" style="color: #9CA3AF;">NL</span> <span style="color: #E5E7EB;">Holland</span>
+                    </button>
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="megarich" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-xl" style="color: #9CA3AF;">diamond</span> <span style="color: #E5E7EB;">Mega Rich</span>
+                    </button>
+                    <button type="button" class="map-btn text-left font-medium p-3 border rounded-lg transition flex items-center gap-2" data-map="custom" style="background: #1F2937; border-color: #374151;">
+                        <span class="material-symbols-outlined text-xl" style="color: #9CA3AF;">tune</span> <span style="color: #E5E7EB;">Custom</span>
+                    </button>
                 </div>
             </div>
             
             <div class="flex items-center gap-2">
-                <input id="privateGameCheckbox" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                <label for="privateGameCheckbox" class="text-sm font-medium text-gray-700">Private Game (won't appear in public games list)</label>
+                <input id="privateGameCheckbox" type="checkbox" class="w-4 h-4 rounded" style="background: #1F2937; border-color: #374151;">
+                <label for="privateGameCheckbox" class="text-sm font-medium" style="color: #E5E7EB;">Private Game (won't appear in public games list)</label>
             </div>
             
-            <button id="createGameBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Create New Game</button>
+            <div class="grid sm:grid-cols-2 gap-4 pt-4">
+                <button id="createGameBtn" class="w-full text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg flex items-center justify-center gap-2" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);">
+                    <span class="material-symbols-outlined">add</span> Create New Game
+                </button>
+                <button id="joinGameBtn" class="w-full font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2" style="background: #374151; color: #E5E7EB;">
+                    <span class="material-symbols-outlined">group</span> Join Game
+                </button>
+            </div>
         </div>
 
         <div class="my-6 flex items-center">
-            <hr class="flex-grow border-t border-gray-300">
-            <span class="px-4 text-gray-500">OR</span>
-            <hr class="flex-grow border-t border-gray-300">
+            <hr class="flex-grow border-t" style="border-color: #374151;">
+            <span class="px-4" style="color: #9CA3AF;">OR</span>
+            <hr class="flex-grow border-t" style="border-color: #374151;">
         </div>
 
         <!-- Public Games List -->
         <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-800">Public Games</h3>
+            <h3 class="text-lg font-semibold" style="color: #E5E7EB;">Public Games</h3>
             <div id="public-games-list" class="space-y-2 max-h-48 overflow-y-auto">
                 <!-- Public games will be listed here -->
-                <p class="text-gray-500 text-sm">Loading games...</p>
+                <p class="text-sm" style="color: #9CA3AF;">Loading games...</p>
             </div>
-            <button id="refreshGamesBtn" class="w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 text-sm">🔄 Refresh List</button>
+            <button id="refreshGamesBtn" class="w-full font-bold py-2 px-4 rounded-lg transition duration-300 text-sm" style="background: #374151; color: #E5E7EB;">🔄 Refresh List</button>
         </div>
 
         <div class="my-6 flex items-center">
-            <hr class="flex-grow border-t border-gray-300">
-            <span class="px-4 text-gray-500">OR</span>
-            <hr class="flex-grow border-t border-gray-300">
+            <hr class="flex-grow border-t" style="border-color: #374151;">
+            <span class="px-4" style="color: #9CA3AF;">OR</span>
+            <hr class="flex-grow border-t" style="border-color: #374151;">
         </div>
 
         <div class="space-y-4">
-            <input id="gameIdInput" type="text" placeholder="Enter Game ID" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-            <button id="joinGameBtn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Join Game</button>
+            <input id="gameIdInput" type="text" placeholder="Enter Game ID" class="w-full px-4 py-3 border rounded-lg" style="background: #1F2937; border-color: #374151; color: #E5E7EB;">
+            <button id="joinGameBtn" class="w-full text-white font-bold py-3 px-4 rounded-lg transition duration-300" style="background-color: #00F5D4; color: #030712; box-shadow: 0 0 15px 0 rgba(0, 245, 212, 0.5);">Join Game</button>
         </div>
         <p id="lobby-error" class="text-red-500 mt-4 h-4"></p>
     </div>
 
     <!-- Game Settings Screen (Host Only) -->
-    <div id="game-settings" class="hidden w-full max-w-4xl p-8 bg-white rounded-xl shadow-2xl overflow-y-auto" style="max-height: 90vh;">
-        <h2 class="text-3xl font-bold mb-2 text-gray-800">Game Settings</h2>
+    <div id="game-settings" class="hidden w-full max-w-4xl p-8 rounded-xl shadow-2xl overflow-y-auto border" style="max-height: 90vh; background: #161523; border-color: #2A283E; color: #E5E7EB;">
+        <h2 class="text-3xl font-bold mb-2 uppercase tracking-wider" style="color: #A78BFA; text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);">Game Settings</h2>
         <div class="mb-6">
-            <p class="text-gray-600">Share this Game ID with your friends:</p>
+            <p style="color: #9CA3AF;">Share this Game ID with your friends:</p>
             <div class="flex items-center gap-2 mt-2">
-                 <p id="displayGameId" class="text-2xl font-mono p-3 bg-gray-100 rounded-lg"></p>
-                 <button id="copyGameIdBtn" class="bg-gray-200 p-3 rounded-lg hover:bg-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                 <p id="displayGameId" class="text-2xl font-mono p-3 rounded-lg" style="background: #0D0C14; border: 1px solid #2A283E; color: #ffffff;"></p>
+                 <button id="copyGameIdBtn" class="p-3 rounded-lg transition" style="background: #1F2937; color: #E5E7EB;">
+                    <span class="material-symbols-outlined">content_copy</span>
                  </button>
             </div>
             <div class="mt-3">
-                <p class="text-gray-600 text-sm">Or share this direct link:</p>
+                <p class="text-sm" style="color: #9CA3AF;">Or share this direct link:</p>
                 <div class="flex items-center gap-2 mt-1">
-                    <input id="gameLinkInput" type="text" readonly class="flex-1 text-sm font-mono p-2 bg-gray-100 rounded border" onclick="this.select()">
-                    <button id="copyLinkBtn" class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-sm">
+                    <input id="gameLinkInput" type="text" readonly class="flex-1 text-sm font-mono p-2 rounded border" onclick="this.select()" style="background: #0D0C14; border-color: #2A283E; color: #9CA3AF;">
+                    <button id="copyLinkBtn" class="text-white px-3 py-2 rounded text-sm transition" style="background-color: #9333ea; box-shadow: 0 0 10px 0 rgba(167, 139, 250, 0.5);">
                         Copy Link
                     </button>
                 </div>
@@ -1349,49 +1439,49 @@ padding-bottom: 20;
         </div>
 
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Game Mode</label>
+            <label class="block text-sm font-medium mb-2" style="color: #C4B5FD;">Game Mode</label>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="classic">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="classic" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">🎲 Classic</div>
-                    <div class="text-xs text-gray-600">Traditional rules</div>
+                    <div class="text-xs" style="color: #9CA3AF;">Traditional rules</div>
                 </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="fast">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="fast" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">⚡ Fast Money</div>
-                    <div class="text-xs text-gray-600">2x money, 2x GO</div>
+                    <div class="text-xs" style="color: #9CA3AF;">2x money, 2x GO</div>
                 </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="hard">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="hard" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">🔥 Hard Mode</div>
-                    <div class="text-xs text-gray-600">Less money, more tax</div>
+                    <div class="text-xs" style="color: #9CA3AF;">Less money, more tax</div>
                 </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="noluck">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="noluck" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">🚫 No Luck</div>
-                    <div class="text-xs text-gray-600">No chance/chest cards</div>
+                    <div class="text-xs" style="color: #9CA3AF;">No chance/chest cards</div>
                 </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="mega">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="mega" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">💎 Mega Rich</div>
-                    <div class="text-xs text-gray-600">5x starting money</div>
+                    <div class="text-xs" style="color: #9CA3AF;">5x starting money</div>
                 </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg hover:bg-blue-50 transition" data-mode="speed">
+                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="speed" style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
                     <div class="font-bold">🏃 Speed Game</div>
-                    <div class="text-xs text-gray-600">Half properties</div>
+                    <div class="text-xs" style="color: #9CA3AF;">Half properties</div>
                 </button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label for="startingMoney" class="block text-sm font-medium text-gray-700">Starting Money</label>
-                <input type="number" id="startingMoney" value="1500" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="startingMoney" class="block text-sm font-medium" style="color: #9CA3AF;">Starting Money</label>
+                <input type="number" id="startingMoney" value="1500" class="mt-1 block w-full px-3 py-2 border rounded-md" style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
             </div>
             <div>
-                <label for="passGoAmount" class="block text-sm font-medium text-gray-700">Pass "GO" Amount</label>
-                <input type="number" id="passGoAmount" value="200" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="passGoAmount" class="block text-sm font-medium" style="color: #9CA3AF;">Pass "GO" Amount</label>
+                <input type="number" id="passGoAmount" value="200" class="mt-1 block w-full px-3 py-2 border rounded-md" style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
             </div>
         </div>
         <div class="mb-6">
             <label class="flex items-center">
                 <input type="checkbox" id="allowTrading" checked class="mr-2">
-                <span class="text-sm font-medium text-gray-700">Allow Player Trading</span>
+                <span class="text-sm font-medium" style="color: #ffffff;">Allow Player Trading</span>
             </label>
         </div>
         <div class="mb-6">
@@ -1446,166 +1536,166 @@ padding-bottom: 20;
     </div>
 
     <!-- Game Screen -->
-    <div id="game-container" class="hidden w-full h-full p-2 flex flex-col gap-2">
+    <div id="game-container" class="flex h-screen w-full p-4 gap-4" style="display: none; background-color: #0D0C14; background-image: radial-gradient(circle at 1px 1px, rgba(167, 139, 250, 0.1) 1px, transparent 0); background-size: 30px 30px; background-attachment: fixed;">
         
-        <!-- Main Game Area (Players + Board + Right Panel) -->
-        <div class="flex-grow flex flex-col lg:flex-row gap-2">
-            
-            <!-- Mobil Players Menüsü (Sadece mobilde en üstte) -->
-            <div id="mobile-players-bar" style="display: none;">
-                <div id="mobile-players-list" style="display: flex; overflow-x: auto; gap: 0.5rem; padding: 0.5rem; background: white; border-bottom: 2px solid #e0e0e0;"></div>
-            </div>
-            
-            <style>
-                @media (max-width: 768px) {
-                    #mobile-players-bar {
-                        display: block !important;
-                        position: sticky;
-                        top: 0;
-                        z-index: 200;
-                    }
-                    #mobile-players-list {
-                        white-space: nowrap;
-                    }
-                    .mobile-player-card {
-                        display: inline-flex;
-                        flex-direction: column;
-                        align-items: center;
-                        min-width: 80px;
-                        padding: 0.5rem;
-                        background: #f9fafb;
-                        border-radius: 8px;
-                        border: 2px solid #e5e7eb;
-                        font-size: 0.75rem;
-                    }
-                    .mobile-player-card.active {
-                        border-color: #3b82f6;
-                        background: #eff6ff;
-                    }
-                }
-                .game-link-display{
-                    display: none !important;
-                }
-            </style>
-            
-            <!-- 🎨 Dark Mode Toggle (Top Right) -->
-            <button id="darkModeToggle" class="absolute top-4 right-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white px-4 py-2 rounded-lg hover:from-gray-800 hover:to-black transition-all shadow-lg text-sm font-bold z-20">
-                🌙 Dark Mode
-            </button>
-            
-            <!-- 🔗 Game Link Display (Top Right, below dark mode) -->
-            <div id="game-link-display" class="absolute top-16 right-4 bg-white border border-gray-300 rounded-lg p-2 shadow-lg hidden z-20">
-                <div class="text-xs text-gray-600 mb-1">Game Link:</div>
-                <div class="flex gap-1">
-                    <input id="game-link-input" type="text" readonly class="text-xs bg-gray-50 border border-gray-300 rounded px-2 py-1 flex-1 min-w-0" style="font-size: 10px;">
-                    <button id="copy-game-link-btn" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">
-                        📋
+        <!-- LEFT SIDEBAR: Share + Advertisement + Chat -->
+        <aside class="w-80 flex-shrink-0 flex flex-col gap-4">
+            <!-- Share This Game -->
+            <div class="rounded-lg p-4 flex flex-col gap-3 shadow-lg" style="background: #111827; border: 1px solid #374151;">
+                <h2 class="text-lg font-bold" style="color: #ffffff;">Share This Game</h2>
+                <div class="flex items-center">
+                    <input id="game-link-input" class="flex-grow border rounded-l-md text-sm p-2" style="background: #030712; border-color: #374151; color: #E5E7EB;" readonly type="text" value=""/>
+                    <button id="copy-game-link-btn" class="text-white p-2 rounded-r-md transition-opacity flex items-center gap-1" style="background-color: #9333ea;">
+                        <span class="material-icons-outlined text-base">content_copy</span>
+                        <span class="text-sm font-semibold">Copy</span>
                     </button>
                 </div>
             </div>
-
-
             
-            <!-- Player Info and Controls -->
-            <div id="left-panel" class="w-full lg:w-1/4 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-4 flex flex-col gap-3 overflow-y-auto border-2 border-gray-200">
-                <h2 class="text-2xl font-bold text-center">Players</h2>
-                <div id="players-info" class="flex-grow space-y-2">
-                    <!-- Player cards will be here -->
+            <!-- Advertisement -->
+            <div class="rounded-lg p-4 flex flex-col justify-center items-center text-center h-48 shadow-lg" style="background: #111827; border: 1px solid #374151;">
+                <span class="font-semibold" style="color: #9CA3AF;">Advertisement</span>
+                <p class="text-xs mt-1" style="color: #6B7280;">Holo-Ads Integrated</p>
+            </div>
+            
+            <!-- Chat -->
+            <div class="rounded-lg p-4 flex flex-col flex-grow shadow-lg" style="background: #111827; border: 1px solid #374151;">
+                <h2 class="text-lg font-bold mb-3" style="color: #ffffff;">System Chat</h2>
+                <div id="chat-messages" class="flex-grow space-y-2 text-sm overflow-y-auto" style="color: #9CA3AF;">
+                    <p><span class="font-bold text-cyan-500">SYSTEM:</span> Game initialized. Waiting for players...</p>
+                </div>
+                <div class="mt-4 flex items-center">
+                    <input id="chat-input" class="flex-grow border rounded-l-md text-sm p-2" style="background: #030712; border-color: #374151; color: #E5E7EB;" placeholder="Say something..." type="text"/>
+                    <button id="send-chat-btn" class="text-white p-2 rounded-r-md transition-opacity" style="background-color: #9333ea;">
+                        <span class="material-icons-outlined text-base">send</span>
+                    </button>
                 </div>
                 
-                <!-- Game Link Display (moved from top-right) -->
-                <div id="game-link-display-mobile" class="hidden border-t-2 border-gray-200 pt-3">
-                    <div class="text-xs text-gray-600 mb-1">Game Link:</div>
-                    <div class="flex gap-1">
-                        <input id="game-link-input-mobile" type="text" readonly class="text-xs bg-gray-50 border border-gray-300 rounded px-2 py-1 flex-1 min-w-0" style="font-size: 10px;">
-                        <button id="copy-game-link-btn-mobile" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">
-                            📋
-                        </button>
-                    </div>
+                <!-- Voice Chat Controls -->
+                <div class="mt-3 flex gap-2">
+                    <button id="join-voice-btn" class="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all" style="background: #00F5D4; color: #0D0C14;">
+                        <span class="material-icons-outlined text-sm">mic</span>
+                        <span>Join Voice</span>
+                    </button>
+                    <button id="leave-voice-btn" class="hidden flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all" style="background: #DC2626; color: #ffffff;">
+                        <span class="material-icons-outlined text-sm">call_end</span>
+                        <span>Leave</span>
+                    </button>
+                    <button id="toggle-mic-btn" class="hidden flex items-center justify-center px-3 py-2 rounded-lg text-xs font-semibold transition-all" style="background: #374151; color: #E5E7EB;">
+                        <span class="material-icons-outlined text-sm">mic_off</span>
+                    </button>
                 </div>
             </div>
-            
-            <!-- Board -->
-            <div class="flex-grow flex items-center justify-center">
-                    <div id="board" class="board">
+        </aside>
+        
+        <!-- CENTER: Board -->
+        <main class="flex-grow flex items-center justify-center overflow-auto">
+            <div class="w-fit h-fit p-2 rounded-xl shadow-2xl" style="background: #111827; border: 1px solid #374151;">
+                <div id="board" class="board">
                     <div class="center-board">
-                        <h1 id="board-title" class="text-5xl font-bold text-gray-800 tracking-wider">BUSINESS</h1>
+                        <div class="absolute top-0 left-0 right-0 h-1 shadow-glow" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);"></div>
+                        <h1 id="board-title" class="text-4xl font-bold tracking-widest" style="color: #9333ea;">CYBERPOLY</h1>
                         
-                        <!-- 🎲 Dice Display - Center of Board -->
-                    <div id="dice-container" class="flex justify-center items-center gap-4 h-24">
-                        <div id="dice1-wrapper" class="relative">
-                            <span id="dice1" class="dice">🎲</span>
+                        <!-- Dice Display -->
+                        <div id="dice-container" class="flex gap-4">
+                            <div id="dice1" class="flex items-center justify-center font-bold text-4xl rounded-xl shadow-lg" style="width: 80px; height: 80px; background: #ffffff; color: #000; border: 3px solid #374151;">?</div>
+                            <div id="dice2" class="flex items-center justify-center font-bold text-4xl rounded-xl shadow-lg" style="width: 80px; height: 80px; background: #ffffff; color: #000; border: 3px solid #374151;">?</div>
                         </div>
-                        <div id="dice2-wrapper" class="relative">
-                            <span id="dice2" class="dice">🎲</span>
+                        
+                        <p id="turn-info" class="text-lg font-semibold" style="color: #E5E7EB;">It's <span class="font-bold" style="color: #9333ea;">your</span> turn to roll.</p>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col w-full max-w-sm gap-2">
+                            <button id="rollDiceBtn" class="w-full text-white font-bold py-3 px-4 rounded-lg transition-opacity shadow-lg flex items-center justify-center gap-2" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);">
+                                <span class="material-icons-outlined">casino</span>
+                                Roll Dice
+                            </button>
+                            <button id="managePropertiesBtn" class="w-full text-white font-bold py-2 px-4 rounded-lg transition-opacity flex items-center justify-center gap-2" style="background-color: #6B7280;">
+                                <span class="material-icons-outlined">business_center</span>
+                                Manage Properties
+                            </button>
+                            <button id="endTurnBtn" class="w-full text-center font-semibold py-2 px-4 rounded-lg transition-colors" style="color: #9CA3AF; background: transparent;">End Turn</button>
                         </div>
+                        
+                        <div class="absolute bottom-0 left-0 right-0 h-1 shadow-glow" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);"></div>
                     </div>
-                    
-                    <!-- 🎲 Roll Dice Button - Center of Board -->
-                    <button id="rollDiceBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition duration-300 disabled:bg-gray-400 shadow-lg transform hover:scale-105">🎲 Roll Dice</button>
-                    
-                    <!-- 🏠 Manage Properties Button - Center of Board -->
-                    <button id="managePropertiesBtn" class="hidden md:block w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-purple-800 transition duration-300 shadow-lg transform hover:scale-105">🏠 Manage Properties</button>
-                    
-                    <!-- 💳 Credit Button - Center of Board -->
-                    <button id="takeCreditBtn" class="hidden md:block w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-2 px-4 rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition duration-300 shadow-lg transform hover:scale-105">💳 Kredi Al</button>
-                    
-                    <!-- 🤝 Team Manager Button - Center of Board -->
-                    <button id="teamManagerBtn" class="hidden md:block w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white font-bold py-2 px-4 rounded-lg hover:from-orange-700 hover:to-orange-800 transition duration-300 shadow-lg transform hover:scale-105">🤝 Team Manager</button>
-                    
-                    <!-- 🤝 Trade Button - Center of Board -->
-                    <button id="viewTradesBtn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 text-white font-bold py-2 px-4 rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition duration-300 shadow-lg transform hover:scale-105">📤 Trade (<span id="pending-trades-count">0</span>)</button>
-                    
-                    <!-- 🃏 Joker Cards Button - Center of Board -->
-                    <button id="jokerCardsBtn" class="w-full bg-gradient-to-r from-pink-600 to-pink-700 text-white font-bold py-2 px-4 rounded-lg hover:from-pink-700 hover:to-pink-800 transition duration-300 shadow-lg transform hover:scale-105">🃏 Joker Cards</button>
-                    
-                    <!-- ✓ End Turn Button - Center of Board -->
-                    <button id="endTurnBtn" class="hidden w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-2 px-4 rounded-lg hover:from-red-700 hover:to-red-800 transition duration-300 shadow-lg transform hover:scale-105">✓ End Turn</button>
-                    
-                    <div id="game-log" class="w-full h-24 bg-gray-100 p-2 rounded-lg overflow-y-auto text-xs border">
-                        <!-- Game log messages go here -->
-                    </div>
-                    <!-- Mobile controls bar -->
-                    <div id="mobile-controls-bar" class="hidden">
-                        <button id="managePropertiesBtnMobile" class="bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-yellow-600 transition duration-200">Manage Properties</button>
-                        <button id="takeCreditBtnMobile" class="bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-emerald-600 transition duration-200">💳 Kredi Al</button>
-                        <button id="teamManagerBtnMobile" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition duration-200">Team Manager</button>
-                        <button id="jokerCardsBtnMobile" class="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-purple-600 transition duration-200">Joker Cards</button>
-                    </div>
+                    <!-- Board spaces will be dynamically inserted here -->
                 </div>
-                <!-- Spaces will be dynamically inserted here -->
+            </div>
+        </main>
+        
+        <!-- RIGHT SIDEBAR: Players + Game Settings -->
+        <aside class="w-80 flex-shrink-0 flex flex-col gap-4">
+            <!-- Players List -->
+            <div class="rounded-lg p-4 flex flex-col gap-3 shadow-lg" style="background: #111827; border: 1px solid #374151;">
+                <h2 class="text-lg font-bold" style="color: #ffffff;">Players (<span id="player-count">1</span>/4)</h2>
+                <div id="players-info" class="space-y-3">
+                    <!-- Player cards will be dynamically added here -->
+                </div>
             </div>
             
-            <!-- 🏡 Property Buy Panel - Floating on Board -->
-            <div id="property-buy-panel" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 z-40 max-w-md w-full border-4 border-green-500">
-                <div class="text-center">
-                    <h3 id="property-buy-title" class="text-2xl font-bold mb-2 text-green-700">🏡 Buy Property</h3>
-                    <p id="property-buy-name" class="text-xl font-semibold mb-4 text-gray-800"></p>
-                    <p id="property-buy-desc" class="text-sm text-gray-600 mb-6"></p>
-                    
-                    <!-- Share Options -->
-                    <div id="property-buy-options" class="space-y-3">
-                        <!-- Options will be added dynamically -->
-                    </div>
-                    
-                    <button id="property-buy-close" class="mt-4 bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 font-bold">Close</button>
+            <!-- Game Settings -->
+            <div class="rounded-lg p-4 flex flex-col gap-3 shadow-lg" style="background: #111827; border: 1px solid #374151;">
+                <h2 class="text-lg font-bold mb-2" style="color: #ffffff;">Game Controls</h2>
+                
+                <!-- Team Manager Button -->
+                <button id="teamManagerBtn" class="w-full flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all" style="background: #9333ea; color: #ffffff;">
+                    <span class="material-icons-outlined">groups</span>
+                    <span>Team Manager</span>
+                </button>
+                
+                <!-- Joker Cards Button -->
+                <button id="jokerCardsBtn" class="w-full flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all" style="background: #00F5D4; color: #0D0C14;">
+                    <span class="material-icons-outlined">style</span>
+                    <span>Joker Cards</span>
+                </button>
+                
+                <!-- Take Credit Button -->
+                <button id="takeCreditBtn" class="w-full flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all" style="background: #F59E0B; color: #ffffff;">
+                    <span class="material-icons-outlined">credit_card</span>
+                    <span>Take Credit</span>
+                </button>
+                
+                <!-- Trade Button -->
+                <button id="viewTradesBtn" class="w-full flex items-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all" style="background: #374151; color: #E5E7EB;">
+                    <span class="material-icons-outlined">swap_horiz</span>
+                    <span>Trade</span>
+                </button>
+            </div>
+            
+            <!-- Game Log -->
+            <div class="rounded-lg p-4 flex flex-col gap-2 shadow-lg flex-grow overflow-hidden" style="background: #111827; border: 1px solid #374151;">
+                <h2 class="text-lg font-bold" style="color: #ffffff;">Game Log</h2>
+                <div id="game-log" class="overflow-y-auto flex-grow text-sm space-y-1" style="max-height: 300px; color: #9CA3AF;">
+                    <!-- Game log entries will be added here -->
                 </div>
             </div>
-        </div>
-        
-        </div> <!-- Main Game Area ends -->
-        
-        <!-- 💬 Chat Panel - Bottom Full Width -->
-        <div id="chat-panel" class="w-full bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-4 flex flex-col border-2 border-green-200" style="display: none; max-height: 250px;">
-            <h3 class="text-lg font-bold text-center text-green-600 mb-2">💬 Chat</h3>
-            <div id="chat-messages" class="flex-grow space-y-2 overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="min-height: 120px; max-height: 150px;">
-                <!-- Chat messages will be here -->
+        </aside>
+    </div>
+    
+    <!-- Hidden elements for game functionality -->
+    <div style="display: none;">
+        <div id="mobile-controls-bar"></div>
+    </div>
+    
+    <!-- 🏡 Property Buy Panel - Floating on Board -->
+    <div id="property-buy-panel" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-2xl shadow-2xl p-6 z-40 max-w-md w-full border-4" style="background: #111827; border-color: #9333ea;">
+        <div class="text-center">
+            <h3 id="property-buy-title" class="text-2xl font-bold mb-2" style="color: #A78BFA;">🏡 Buy Property</h3>
+            <p id="property-buy-name" class="text-xl font-semibold mb-4" style="color: #E5E7EB;"></p>
+            <p id="property-buy-desc" class="text-sm mb-6" style="color: #9CA3AF;"></p>
+            
+            <!-- Share Options -->
+            <div id="property-buy-options" class="space-y-3">
+                <!-- Options will be added dynamically -->
             </div>
-            <div class="flex gap-2 mt-2">
-                <input id="chat-input" type="text" placeholder="Type a message..." class="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="200">
-                <button id="chat-send-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200 font-semibold">📤</button>
-            </div>
+            
+            <button id="property-buy-close" class="mt-4 text-white px-6 py-2 rounded-lg font-bold" style="background: #6B7280;">Close</button>
         </div>
+    </div>
+    
+    <!-- 💬 Chat Panel - Now in sidebar, this is backup -->
+    <div id="chat-panel" class="hidden"></div>
         
         <!-- Game Management Modal -->
         <div id="game-management-modal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 z-50 max-w-2xl w-full border-4 border-purple-500 max-h-[90vh] overflow-y-auto">
@@ -1684,11 +1774,16 @@ padding-bottom: 20;
         }
         window.addEventListener('resize', updateMobileControlsBar);
         window.addEventListener('DOMContentLoaded', updateMobileControlsBar);
-        // Button event bindings
-        document.getElementById('managePropertiesBtnMobile').onclick = () => document.getElementById('managePropertiesBtn').click();
-        document.getElementById('takeCreditBtnMobile').onclick = () => document.getElementById('takeCreditBtn').click();
-        document.getElementById('teamManagerBtnMobile').onclick = () => document.getElementById('teamManagerBtn').click();
-        document.getElementById('jokerCardsBtnMobile').onclick = () => document.getElementById('jokerCardsBtn').click();
+        // Button event bindings (with null checks)
+        const managePropertiesBtnMobile = document.getElementById('managePropertiesBtnMobile');
+        const takeCreditBtnMobile = document.getElementById('takeCreditBtnMobile');
+        const teamManagerBtnMobile = document.getElementById('teamManagerBtnMobile');
+        const jokerCardsBtnMobile = document.getElementById('jokerCardsBtnMobile');
+        
+        if (managePropertiesBtnMobile) managePropertiesBtnMobile.onclick = () => document.getElementById('managePropertiesBtn').click();
+        if (takeCreditBtnMobile) takeCreditBtnMobile.onclick = () => document.getElementById('takeCreditBtn').click();
+        if (teamManagerBtnMobile) teamManagerBtnMobile.onclick = () => document.getElementById('teamManagerBtn').click();
+        if (jokerCardsBtnMobile) jokerCardsBtnMobile.onclick = () => document.getElementById('jokerCardsBtn').click();
         
         // Modal toggle state tracking
         let lastOpenedModal = null;
@@ -2186,11 +2281,13 @@ padding-bottom: 20;
 
         // --- DOM ELEMENTS ---
         const lobby = document.getElementById('lobby');
+        console.log('🚀 JavaScript loading...');
         const gameSettingsScreen = document.getElementById('game-settings');
         const gameContainer = document.getElementById('game-container');
         
         const playerNameInput = document.getElementById('playerNameInput');
         const createGameBtn = document.getElementById('createGameBtn');
+        console.log('🎯 createGameBtn:', createGameBtn);
         const gameIdInput = document.getElementById('gameIdInput');
         const joinGameBtn = document.getElementById('joinGameBtn');
         const lobbyError = document.getElementById('lobby-error');
@@ -2864,9 +2961,11 @@ padding-bottom: 20;
         if (gameModeBtns.length > 0) gameModeBtns[0].click();
 
         // --- LOBBY LOGIC ---
-        createGameBtn.addEventListener('click', async () => {
-            console.log('🆕 Create Game button clicked');
-            addDebugLog('🆕 CREATE CLICKED');
+        console.log('🔗 Adding event listener to createGameBtn...');
+        if (createGameBtn) {
+            createGameBtn.addEventListener('click', async () => {
+                console.log('🆕 Create Game button clicked');
+                addDebugLog('🆕 CREATE CLICKED');
             
             // Disable button and show loading
             createGameBtn.disabled = true;
@@ -2984,7 +3083,9 @@ padding-bottom: 20;
                 createGameBtn.textContent = 'Create New Game';
             }
         });
+        } // End of if (createGameBtn)
 
+        if (joinGameBtn) {
         joinGameBtn.addEventListener('click', async () => {
             console.log('🔘 Join Game button clicked');
             console.log('📝 Player name:', playerNameInput.value);
@@ -3114,13 +3215,14 @@ padding-bottom: 20;
                 joinGameBtn.textContent = 'Join Game';
             }
         });
+        } // End of if (joinGameBtn)
         
         // 🤖 Add Bot Player
         const addBotBtn = document.getElementById('addBotBtn');
         addBotBtn.addEventListener('click', () => {
             // Coming Soon - Bots disabled
             showModal('🤖 Bots Coming Soon!', 
-                '<p class="text-center">Bot players are currently under development and will be available in a future update!</p><p class="text-center mt-4 text-gray-600">Stay tuned! 🚀</p>', 
+                '<p class="text-center">Bot players are currently under development, so if you have any problems with them you can mail coxaexs@gmail.com. We assure you that they will be better with future updates!</p><p class="text-center mt-4 text-gray-600">Stay tuned! 🚀</p>', 
                 [{text: 'OK', class: 'bg-blue-500', action: hideModal}]
             );
         });
@@ -3275,27 +3377,27 @@ padding-bottom: 20;
             const mapThemes = {
                 classic: {
                     boardBg: 'linear-gradient(135deg, #f5e6d3 0%, #e8d4ba 50%, #f5e6d3 100%)',
-                    bodyBg: 'linear-gradient(135deg, #1a5f3f 0%, #2d8659 50%, #1a5f3f 100%)',
-                    borderColor: '#1a5f3f'
+                    bodyBg: '#0D0C14',
+                    borderColor: '#374151'
                 },
                 turkey: {
                     boardBg: 'linear-gradient(135deg, #f5e6d3 0%, #ffd6d6 50%, #f5e6d3 100%)',
-                    bodyBg: 'linear-gradient(135deg, #1a5f3f 0%, #8b1a1a 50%, #1a5f3f 100%)',
+                    bodyBg: '#0D0C14',
                     borderColor: '#e30a17'
                 },
                 world: {
                     boardBg: 'linear-gradient(135deg, #e8f4ff 0%, #c8e0f5 50%, #e8f4ff 100%)',
-                    bodyBg: 'linear-gradient(135deg, #003d7a 0%, #0066cc 50%, #003d7a 100%)',
+                    bodyBg: '#0D0C14',
                     borderColor: '#0066cc'
                 },
                 holland: {
                     boardBg: 'linear-gradient(135deg, #fff5e6 0%, #ffe0b3 50%, #fff5e6 100%)',
-                    bodyBg: 'linear-gradient(135deg, #cc5200 0%, #ff8533 50%, #cc5200 100%)',
+                    bodyBg: '#0D0C14',
                     borderColor: '#ff6600'
                 },
                 mega_rich: {
                     boardBg: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
-                    bodyBg: 'linear-gradient(135deg, #1a1000 0%, #3d3000 50%, #1a1000 100%)',
+                    bodyBg: '#0D0C14',
                     borderColor: '#d4af37'
                 }
             };
@@ -3308,7 +3410,10 @@ padding-bottom: 20;
             board.style.borderColor = theme.borderColor;
             
             // Apply theme to body
-            document.body.style.background = theme.bodyBg;
+            document.body.style.backgroundColor = theme.bodyBg;
+            document.body.style.backgroundImage = 'radial-gradient(circle at 1px 1px, rgba(167, 139, 250, 0.1) 1px, transparent 0)';
+            document.body.style.backgroundSize = '30px 30px';
+            document.body.style.backgroundAttachment = 'fixed';
             
             console.log('🎨 Applied theme for map:', currentMap);
         }
@@ -3459,7 +3564,7 @@ padding-bottom: 20;
                 if ([0, 10, 20, 30].includes(i)) {
                     spaceEl.classList.add('corner');
                 }
-                
+                availableavailableavailableavailableavailable
                 let content = `<div class="font-bold uppercase">${spaceData.name}</div>`;
                 // Price labels removed for cleaner board appearance
                 let priceLabel = '';
@@ -3562,6 +3667,11 @@ padding-bottom: 20;
             updateControls();
             updateGameLog();
             updateBoardTitle();
+            
+            // Update dice display if lastDiceRoll exists
+            if (gameData.lastDiceRoll && gameData.lastDiceRoll.length === 2) {
+                updateDiceDisplay(gameData.lastDiceRoll[0], gameData.lastDiceRoll[1]);
+            }
             
             // ⏰ Handle turn timer for auto-end turn
             handleTurnTimer();
@@ -4386,6 +4496,17 @@ padding-bottom: 20;
             const die1 = Math.floor(Math.random() * 6) + 1;
             const die2 = Math.floor(Math.random() * 6) + 1;
             const total = die1 + die2;
+            
+            console.log('🎲 Rolled dice:', die1, '+', die2, '=', total);
+            
+            // Update dice display after animation (500ms - faster!)
+            setTimeout(() => {
+                console.log('🎲 Updating dice display to:', die1, die2);
+                updateDiceDisplay(die1, die2);
+                dice1El.classList.remove('dice-rolling');
+                dice2El.classList.remove('dice-rolling');
+            }, 500);
+            
             const oldPosition = currentPlayer.position;
             const newPosition = (currentPlayer.position + total) % 40;
             
@@ -4434,12 +4555,12 @@ padding-bottom: 20;
             
             setTimeout(() => {
                 handleLanding(newPosition);
-            }, 1500);
+            }, 2000);
             
             // Re-enable dice button after animation
             setTimeout(() => {
                 rollDiceBtn.disabled = false;
-            }, 2000);
+            }, 2500);
         });
         
         // 3D Dice Animation Function
@@ -4449,13 +4570,20 @@ padding-bottom: 20;
             
             let rolls = 0;
             const rollInterval = setInterval(() => {
-                dice1El.textContent = Math.floor(Math.random() * 6) + 1;
-                dice2El.textContent = Math.floor(Math.random() * 6) + 1;
+                const randomDie1 = Math.floor(Math.random() * 6) + 1;
+                const randomDie2 = Math.floor(Math.random() * 6) + 1;
+                updateDiceDisplay(randomDie1, randomDie2);
                 rolls++;
                 if (rolls >= 10) {
                     clearInterval(rollInterval);
                 }
             }, 100);
+        }
+        
+        // Function to update dice display
+        function updateDiceDisplay(die1, die2) {
+            dice1El.textContent = die1;
+            dice2El.textContent = die2;
         }
         
         // View Trades Button
@@ -8091,6 +8219,71 @@ padding-bottom: 20;
                             setTimeout(() => { copyGameLinkBtnMobile.innerHTML = originalText; }, 2000);
                         });
                     }
+                });
+            }
+            
+            // Chat event listeners
+            const chatInputEl = document.getElementById('chat-input');
+            const sendChatBtn = document.getElementById('send-chat-btn');
+            
+            if (sendChatBtn) {
+                sendChatBtn.addEventListener('click', sendChatMessage);
+            }
+            
+            if (chatInputEl) {
+                chatInputEl.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendChatMessage();
+                    }
+                });
+            }
+            
+            // Voice Chat event listeners
+            const joinVoiceBtn = document.getElementById('join-voice-btn');
+            const leaveVoiceBtn = document.getElementById('leave-voice-btn');
+            const toggleMicBtn = document.getElementById('toggle-mic-btn');
+            let isInVoice = false;
+            let isMicMuted = false;
+            
+            if (joinVoiceBtn) {
+                joinVoiceBtn.addEventListener('click', () => {
+                    isInVoice = true;
+                    joinVoiceBtn.classList.add('hidden');
+                    leaveVoiceBtn.classList.remove('hidden');
+                    toggleMicBtn.classList.remove('hidden');
+                    addChatMessage('SYSTEM', 'You joined voice chat', false);
+                    console.log('Joined voice chat');
+                });
+            }
+            
+            if (leaveVoiceBtn) {
+                leaveVoiceBtn.addEventListener('click', () => {
+                    isInVoice = false;
+                    isMicMuted = false;
+                    joinVoiceBtn.classList.remove('hidden');
+                    leaveVoiceBtn.classList.add('hidden');
+                    toggleMicBtn.classList.add('hidden');
+                    toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
+                    toggleMicBtn.style.background = '#374151';
+                    addChatMessage('SYSTEM', 'You left voice chat', false);
+                    console.log('Left voice chat');
+                });
+            }
+            
+            if (toggleMicBtn) {
+                toggleMicBtn.addEventListener('click', () => {
+                    isMicMuted = !isMicMuted;
+                    if (isMicMuted) {
+                        toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
+                        toggleMicBtn.style.background = '#374151';
+                        addChatMessage('SYSTEM', 'Microphone muted', false);
+                    } else {
+                        toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic</span>';
+                        toggleMicBtn.style.background = '#00F5D4';
+                        toggleMicBtn.style.color = '#0D0C14';
+                        addChatMessage('SYSTEM', 'Microphone unmuted', false);
+                    }
+                    console.log('Mic muted:', isMicMuted);
                 });
             }
             

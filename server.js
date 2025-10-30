@@ -202,6 +202,18 @@ wss.on('connection', (ws, req) => {
                     // Bot veya oyuncu turnunu bitirmek istediğinde
                     handleEndTurn(ws, message);
                     break;
+                case 'voice_join':
+                    // Player joined voice chat
+                    handleVoiceJoin(ws, message);
+                    break;
+                case 'voice_leave':
+                    // Player left voice chat
+                    handleVoiceLeave(ws, message);
+                    break;
+                case 'voice_signal':
+                    // WebRTC signaling
+                    handleVoiceSignal(ws, message);
+                    break;
                 default:
                     ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
             }
@@ -231,11 +243,13 @@ function handleCreateGame(ws, message) {
             board: settings.board || getDefaultBoard()
         },
         trade: null,
+        voiceChat: [], // Track players in voice chat
         createdAt: Date.now()
     };
     
     games.set(gameId, newGame);
     ws.gameId = gameId;
+    ws.playerId = player.id;
     
     ws.send(JSON.stringify({
         type: 'game_created',
@@ -283,6 +297,7 @@ function handleJoinGame(ws, message) {
     }
     
     ws.gameId = gameId;
+    ws.playerId = player.id;
     
     // Send game state to joining player
     ws.send(JSON.stringify({
@@ -783,6 +798,88 @@ function handleEndTurn(ws, message) {
     game.gameLog.push(`⏭️ Turn ended. It's now ${game.players[nextPlayerIndex].name}'s turn.`);
     broadcastToGame(gameId, { type: 'game_updated', game });
     ws.send(JSON.stringify({ type: 'game_updated', game }));
+}
+
+// 🎤 Voice Chat Handlers
+function handleVoiceJoin(ws, message) {
+    const gameId = ws.gameId;
+    if (!gameId || !games.has(gameId)) {
+        return;
+    }
+    
+    const game = games.get(gameId);
+    
+    // Add to voice chat list if not already there
+    if (!game.voiceChat) game.voiceChat = [];
+    if (!game.voiceChat.includes(message.playerId)) {
+        game.voiceChat.push(message.playerId);
+    }
+    
+    console.log(`🎤 Player ${message.playerId} joined voice chat in game ${gameId}`);
+    console.log(`Voice chat participants:`, game.voiceChat);
+    
+    // First, send list of already connected voice users to the new joiner
+    ws.send(JSON.stringify({
+        type: 'voice_users',
+        users: game.voiceChat.filter(id => id !== message.playerId)
+    }));
+    
+    // Then broadcast to all other players that someone joined
+    broadcastToGame(gameId, {
+        type: 'voice_join',
+        playerId: message.playerId,
+        playerName: message.playerName
+    }, ws);
+}
+
+function handleVoiceLeave(ws, message) {
+    const gameId = ws.gameId;
+    if (!gameId || !games.has(gameId)) {
+        return;
+    }
+    
+    const game = games.get(gameId);
+    
+    // Remove from voice chat list
+    if (game.voiceChat) {
+        game.voiceChat = game.voiceChat.filter(id => id !== message.playerId);
+    }
+    
+    console.log(`🔇 Player ${message.playerId} left voice chat in game ${gameId}`);
+    console.log(`Voice chat participants:`, game.voiceChat);
+    
+    // Broadcast to all other players in the game
+    broadcastToGame(gameId, {
+        type: 'voice_leave',
+        playerId: message.playerId
+    }, ws);
+}
+
+function handleVoiceSignal(ws, message) {
+    const gameId = ws.gameId;
+    if (!gameId || !games.has(gameId)) {
+        return;
+    }
+    
+    console.log(`📡 Relaying voice signal from ${message.from} to ${message.to}`);
+    
+    // Find the target player's WebSocket and send them the signal
+    const game = games.get(gameId);
+    const targetPlayer = game.players.find(p => p.id === message.to);
+    
+    if (targetPlayer) {
+        // Broadcast only to the target player
+        wss.clients.forEach(client => {
+            if (client.gameId === gameId && client.playerId === message.to && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: 'voice_signal',
+                    from: message.from,
+                    to: message.to,
+                    signal: message.signal
+                }));
+            }
+        });
+    }
 }
 
 // 🔄 Periodic game state synchronization

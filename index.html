@@ -9,6 +9,7 @@
     <meta http-equiv="Expires" content="0">
     <title>Monopoly Game v3.2 (Bigger Board + End Turn)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -2339,6 +2340,54 @@
                         addChatMessage(message.playerName, message.text);
                     }
                     break;
+                
+                case 'voice_join':
+                    // Another player joined voice chat
+                    if (message.playerId !== localPlayer.id && isInVoice) {
+                        console.log(`🎤 ${message.playerName} joined voice chat`);
+                        addChatMessage('SYSTEM', `🎤 ${message.playerName} joined voice chat`, false);
+                        // Create peer connection as initiator
+                        createPeerConnection(message.playerId, true);
+                    }
+                    break;
+                
+                case 'voice_users':
+                    // Received list of users already in voice chat
+                    console.log('🎤 Users already in voice chat:', message.users);
+                    if (isInVoice) {
+                        // Connect to all existing voice users
+                        message.users.forEach(userId => {
+                            if (userId !== localPlayer.id && !peers[userId]) {
+                                console.log(`🔗 Connecting to existing voice user: ${userId}`);
+                                createPeerConnection(userId, true);
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'voice_leave':
+                    // Another player left voice chat
+                    if (peers[message.playerId]) {
+                        peers[message.playerId].destroy();
+                        delete peers[message.playerId];
+                        console.log(`🔇 Player ${message.playerId} left voice chat`);
+                    }
+                    break;
+                    
+                case 'voice_signal':
+                    // Received WebRTC signal from another player
+                    if (message.to === localPlayer.id && isInVoice) {
+                        console.log(`📡 Received signal from ${message.from}`);
+                        
+                        if (!peers[message.from]) {
+                            // Create peer connection as non-initiator
+                            createPeerConnection(message.from, false);
+                        }
+                        
+                        // Process the signal
+                        peers[message.from].signal(message.signal);
+                    }
+                    break;
                     
                 case 'games_list':
                     displayPublicGames(message.games);
@@ -2633,6 +2682,18 @@
         const characterIcons = {
           car: '🚗', hat: '🎩', dog: '🐕', shoe: '👞', iron: '🧲', ship: '🚢', cat: '🐈', money: '💰'
         };
+        
+        // Her karaktere özel renk
+        const characterColors = {
+          car: '#EF4444',    // Kırmızı
+          hat: '#3B82F6',    // Mavi
+          dog: '#10B981',    // Yeşil
+          shoe: '#F59E0B',   // Turuncu
+          iron: '#8B5CF6',   // Mor
+          ship: '#06B6D4',   // Cyan
+          cat: '#EC4899',    // Pembe
+          money: '#F97316'   // Koyu Turuncu
+        };
 
         // 🎵 Sound Effects System using Web Audio API
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -2759,6 +2820,15 @@
             
             // Trigger confetti
             createConfetti(centerX, centerY);
+            
+            // Hemen owner indicator ekle
+            let indicator = spaceEl.querySelector('.owner-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'owner-indicator';
+                spaceEl.appendChild(indicator);
+            }
+            indicator.style.backgroundColor = ownerColor;
             
             // Animate the space card
             spaceEl.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
@@ -3267,7 +3337,7 @@
                 const newPlayer = {
                     id: localPlayer.id,
                     name: localPlayer.name,
-                    color: playerColors[Math.floor(Math.random()*playerColors.length)],
+                    color: characterColors[selectedCharacter] || playerColors[Math.floor(Math.random()*playerColors.length)],
                     position: 0,
                     character: selectedCharacter,
                     team: '', // No team at start
@@ -7941,11 +8011,22 @@
         }
         
         // Close button handler
-        propertyBuyClose.addEventListener('click', () => {
-            hidePropertyBuyPanel();
-            // Optionally start auction if player doesn't buy
-            // startAuction(currentPosition);
-        });
+        if (propertyBuyClose) {
+            propertyBuyClose.addEventListener('click', () => {
+                console.log('🔘 Close button clicked');
+                hidePropertyBuyPanel();
+                
+                // Property almadan kapatıldı, tur tamamlandı sayılsın
+                if (gameData && gameData.turnState !== 'action_complete') {
+                    gameData.turnState = 'action_complete';
+                    updateGameUI();
+                    console.log('✅ Turn state set to action_complete - End Turn enabled');
+                }
+                
+                // Optionally start auction if player doesn't buy
+                // startAuction(currentPosition);
+            });
+        }
         
         // --- UTILITIES ---
         async function updateGame(data) {
@@ -8344,47 +8425,195 @@
             const toggleMicBtn = document.getElementById('toggle-mic-btn');
             let isInVoice = false;
             let isMicMuted = false;
+            let localStream = null;
+            let peers = {}; // Store peer connections by player ID
             
-            if (joinVoiceBtn) {
-                joinVoiceBtn.addEventListener('click', () => {
+            // WebRTC Voice Chat Implementation
+            async function startVoiceChat() {
+                try {
+                    console.log('🎤 Requesting microphone access...');
+                    
+                    // Get user's audio stream
+                    localStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }, 
+                        video: false 
+                    });
+                    
+                    console.log('✅ Got local audio stream');
+                    console.log('Audio tracks:', localStream.getAudioTracks());
+                    
+                    // Check if audio is enabled
+                    localStream.getAudioTracks().forEach(track => {
+                        console.log(`Track: ${track.kind}, enabled: ${track.enabled}, muted: ${track.muted}`);
+                    });
+                    
+                    // Notify other players that we joined voice
+                    sendMessage({
+                        type: 'voice_join',
+                        playerId: localPlayer.id,
+                        playerName: localPlayer.name
+                    });
+                    
                     isInVoice = true;
                     joinVoiceBtn.classList.add('hidden');
                     leaveVoiceBtn.classList.remove('hidden');
                     toggleMicBtn.classList.remove('hidden');
-                    addChatMessage('SYSTEM', 'You joined voice chat', false);
-                    console.log('Joined voice chat');
+                    addChatMessage('SYSTEM', '🎤 You joined voice chat', false);
+                    
+                } catch (error) {
+                    console.error('❌ Error accessing microphone:', error);
+                    let errorMsg = 'Could not access microphone. ';
+                    if (error.name === 'NotAllowedError') {
+                        errorMsg += 'Please allow microphone access in your browser.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMsg += 'No microphone found.';
+                    } else {
+                        errorMsg += error.message;
+                    }
+                    alert(errorMsg);
+                }
+            }
+            
+            function stopVoiceChat() {
+                // Stop local stream
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+                
+                // Close all peer connections
+                Object.values(peers).forEach(peer => {
+                    if (peer) peer.destroy();
                 });
+                peers = {};
+                
+                // Notify others that we left
+                sendMessage({
+                    type: 'voice_leave',
+                    playerId: localPlayer.id
+                });
+                
+                isInVoice = false;
+                isMicMuted = false;
+                joinVoiceBtn.classList.remove('hidden');
+                leaveVoiceBtn.classList.add('hidden');
+                toggleMicBtn.classList.add('hidden');
+                toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
+                toggleMicBtn.style.background = '#374151';
+                addChatMessage('SYSTEM', '🔇 You left voice chat', false);
+                
+                console.log('🔇 Left voice chat');
+            }
+            
+            function createPeerConnection(remotePeerId, initiator = false) {
+                console.log(`🔗 Creating peer connection with ${remotePeerId}, initiator: ${initiator}`);
+                
+                if (!localStream) {
+                    console.error('❌ No local stream available');
+                    return null;
+                }
+                
+                const peer = new SimplePeer({
+                    initiator: initiator,
+                    stream: localStream,
+                    trickle: true,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
+                });
+                
+                peer.on('signal', signal => {
+                    console.log(`📡 Sending signal to ${remotePeerId}`, signal.type);
+                    sendMessage({
+                        type: 'voice_signal',
+                        from: localPlayer.id,
+                        to: remotePeerId,
+                        signal: signal
+                    });
+                });
+                
+                peer.on('stream', remoteStream => {
+                    console.log(`🔊 Received remote stream from ${remotePeerId}`);
+                    console.log('Stream tracks:', remoteStream.getTracks());
+                    
+                    // Create audio element and add to DOM
+                    const audio = document.createElement('audio');
+                    audio.id = `voice-${remotePeerId}`;
+                    audio.srcObject = remoteStream;
+                    audio.autoplay = true;
+                    audio.volume = 1.0;
+                    
+                    // Add to body (hidden)
+                    document.body.appendChild(audio);
+                    
+                    // Play audio
+                    audio.play()
+                        .then(() => console.log(`✅ Playing audio from ${remotePeerId}`))
+                        .catch(e => console.error('❌ Error playing audio:', e));
+                });
+                
+                peer.on('connect', () => {
+                    console.log(`✅ Connected to ${remotePeerId}`);
+                });
+                
+                peer.on('error', err => {
+                    console.error(`❌ Peer error with ${remotePeerId}:`, err);
+                });
+                
+                peer.on('close', () => {
+                    console.log(`🔌 Peer connection closed with ${remotePeerId}`);
+                    
+                    // Remove audio element
+                    const audio = document.getElementById(`voice-${remotePeerId}`);
+                    if (audio) audio.remove();
+                    
+                    delete peers[remotePeerId];
+                });
+                
+                peers[remotePeerId] = peer;
+                return peer;
+            }
+            
+            function toggleMicrophone() {
+                if (!localStream) return;
+                
+                isMicMuted = !isMicMuted;
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !isMicMuted;
+                });
+                
+                if (isMicMuted) {
+                    toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
+                    toggleMicBtn.style.background = '#374151';
+                    toggleMicBtn.style.color = '#E5E7EB';
+                    addChatMessage('SYSTEM', '🔇 Microphone muted', false);
+                } else {
+                    toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic</span>';
+                    toggleMicBtn.style.background = '#00F5D4';
+                    toggleMicBtn.style.color = '#0D0C14';
+                    addChatMessage('SYSTEM', '🎤 Microphone unmuted', false);
+                }
+                
+                console.log('🎤 Mic muted:', isMicMuted);
+            }
+            
+            if (joinVoiceBtn) {
+                joinVoiceBtn.addEventListener('click', startVoiceChat);
             }
             
             if (leaveVoiceBtn) {
-                leaveVoiceBtn.addEventListener('click', () => {
-                    isInVoice = false;
-                    isMicMuted = false;
-                    joinVoiceBtn.classList.remove('hidden');
-                    leaveVoiceBtn.classList.add('hidden');
-                    toggleMicBtn.classList.add('hidden');
-                    toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
-                    toggleMicBtn.style.background = '#374151';
-                    addChatMessage('SYSTEM', 'You left voice chat', false);
-                    console.log('Left voice chat');
-                });
+                leaveVoiceBtn.addEventListener('click', stopVoiceChat);
             }
             
             if (toggleMicBtn) {
-                toggleMicBtn.addEventListener('click', () => {
-                    isMicMuted = !isMicMuted;
-                    if (isMicMuted) {
-                        toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic_off</span>';
-                        toggleMicBtn.style.background = '#374151';
-                        addChatMessage('SYSTEM', 'Microphone muted', false);
-                    } else {
-                        toggleMicBtn.innerHTML = '<span class="material-icons-outlined text-sm">mic</span>';
-                        toggleMicBtn.style.background = '#00F5D4';
-                        toggleMicBtn.style.color = '#0D0C14';
-                        addChatMessage('SYSTEM', 'Microphone unmuted', false);
-                    }
-                    console.log('Mic muted:', isMicMuted);
-                });
+                toggleMicBtn.addEventListener('click', toggleMicrophone);
             }
             
             // Initialize WebSocket connection

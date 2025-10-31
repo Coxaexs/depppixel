@@ -2576,7 +2576,17 @@
         let localPlayer = { id: '', name: '' };
         let currentGameId = null;
         let gameData = null;
-        const playerColors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+        // Her oyuncu için çok belirgin ve farklı renkler - 8 oyuncuya kadar benzersiz
+        const playerColors = [
+            '#EF4444',  // Parlak Kırmızı
+            '#3B82F6',  // Parlak Mavi
+            '#10B981',  // Parlak Yeşil
+            '#F59E0B',  // Parlak Turuncu
+            '#8B5CF6',  // Parlak Mor
+            '#EC4899',  // Parlak Pembe
+            '#06B6D4',  // Parlak Cyan
+            '#F97316'   // Parlak Koyu Turuncu
+        ];
         let selectedGameMode = 'classic';
         let decidedLaterTrades = []; // Trade'ler için "decide later" takibi
         let shownTradeIds = new Set(); // Gösterilen trade ID'lerini takip et
@@ -3334,10 +3344,12 @@
             }
 
             try {
+                // Her oyuncuya benzersiz renk ata - karakterden bağımsız
+                // Client tarafında renk atamıyoruz, server otomatik atayacak
                 const newPlayer = {
                     id: localPlayer.id,
                     name: localPlayer.name,
-                    color: characterColors[selectedCharacter] || playerColors[Math.floor(Math.random()*playerColors.length)],
+                    color: '', // Server tarafında atanacak
                     position: 0,
                     character: selectedCharacter,
                     team: '', // No team at start

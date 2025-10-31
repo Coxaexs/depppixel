@@ -57,6 +57,27 @@ function generateGameId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+// Her oyuncuya benzersiz renk ata
+const availableColors = [
+    '#EF4444',  // Parlak Kırmızı
+    '#3B82F6',  // Parlak Mavi
+    '#10B981',  // Parlak Yeşil
+    '#F59E0B',  // Parlak Turuncu
+    '#8B5CF6',  // Parlak Mor
+    '#EC4899',  // Parlak Pembe
+    '#06B6D4',  // Parlak Cyan
+    '#F97316'   // Parlak Koyu Turuncu
+];
+
+function assignUniqueColor(game) {
+    // Kullanılmış renkleri bul
+    const usedColors = game.players.map(p => p.color).filter(c => c);
+    // Kullanılmamış renkleri bul
+    const unusedColors = availableColors.filter(color => !usedColors.includes(color));
+    // İlk kullanılmamış rengi döndür veya rastgele bir renk
+    return unusedColors.length > 0 ? unusedColors[0] : availableColors[game.players.length % availableColors.length];
+}
+
 function broadcastToGame(gameId, message, excludeClientId = null) {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN && 
@@ -289,6 +310,12 @@ function handleJoinGame(ws, message) {
         player.jailCount = 0;
         player.doublesCount = 0;
         console.log(`🎮 Late join: ${player.name} joining with $${player.money}`);
+    }
+    
+    // Her oyuncuya benzersiz renk ata
+    if (!player.color || player.color === '') {
+        player.color = assignUniqueColor(game);
+        console.log(`🎨 Assigned color ${player.color} to ${player.name}`);
     }
     
     // Check if player already in game
@@ -610,32 +637,30 @@ function handleAddBot(ws, message) {
         return;
     }
     const botName = availableBotNames[Math.floor(Math.random() * availableBotNames.length)];
-    let botColor, botCharacter, botEmoji;
     const botCharacters = ['dog', 'car', 'ship', 'hat', 'thimble', 'boot', 'wheelbarrow', 'iron'];
+    let botCharacter, botEmoji;
+    
+    // Bot karakterini seç
     if (botName === 'Bot Shan') {
-        botColor = '#964b00';
         botCharacter = 'shan';
         botEmoji = '💩';
     } else if(botName == 'Bot Kiwi'){
-        botColor = '#25e000ff';
         botCharacter = 'bot kiwi';
         botEmoji = '🥝'; 
     }
     else if(botName == 'Bot Flo'){
-        botColor = '#ff00ddff';
         botCharacter = 'bot flo';
         botEmoji = '⚓'; 
     }
-     else {
-        const botColors = ['#003cffff' , '#575757ff', '#eeff00ff', '#FFEAA7', '#DDA0DD'];
-        botColor = botColors[Math.floor(Math.random() * botColors.length)];
+    else {
         botCharacter = botCharacters[Math.floor(Math.random() * botCharacters.length)];
         botEmoji = undefined;
     }
+    
     const botPlayer = {
         id: botId,
         name: botName,
-        color: botColor,
+        color: '', // Benzersiz renk atanacak
         character: botCharacter,
         emoji: botEmoji,
         money: game.settings.startingMoney || 1500,
@@ -645,6 +670,10 @@ function handleAddBot(ws, message) {
         isBot: true,
         connected: true
     };
+    
+    // Bot'a benzersiz renk ata
+    botPlayer.color = assignUniqueColor(game);
+    console.log(`🎨 Assigned color ${botPlayer.color} to ${botName}`);
     
     game.players.push(botPlayer);
     game.gameLog = game.gameLog || [];

@@ -1,0 +1,10 @@
+# robots.txt for deeppixel.online
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://deeppixel.online/sitemap.xml
+
+# Disallow (varsa gizli sayfalar için)
+# Disallow: /admin/
+# Disallow: /private/

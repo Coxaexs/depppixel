@@ -1,8 +1,10 @@
-# 🎲 Custom Monopoly Game - Online Multiplayer
+# 🎲 DeepPixel - Online Çok Oyunculu Monopoly Oyunu
 
-A fully customizable, online multiplayer Monopoly-like board game with real-time synchronization using Firebase.
+Tamamen özelleştirilebilir, gerçek zamanlı çok oyunculu bir Monopoly benzeri masa oyunu.
 
-## ✨ Features
+🌐 **Web Sitesi:** [deeppixel.online](https://deeppixel.online)
+
+## ✨ Özellikler
 
 ### 🎮 Gameplay
 - **Real-time multiplayer** - Play with friends online
@@ -152,7 +154,70 @@ Currently, the game supports multiplayer with human players. Bot support can be 
 - Railroad/utility rent calculation may need refinement
 - Bankruptcy doesn't redistribute properties yet
 
-## 📄 License
+## � SEO Optimizasyonu
+
+Site SEO optimizasyonu için aşağıdaki adımlar tamamlanmıştır:
+
+### ✅ Yapılanlar
+- ✅ Detaylı meta tag'ler (title, description, keywords)
+- ✅ Open Graph meta tag'leri (Facebook paylaşımları için)
+- ✅ Twitter Card meta tag'leri
+- ✅ Canonical URL tanımı
+- ✅ Dil ayarı (lang="tr")
+- ✅ Schema.org yapılandırılmış veri (WebApplication)
+- ✅ robots.txt dosyası
+- ✅ sitemap.xml dosyası
+- ✅ .htaccess optimizasyonları (GZIP, caching)
+
+### 📊 Google'da İndeksleme
+
+Sitenizi Google'a kaydetmek için:
+
+1. **Google Search Console'a kayıt olun:**
+   - [Google Search Console](https://search.google.com/search-console)
+   - Sitenizi ekleyin: `https://deeppixel.online`
+   - Site sahipliğini doğrulayın
+
+2. **Sitemap gönderin:**
+   - Search Console'da "Sitemaps" bölümüne gidin
+   - `https://deeppixel.online/sitemap.xml` adresini ekleyin
+
+3. **URL İnceleme:**
+   - Ana sayfanızı manuel olarak indeksleme isteği gönderin
+
+4. **Google Analytics ekleyin (opsiyonel):**
+   ```html
+   <!-- Google tag (gtag.js) -->
+   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+     gtag('config', 'G-XXXXXXXXXX');
+   </script>
+   ```
+
+### 🚀 Ek İyileştirmeler
+
+**Yapılabilecekler:**
+- [ ] Blog bölümü ekleyin (oyun ipuçları, güncellemeler)
+- [ ] Yorum sistemi ekleyin (kullanıcı etkileşimi artırır)
+- [ ] Sosyal medya paylaşım butonları
+- [ ] Video eğitimler/nasıl oynanır videoları
+- [ ] Backlink stratejisi (diğer oyun sitelerinde bahsedilme)
+- [ ] Hız optimizasyonu (PageSpeed Insights ile test edin)
+- [ ] Mobil uyumluluk testi
+- [ ] SSL sertifikası (HTTPS) - Güvenlik için önemli
+
+### 📈 Performans Takibi
+
+**Kontrol edilmesi gerekenler:**
+- Google Search Console - İndeksleme durumu
+- Google Analytics - Ziyaretçi istatistikleri
+- PageSpeed Insights - Site hızı
+- Mobile-Friendly Test - Mobil uyumluluk
+
+## �📄 License
 
 Free to use and modify for personal and educational purposes.
 

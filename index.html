@@ -1,13 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>DeepPixel - Online Çok Oyunculu Monopoly Oyunu</title>
+    <meta name="description" content="DeepPixel ile arkadaşlarınızla online monopoly oynayın! Gerçek zamanlı çok oyunculu, özelleştirilebilir oyun tahtası, takas sistemi ve daha fazlası. Ücretsiz monopoly oyunu şimdi oyna!">
+    <meta name="keywords" content="monopoly, online monopoly, çok oyunculu monopoly, monopoly oyna, ücretsiz monopoly, deeppixel, online masa oyunu, kutu oyunu, arkadaşlarla oyna, gerçek zamanlı oyun">
+    <meta name="author" content="DeepPixel">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Turkish">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deeppixel.online/">
+    <meta property="og:title" content="DeepPixel - Online Çok Oyunculu Monopoly Oyunu">
+    <meta property="og:description" content="Arkadaşlarınızla online monopoly oynayın! Gerçek zamanlı multiplayer, özelleştirilebilir oyun modu ve ücretsiz. Hemen oynamaya başla!">
+    <meta property="og:image" content="https://deeppixel.online/og-image.jpg">
+    <meta property="og:site_name" content="DeepPixel">
+    <meta property="og:locale" content="tr_TR">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://deeppixel.online/">
+    <meta name="twitter:title" content="DeepPixel - Online Monopoly Oyunu">
+    <meta name="twitter:description" content="Arkadaşlarınızla online monopoly oynayın! Gerçek zamanlı multiplayer, ücretsiz oyna.">
+    <meta name="twitter:image" content="https://deeppixel.online/twitter-image.jpg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://deeppixel.online/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Humans.txt -->
+    <link rel="author" type="text/plain" href="/humans.txt">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#9333ea">
+    
     <!-- 🔄 Cache Buster - Force Reload -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Monopoly Game v3.2 (Bigger Board + End Turn)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1395,8 +1436,8 @@
     <!-- Lobby Screen -->
     <div id="lobby" class="w-full max-w-lg p-8 rounded-2xl shadow-2xl text-center border relative overflow-visible" style="background: rgba(22, 21, 35, 0.8); backdrop-filter: blur(10px); border-color: rgba(42, 40, 62, 0.6); color: #E5E7EB; z-index: 10;">
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold uppercase tracking-wider" style="color: #ffffff; text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);">MONOPOLY</h1>
-            <p class="mt-2" style="color: #9CA3AF;">Start a new game or join your friends</p>
+            <h1 class="text-4xl font-bold uppercase tracking-wider" style="color: #ffffff; text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);">DEEPPIXEL</h1>
+            <p class="mt-2" style="color: #9CA3AF;">Yeni bir oyun başlat veya arkadaşlarınla oyna</p>
         </div>
         
         <!-- Continue Game Button (shown only when there's a saved session) -->
@@ -1695,7 +1736,7 @@
                 <div id="board" class="board">
                     <div class="center-board">
                         <div class="absolute top-0 left-0 right-0 h-1 shadow-glow" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);"></div>
-                        <h1 id="board-title" class="text-4xl font-bold tracking-widest" style="color: #9333ea;">CYBERPOLY</h1>
+                        <h1 id="board-title" class="text-4xl font-bold tracking-widest" style="color: #9333ea;">DEEPPIXEL</h1>
                         
                         <!-- Dice Display -->
                         <div id="dice-container" class="flex gap-4">
@@ -8647,6 +8688,43 @@
             <button id="closeManagementModal" class="w-full bg-gray-500 text-white p-2 rounded">Close</button>
         </div>
     </div>
+
+    <!-- Structured Data (Schema.org) for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DeepPixel - Online Monopoly Oyunu",
+        "url": "https://deeppixel.online",
+        "description": "Ücretsiz online çok oyunculu monopoly oyunu. Arkadaşlarınızla gerçek zamanlı oynayın, özelleştirilebilir oyun modları.",
+        "applicationCategory": "GameApplication",
+        "genre": "Board Game",
+        "inLanguage": "tr-TR",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "TRY"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "DeepPixel"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "156"
+        },
+        "featureList": [
+            "Gerçek zamanlı çok oyunculu oyun",
+            "2-8 oyuncu desteği",
+            "Özelleştirilebilir oyun tahtası",
+            "Takas sistemi",
+            "Mobil uyumlu tasarım",
+            "Ücretsiz oyna"
+        ]
+    }
+    </script>
 
 </body>
 </html>

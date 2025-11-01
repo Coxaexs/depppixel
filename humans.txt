@@ -1,0 +1,17 @@
+# humanstxt.org
+
+/* TEAM */
+    Developer: DeepPixel Team
+    Site: https://deeppixel.online
+    Location: Turkey
+
+/* SITE */
+    Last update: 2025/11/01
+    Language: Turkish / English
+    Doctype: HTML5
+    IDE: Visual Studio Code
+    
+/* THANKS */
+    TailwindCSS - https://tailwindcss.com
+    Google Fonts - https://fonts.google.com
+    WebSocket - Real-time multiplayer support

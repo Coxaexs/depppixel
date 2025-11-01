@@ -5136,6 +5136,24 @@
                 return;
             }
             
+            // 🔒 Check jail turns - auto-release after 3 turns (4th turn start)
+            if (playersCopy[gameData.currentPlayerIndex].inJail) {
+                playersCopy[gameData.currentPlayerIndex].jailTurns = (playersCopy[gameData.currentPlayerIndex].jailTurns || 0) + 1;
+                if (playersCopy[gameData.currentPlayerIndex].jailTurns >= 4) {
+                    playersCopy[gameData.currentPlayerIndex].inJail = false;
+                    playersCopy[gameData.currentPlayerIndex].jailTurns = 0;
+                    const logMessage = `⏰ ${playersCopy[gameData.currentPlayerIndex].name} automatically released from jail after 3 failed attempts.`;
+                    await updateGame({
+                        currentPlayerIndex: nextPlayerIndex,
+                        players: playersCopy,
+                        turnState: 'start',
+                        lastDiceRoll: [0, 0],
+                        gameLog: [...gameData.gameLog, logMessage, `It's now ${gameData.players[nextPlayerIndex].name}'s turn.`]
+                    });
+                    return;
+                }
+            }
+            
             await updateGame({
                 currentPlayerIndex: nextPlayerIndex,
                 players: playersCopy,
@@ -5289,6 +5307,25 @@
                 
                 window.isBotTurnInProgress = false;
                 return;
+            }
+            
+            // 🔒 Check jail turns - auto-release after 3 turns (4th turn start)
+            if (botPlayersCopy[gameData.currentPlayerIndex].inJail) {
+                botPlayersCopy[gameData.currentPlayerIndex].jailTurns = (botPlayersCopy[gameData.currentPlayerIndex].jailTurns || 0) + 1;
+                if (botPlayersCopy[gameData.currentPlayerIndex].jailTurns >= 4) {
+                    botPlayersCopy[gameData.currentPlayerIndex].inJail = false;
+                    botPlayersCopy[gameData.currentPlayerIndex].jailTurns = 0;
+                    const logMessage = `⏰ ${botPlayersCopy[gameData.currentPlayerIndex].name} automatically released from jail after 3 failed attempts.`;
+                    await updateGame({
+                        currentPlayerIndex: nextPlayerIndex,
+                        players: botPlayersCopy,
+                        turnState: 'start',
+                        lastDiceRoll: [0, 0],
+                        gameLog: [...gameData.gameLog, logMessage, `It's now ${gameData.players[nextPlayerIndex].name}'s turn.`]
+                    });
+                    window.isBotTurnInProgress = false;
+                    return;
+                }
             }
             
             await updateGame({
@@ -6478,6 +6515,7 @@
                 addLog(`${gameData.players[gameData.currentPlayerIndex].name} rolled doubles and got out of jail!`);
                 const playersCopy = JSON.parse(JSON.stringify(gameData.players));
                 playersCopy[gameData.currentPlayerIndex].inJail = false;
+                playersCopy[gameData.currentPlayerIndex].jailTurns = 0;
                 await updateGame({ players: playersCopy });
                 endTurn(); // Allows normal turn to proceed
             } else {
@@ -6492,6 +6530,7 @@
             const playersCopy = JSON.parse(JSON.stringify(gameData.players));
             playersCopy[gameData.currentPlayerIndex].money -= 50;
             playersCopy[gameData.currentPlayerIndex].inJail = false;
+            playersCopy[gameData.currentPlayerIndex].jailTurns = 0;
             addLog(`${playersCopy[gameData.currentPlayerIndex].name} paid $50 to get out of jail.`);
             await updateGame({ players: playersCopy });
             endTurn();

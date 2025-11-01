@@ -6216,6 +6216,14 @@
                 const owner = gameData.players.find(p => p.id === propertyState.ownerId);
                 const railCount = gameData.properties.filter(p => p.ownerId === owner.id && gameData.settings.board[p.spaceIndex].type === 'railroad').length;
                 baseRent = 25 * Math.pow(2, railCount - 1);
+            } else if (space.type === 'utility') {
+                const owner = gameData.players.find(p => p.id === propertyState.ownerId);
+                const utilityCount = gameData.properties.filter(p => p.ownerId === owner.id && gameData.settings.board[p.spaceIndex].type === 'utility').length;
+                const diceTotal = gameData.lastDiceRoll && gameData.lastDiceRoll.length === 2 
+                    ? gameData.lastDiceRoll[0] + gameData.lastDiceRoll[1] 
+                    : 7; // Default to 7 if dice roll not available
+                // 1 utility = 4x dice, 2 utilities = 10x dice
+                baseRent = utilityCount === 1 ? diceTotal * 4 : diceTotal * 10;
             }
             
             // Hisse sahiplerine göre kira dağıtımı

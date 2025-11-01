@@ -6201,6 +6201,13 @@
             const propertyState = gameData.properties[position];
             const currentPlayerIndex = gameData.currentPlayerIndex;
             const currentPlayer = gameData.players[currentPlayerIndex];
+            
+            // Check if property is mortgaged
+            if (propertyState.mortgaged) {
+                addLog(`${currentPlayer.name} landed on ${space.name}, but it's mortgaged. No rent to pay.`);
+                endTurn();
+                return;
+            }
 
             let baseRent = 0;
             if (space.type === 'property') {
@@ -6552,24 +6559,28 @@
              } else {
                 ownedProperties.forEach(prop => {
                     const space = gameData.settings.board[prop.spaceIndex];
-                    if (space.type === 'property') {
-                       const hasMonopoly = checkMonopoly(myPlayer.id, space.color);
-                       const canBuyHouse = hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
-                       const canSellHouse = prop.houses > 0;
-                       const canMortgage = !prop.mortgaged && prop.houses === 0;
+                    if (space.type === 'property' || space.type === 'railroad') {
+                       const isProperty = space.type === 'property';
+                       const isRailroad = space.type === 'railroad';
+                       const hasMonopoly = isProperty ? checkMonopoly(myPlayer.id, space.color) : false;
+                       const canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
+                       const canSellHouse = isProperty && prop.houses > 0;
+                       const canMortgage = !prop.mortgaged && (isRailroad || prop.houses === 0);
                        const canUnmortgage = prop.mortgaged && myPlayer.money >= (space.price / 4);
                        
                        const mortgageValue = Math.floor(space.price / 4);
-                       const houseSellPrice = Math.floor(space.houseCost * 0.75);
+                       const houseSellPrice = isProperty ? Math.floor(space.houseCost * 0.75) : 0;
                        
                        modalHTML += `
                          <div class="p-3 border-b ${hasMonopoly ? 'bg-green-50' : 'bg-gray-50'} ${prop.mortgaged ? 'opacity-60 bg-red-50' : ''}">
                             <div class="mb-2">
-                               <p class="font-bold" style="color:${space.color}">${space.name} ${prop.mortgaged ? '🔒 MORTGAGED' : ''}</p>
-                               <p class="text-sm">Houses: ${prop.houses < 5 ? prop.houses : '🏨 Hotel'} | Value: $${space.price}</p>
-                               ${!hasMonopoly ? '<p class="text-xs text-red-500">⚠️ Need all ' + space.color + ' properties</p>' : ''}
+                               <p class="font-bold" style="color:${space.color || '#000000'}">${space.name} ${prop.mortgaged ? '🔒 MORTGAGED' : ''} ${isRailroad ? '🚂' : ''}</p>
+                               <p class="text-sm">${isProperty ? 'Houses: ' + (prop.houses < 5 ? prop.houses : '🏨 Hotel') + ' | ' : ''}Value: $${space.price}</p>
+                               ${!isProperty && isRailroad ? '<p class="text-xs text-blue-500">🚂 Railroad</p>' : ''}
+                               ${isProperty && !hasMonopoly ? '<p class="text-xs text-red-500">⚠️ Need all ' + space.color + ' properties</p>' : ''}
                             </div>
                             <div class="flex gap-2 flex-wrap">
+                                ${isProperty ? `
                                 <!-- Buy House/Hotel -->
                                 <button onclick="event.stopPropagation(); window.buyHouse(${prop.spaceIndex})" 
                                     class="text-xs px-3 py-2 rounded ${canBuyHouse ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'} text-white" 
@@ -6583,6 +6594,7 @@
                                         class="text-xs px-3 py-2 rounded bg-orange-500 hover:bg-orange-600 text-white">
                                         🔨 Sell ${prop.houses === 5 ? 'Hotel' : 'House'} ($${houseSellPrice})
                                     </button>
+                                ` : ''}
                                 ` : ''}
                                 
                                 <!-- Mortgage -->
@@ -6750,7 +6762,8 @@
             const space = gameData.settings.board[spaceIndex];
             const property = gameData.properties[spaceIndex];
             
-            if (property.houses > 0) {
+            // Only check houses for property types, not railroads
+            if (space.type === 'property' && property.houses > 0) {
                 alert('You must sell all houses before mortgaging!');
                 return;
             }

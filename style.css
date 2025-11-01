@@ -1,0 +1,1075 @@
+/* Tailwind Material Icons Configuration */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.material-icons-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+/* Display utilities */
+.hidden {
+    display: none !important;
+}
+
+/* Mobile breakpoint media query (900px) */
+@media (max-width: 900px) {
+    /* Mobilde sidebarları gizle */
+    #game-container > aside {
+        display: none !important;
+    }
+    
+    /* Center board'u tam genişliğe al */
+    #game-container > main {
+        width: 100%;
+        padding: 0.5rem;
+    }
+    
+    /* Board wrapper'ın padding'ini kaldır */
+    #game-container > main > div {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Game container padding */
+    #game-container {
+        padding: 0.5rem !important;
+        gap: 0.5rem !important;
+    }
+    
+    #mobile-controls-bar {
+        display: none;
+    }
+    #game-container.active {
+        min-height: 100vh;
+        height: 100vh;
+    }
+    #game-log {
+        font-size: 1.1rem;
+        background: rgba(255,255,255,0.95);
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        max-height: 80px;
+        overflow-y: auto;
+        border-top: 2px solid #e5e7eb;
+        padding: 8px 12px;
+        margin-bottom: 120px;
+    }
+    
+    /* Board boyutunu mobil için ayarla */
+    .board {
+        width: 95vw !important;
+        height: 95vw !important;
+        max-width: 500px !important;
+        max-height: 500px !important;
+    }
+    
+    /* Space fontlarını okunaklı yap */
+    .space {
+        font-size: 8px;
+        padding: 2px;
+    }
+    
+    .corner {
+        font-size: 10px;
+    }
+}
+
+#controls-bar {
+    flex-direction: column;
+    gap: 8px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.95);
+    z-index: 50;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    padding: 8px 0;
+}
+
+/* Body and Background Styles */
+body {
+    font-family: 'Rajdhani', sans-serif;
+    overflow-y: auto;
+    background-color: #0D0C14;
+    background-image: radial-gradient(circle at 1px 1px, rgba(167, 139, 250, 0.1) 1px, transparent 0);
+    background-size: 30px 30px;
+    background-attachment: fixed;
+}
+
+/* Board Styles */
+.board {
+    display: grid;
+    grid-template-columns: 140px repeat(9, 1fr) 140px;
+    grid-template-rows: 140px repeat(9, 1fr) 140px;
+    gap: 2px;
+    width: 90vmin;
+    height: 90vmin;
+    max-width: 800px;
+    max-height: 800px;
+    margin: auto;
+    border: 8px solid #374151;
+    background: #111827;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.6), inset 0 0 30px rgba(167, 139, 250, 0.2);
+    border-radius: 12px;
+    position: relative;
+}
+
+.board::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    background: linear-gradient(135deg, #2A283E 0%, #161523 50%, #2A283E 100%);
+    border-radius: 12px;
+    z-index: -1;
+}
+
+/* Space Styles */
+.space {
+    border: 2px solid #374151;
+    position: relative;
+    background: #1F2937;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    text-align: center;
+    padding: 4px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    color: #E5E7EB;
+}
+
+.space:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(167, 139, 250, 0.4);
+    z-index: 5;
+}
+
+.corner { grid-column: span 1; grid-row: span 1; }
+.top-row { grid-column: span 1; grid-row: 1; }
+.bottom-row { grid-column: span 1; grid-row: 11; }
+.left-col { grid-column: 1; grid-row: span 1; }
+.right-col { grid-column: 11; grid-row: span 1; }
+
+/* Grid positions for all 40 spaces */
+#space-0 { grid-column: 11; grid-row: 11; }
+#space-1 { grid-column: 10; grid-row: 11; }
+#space-2 { grid-column: 9; grid-row: 11; }
+#space-3 { grid-column: 8; grid-row: 11; }
+#space-4 { grid-column: 7; grid-row: 11; }
+#space-5 { grid-column: 6; grid-row: 11; }
+#space-6 { grid-column: 5; grid-row: 11; }
+#space-7 { grid-column: 4; grid-row: 11; }
+#space-8 { grid-column: 3; grid-row: 11; }
+#space-9 { grid-column: 2; grid-row: 11; }
+#space-10 { grid-column: 1; grid-row: 11; }
+#space-11 { grid-column: 1; grid-row: 10; }
+#space-12 { grid-column: 1; grid-row: 9; }
+#space-13 { grid-column: 1; grid-row: 8; }
+#space-14 { grid-column: 1; grid-row: 7; }
+#space-15 { grid-column: 1; grid-row: 6; }
+#space-16 { grid-column: 1; grid-row: 5; }
+#space-17 { grid-column: 1; grid-row: 4; }
+#space-18 { grid-column: 1; grid-row: 3; }
+#space-19 { grid-column: 1; grid-row: 2; }
+#space-20 { grid-column: 1; grid-row: 1; }
+#space-21 { grid-column: 2; grid-row: 1; }
+#space-22 { grid-column: 3; grid-row: 1; }
+#space-23 { grid-column: 4; grid-row: 1; }
+#space-24 { grid-column: 5; grid-row: 1; }
+#space-25 { grid-column: 6; grid-row: 1; }
+#space-26 { grid-column: 7; grid-row: 1; }
+#space-27 { grid-column: 8; grid-row: 1; }
+#space-28 { grid-column: 9; grid-row: 1; }
+#space-29 { grid-column: 10; grid-row: 1; }
+#space-30 { grid-column: 11; grid-row: 1; }
+#space-31 { grid-column: 11; grid-row: 2; }
+#space-32 { grid-column: 11; grid-row: 3; }
+#space-33 { grid-column: 11; grid-row: 4; }
+#space-34 { grid-column: 11; grid-row: 5; }
+#space-35 { grid-column: 11; grid-row: 6; }
+#space-36 { grid-column: 11; grid-row: 7; }
+#space-37 { grid-column: 11; grid-row: 8; }
+#space-38 { grid-column: 11; grid-row: 9; }
+#space-39 { grid-column: 11; grid-row: 10; }
+
+/* Center Board */
+.center-board {
+    grid-column: 2 / 11;
+    grid-row: 2 / 11;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 3px solid #374151;
+    background: rgba(17, 24, 39, 0.95);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.color-bar {
+    width: 100%;
+    height: 22%;
+    border-bottom: 2px solid #2d3748;
+    border-radius: 4px 4px 0 0;
+}
+
+/* Player Pieces */
+.player-piece {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    font-size: 28px;
+    line-height: 32px;
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    animation: pieceFloat 2s ease-in-out infinite;
+    scale: 1.3;
+    padding-bottom: 20px;
+}
+
+@keyframes pieceFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-3px) scale(1.05); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.owner-indicator {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Chat Panel Styling */
+#chat-panel {
+    transition: all 0.3s ease;
+    min-height: 200px;
+}
+
+#chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+.chat-message {
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #10b981;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.chat-message .sender {
+    font-weight: bold;
+    color: #059669;
+    font-size: 0.875rem;
+}
+
+.chat-message .text {
+    color: #374151;
+    font-size: 0.875rem;
+    margin-top: 2px;
+}
+
+/* Modal Styles */
+.modal {
+    transition: opacity 0.25s ease;
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    transition: transform 0.25s ease;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+}
+
+/* Dice Styles */
+.dice {
+    font-size: 3rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border: 3px solid #374151;
+    background: #1F2937;
+    box-shadow: 0 8px 16px rgba(167, 139, 250, 0.3);
+    transition: all 0.3s ease;
+    font-weight: bold;
+    color: #E5E7EB;
+}
+
+.dice:hover {
+    transform: rotate(5deg) scale(1.05);
+}
+
+/* 3D Dice Animation */
+.dice-3d {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rollDice 1s ease-out;
+}
+
+@keyframes rollDice {
+    0% { transform: rotateX(0deg) rotateY(0deg) translateY(-100px); }
+    50% { transform: rotateX(720deg) rotateY(720deg) translateY(0px); }
+    100% { transform: rotateX(1080deg) rotateY(1080deg) translateY(0px); }
+}
+
+.dice-face {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    border: 3px solid #333;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.dice-dot {
+    width: 14px;
+    height: 14px;
+    background: #333;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.dice-rolling {
+    animation: diceShake 0.1s infinite;
+}
+
+@keyframes diceShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-3px, -3px) rotate(-8deg); }
+    50% { transform: translate(3px, -2px) rotate(8deg); }
+    75% { transform: translate(-2px, 3px) rotate(-5deg); }
+}
+
+/* Property Buy Panel Styles */
+#property-buy-panel {
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Character & Map Button Styles */
+.character-btn, .map-btn {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.character-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.character-btn.border-blue-500 {
+    border-width: 3px !important;
+    border-color: #9333ea !important;
+    background: rgba(167, 139, 250, 0.2) !important;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.6) !important;
+    transform: scale(1.15) !important;
+}
+
+.character-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.map-btn.border-blue-500 {
+    border-width: 3px !important;
+    border-color: #9333ea !important;
+    background: rgba(167, 139, 250, 0.2) !important;
+    box-shadow: 0 0 10px rgba(167, 139, 250, 0.5) !important;
+}
+
+/* Game mode button styles */
+.game-mode-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.game-mode-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(167, 139, 250, 0.3);
+    border-color: #9333ea !important;
+}
+
+.game-mode-btn.border-blue-500 {
+    border-color: #9333ea !important;
+    background: rgba(167, 139, 250, 0.2) !important;
+}
+
+/* Enhanced space styles */
+.space.corner {
+    background: #1F2937;
+    font-size: 10px;
+    font-weight: bold;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    color: #E5E7EB;
+}
+
+.space[id="space-0"] {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
+    color: white;
+}
+
+.space[id="space-10"] {
+    background: linear-gradient(135deg, #A78BFA 0%, #9333ea 100%) !important;
+    color: white;
+}
+
+.space[id="space-20"] {
+    background: linear-gradient(135deg, #00F5D4 0%, #00c9a7 100%) !important;
+    color: #030712;
+}
+
+.space[id="space-30"] {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
+    color: white;
+}
+
+/* Houses and Hotels */
+.houses-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    padding: 2px;
+}
+
+.house {
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: 2px solid #065f46;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.hotel {
+    width: 24px;
+    height: 14px;
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    border: 2px solid #9f1239;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Price labels outside spaces */
+.price-bottom {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.price-top {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.price-left {
+    position: absolute;
+    left: -35px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.price-right {
+    position: absolute;
+    right: -35px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+/* Desktop Scaling */
+@media (min-width: 769px) {
+    html {
+        font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+    }
+    
+    .mobile-game-actions {
+        display: none !important;
+    }
+}
+
+/* Mobile Game Actions (768px and below) */
+@media (max-width: 768px) {
+    /* Mobilde normal boyut */
+    body * {
+        zoom: 1;
+        -moz-transform: scale(0.95);
+        transform: scale(0.95);
+        -moz-transform-origin: 0 0;
+        transform-origin: 0 0;
+    }
+    
+    /* Mobilde board'u tamamen gizle */
+    #board,
+    .board {
+        display: none !important;
+    }
+    
+    /* Sadece oyun içindeyken board'u göster */
+    body.in-game #board,
+    body.in-game .board {
+        display: grid !important;
+        margin-bottom: 100px !important;
+        padding-bottom: 20px !important;
+    }
+    
+    /* Mobilde masaüstü oyun kontrollerini tamamen gizle */
+    #rollDiceBtn,
+    #endTurnBtn,
+    #teamManagerBtn,
+    #takeCreditBtn,
+    #managePropertiesBtn,
+    #jokerCardsBtn,
+    #left-panel,
+    #right-panel,
+    #mobile-controls-bar,
+    .center-board h1,
+    #dice-container,
+    #dice1-wrapper,
+    #dice2-wrapper,
+    #dice1,
+    #dice2 {
+        display: none !important;
+    }
+    
+    /* Center board alanını boş bırak */
+    .center-board {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Mobil butonlar varsayılan olarak gizli */
+    .mobile-game-actions {
+        display: none !important;
+    }
+    
+    /* Sadece oyun içindeyken mobil butonları göster */
+    body.in-game .mobile-game-actions {
+        display: flex !important;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 300;
+        background: #fff;
+        border-top: 2px solid #e0e0e0;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+        padding: 0.8rem;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    body.in-game .mobile-game-actions button {
+        display: inline-flex !important;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        background: #1a73e8;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        min-height: 44px;
+    }
+    
+    body.in-game .mobile-game-actions button:active {
+        background: #155ab6;
+    }
+    
+    /* Mobil butonlar için grid layout - 2 satır, 3+2 buton */
+    body.in-game .mobile-game-actions {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0.8rem;
+    }
+    
+    body.in-game .mobile-game-actions button {
+        padding: 0.7rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* 📱 LOBBY/MAIN MENU - Mobile Friendly */
+    #lobby {
+        max-width: 95vw;
+        padding: 20px 16px;
+        margin: 10px;
+    }
+    
+    #lobby h1 {
+        font-size: 28px;
+        margin-bottom: 12px;
+    }
+    
+    #lobby p {
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+    
+    /* Character selection grid on mobile */
+    #main-character-select {
+        display: grid;
+        grid-template-columns: repeat(8, 2fr);
+        gap: 8px;
+    }
+    
+    .character-btn {
+        font-size: 28px !important;
+        padding: 8px !important;
+        min-height: 50px;
+    }
+    
+    /* Map selection mobile */
+    #main-map-select {
+        grid-template-columns: repeat(4, 2fr);
+        gap: 8px;
+    }
+    
+    .map-btn {
+        font-size: 12px;
+        padding: 10px 8px !important;
+        min-height: 44px;
+    }
+    
+    /* Input fields */
+    #playerNameInput,
+    #gameIdInput {
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    /* Buttons */
+    #createGameBtn,
+    #joinGameBtn {
+        font-size: 15px;
+        padding: 14px 16px;
+        min-height: 48px;
+    }
+    
+    /* Smaller board on mobile */
+    .board {
+        width: 95vmin;
+        height: 95vmin;
+        grid-template-columns: 100px repeat(9, 1fr) 100px;
+        grid-template-rows: 100px repeat(9, 1fr) 100px;
+        gap: 1px;
+        border: 4px solid #374151;
+    }
+    
+    /* Smaller spaces */
+    .space {
+        font-size: 6px;
+        padding: 2px;
+    }
+    
+    /* Smaller corners */
+    .corner {
+        font-size: 8px;
+        padding: 3px;
+    }
+    
+    /* Smaller player pieces */
+    .player-piece {
+        scale: 1;
+        padding-bottom: 10px;
+        font-size: 20px;
+        width: 22px;
+        height: 22px;
+    }
+    
+    /* Smaller houses */
+    .house {
+        width: 8px;
+        height: 8px;
+        border: 1px solid #065f46;
+    }
+    
+    .hotel {
+        width: 14px;
+        height: 8px;
+        border: 1px solid #9f1239;
+    }
+    
+    /* Smaller owner indicators */
+    .owner-indicator {
+        width: 8px;
+        height: 8px;
+    }
+    
+    /* Mobile-friendly modals */
+    #modal-overlay {
+        padding: 10px;
+    }
+    
+    #modal {
+        max-width: 95vw;
+        max-height: 90vh;
+        padding: 16px;
+    }
+    
+    /* Compact player cards */
+    .player-card {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    /* Touch-friendly buttons */
+    button {
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+    
+    /* Scrollable game log */
+    #game-log {
+        max-height: 120px;
+        font-size: 11px;
+    }
+    
+    /* Hide some decorative elements on mobile */
+    .leaderboard {
+        font-size: 11px;
+        padding: 8px;
+    }
+
+    /* 📱 GAME SETTINGS SCREEN - Mobile Optimizations */
+    #game-settings {
+        display: none;
+        max-width: 95vw !important;
+        padding: 16px !important;
+        margin: 10px;
+        max-height: 95vh !important;
+    }
+    
+    #game-settings h2 {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+    
+    #game-settings h3 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+    
+    #displayGameId {
+        font-size: 20px;
+        padding: 12px;
+    }
+    
+    /* Game mode grid - 2 columns on mobile */
+    #game-settings .game-mode-btn {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+    
+    #game-settings .grid {
+        gap: 8px;
+    }
+
+    /* 📱 GAME SCREEN - Mobile Optimizations */
+    #game-container {
+        display: none;
+        padding: 4px !important;
+        gap: 4px !important;
+        flex-direction: column !important;
+    }
+    
+    /* Leaderboard - smaller and repositioned */
+    #leaderboard {
+        position: relative !important;
+        top: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: unset !important;
+        padding: 8px !important;
+        margin-bottom: 8px;
+    }
+    
+    #leaderboard h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    #leaderboard-list {
+        font-size: 11px;
+    }
+
+    /* Dice container */
+    #dice-container {
+        height: 80px !important;
+        margin-bottom: 12px;
+    }
+    
+    .dice {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 32px !important;
+    }
+
+    /* Right panel - game log */
+    #right-panel {
+        width: 100% !important;
+        padding: 8px !important;
+        max-height: 150px !important;
+    }
+    
+    #right-panel h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+}
+
+/* 📱 Very Small Phones (480px and below) */
+@media (max-width: 480px) {
+    /* 📱 LOBBY - Extra Small Phones */
+    #lobby {
+        padding: 16px 12px;
+        margin: 5px;
+    }
+    
+    #lobby h1 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+    
+    #lobby p {
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+    
+    /* Character selection - 3 columns on very small screens */
+    #main-character-select {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .character-btn {
+        font-size: 24px !important;
+        padding: 6px !important;
+        min-height: 44px;
+    }
+    
+    /* Labels smaller */
+    label {
+        font-size: 13px;
+    }
+    
+    #createGameBtn,
+    #joinGameBtn {
+        font-size: 14px;
+        padding: 12px;
+    }
+    
+    /* 📱 GAME BOARD - Extra Small */
+    .board {
+        grid-template-columns: 80px repeat(9, 1fr) 80px;
+        grid-template-rows: 80px repeat(9, 1fr) 80px;
+    }
+    
+    .space {
+        font-size: 5px;
+        padding: 1px;
+    }
+    
+    .corner {
+        font-size: 7px;
+    }
+    
+    .player-piece {
+        scale: 0.9;
+        padding-bottom: 10px;
+        font-size: 18px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .dice {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 28px !important;
+    }
+}
+
+/* Extra extra small screens (500px and below) */
+@media (max-width: 500px) {
+    /* 📱 GAME BOARD - Extra Small */
+    .board {
+        grid-template-columns: 50px repeat(9, 1fr) 50px;
+        grid-template-rows: 50px repeat(9, 1fr) 50px;
+        width: 95vw !important;
+        height: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 95vw !important;
+    }
+    
+    .space {
+        font-size: 7px;
+        padding: 2px;
+    }
+    
+    .corner {
+        font-size: 9px;
+    }
+    
+    .player-piece {
+        scale: 0.8;
+        padding-bottom: 8px;
+        font-size: 16px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Mobilde sidebarları gizle */
+    #game-container > aside {
+        display: none !important;
+    }
+    
+    /* Center board'u tam genişliğe al */
+    #game-container > main {
+        width: 100%;
+        padding: 0;
+    }
+    
+    /* Center board içindeki wrapper */
+    #game-container > main > div {
+        width: 100%;
+        padding: 0;
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    /* Board title küçült */
+    #board-title {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Turn info küçült */
+    #turn-info {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Butonları küçült */
+    .center-board button {
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+    
+    /* Center board height ayarla */
+    .center-board {
+        padding: 0.5rem !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* Property color bars daha görünür */
+    .color-bar {
+        height: 25% !important;
+    }
+    
+    /* Property name text */
+    .space .property-name {
+        font-size: 8px !important;
+    }
+}

@@ -382,24 +382,27 @@
             animation: diceRoll 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* 🎨 End Turn Button - RGB Animated Border */
+        /* 🎨 End Turn Button - RGB Animated Border (Hover Only) */
         .end-turn-btn {
             position: relative;
-            border: 3px solid transparent;
+            border: 5px solid transparent;
             background-clip: padding-box;
             isolation: isolate;
+            transition: all 0.3s ease;
         }
         
         .end-turn-btn::before {
             content: '';
             position: absolute;
-            inset: -3px;
+            inset: -7px;
             border-radius: inherit;
-            padding: 3px;
-            background: linear-gradient(45deg, 
+            padding: 7px;
+            /* Conic gradient for full border coverage */
+            background: conic-gradient(
+                from 0deg,
                 #ff0000, #ff7f00, #ffff00, #00ff00, 
-                #0000ff, #4b0082, #9400d3, #ff0000);
-            background-size: 400% 400%;
+                #0000ff, #4b0082, #9400d3, #ff0000
+            );
             -webkit-mask: 
                 linear-gradient(#fff 0 0) content-box, 
                 linear-gradient(#fff 0 0);
@@ -408,19 +411,23 @@
                 linear-gradient(#fff 0 0) content-box, 
                 linear-gradient(#fff 0 0);
             mask-composite: exclude;
-            animation: rgbFlow 3s linear infinite;
+            opacity: 0;
+            animation: none;
+            transition: opacity 0.3s ease;
             z-index: -1;
         }
         
-        @keyframes rgbFlow {
+        .end-turn-btn:hover:not(:disabled)::before {
+            opacity: 1;
+            animation: rgbFlowRotate 3s linear infinite;
+        }
+        
+        @keyframes rgbFlowRotate {
             0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
+                transform: rotate(0deg);
             }
             100% {
-                background-position: 0% 50%;
+                transform: rotate(360deg);
             }
         }
         
@@ -430,8 +437,8 @@
         }
         
         .end-turn-btn:disabled::before {
+            opacity: 0;
             animation: none;
-            background: #4B5563;
         }
         
         .player-piece {
@@ -5414,17 +5421,17 @@
             const finalX = finalSide * (Math.min(boardWidth, boardHeight) * 0.25); // Tahtanın %25'i kadar kenardan
             const finalY = secureRandomInt(-Math.min(boardWidth, boardHeight) * 0.15, Math.min(boardWidth, boardHeight) * 0.15); // Dikey olarak ortada
             
-            // Fizik mekanikleri - farklı yönlerde yuvarlanma
-            const roll1X = (Math.random() - 0.5) * 3600 + 1800;
-            const roll1Y = (Math.random() - 0.5) * 3600 + 1800;
-            const roll1Z = (Math.random() - 0.5) * 3600 + 1800;
+            // Fizik mekanikleri - daha basit ve akışkan yuvarlanma (az dönüş)
+            const roll1X = (Math.random() - 0.5) * 720 + 360;  // 0-720 derece
+            const roll1Y = (Math.random() - 0.5) * 720 + 360;
+            const roll1Z = (Math.random() - 0.5) * 720 + 360;
             
-            const roll2X = (Math.random() - 0.5) * 3600 + 1800;
-            const roll2Y = (Math.random() - 0.5) * 3600 + 1800;
-            const roll2Z = (Math.random() - 0.5) * 3600 + 1800;
+            const roll2X = (Math.random() - 0.5) * 720 + 360;
+            const roll2Y = (Math.random() - 0.5) * 720 + 360;
+            const roll2Z = (Math.random() - 0.5) * 720 + 360;
             
-            // Animasyon süresi
-            const duration = 2000; // 2 saniye
+            // Animasyon süresi - daha akışkan
+            const duration = 1500; // 1.5 saniye (daha hızlı)
             const steps = 60;
             const stepDuration = duration / steps;
             
@@ -5463,18 +5470,19 @@
                             step++;
                             return; // Henüz hareket yok
                         } else if (step < collisionSteps) {
-                            // AŞAMA 1: Köşeden ortaya çarpışma
+                            // AŞAMA 1: Köşeden ortaya çarpışma - daha basit ve akışkan
                             const collisionProgress = (step - delaySteps) / (collisionSteps - delaySteps);
-                            const easeOut = 1 - Math.pow(1 - collisionProgress, 2);
-                            const parabola = Math.sin(collisionProgress * Math.PI) * 0.6;
+                            const easeOut = 1 - Math.pow(1 - collisionProgress, 1.5); // Daha smooth easing
+                            const parabola = Math.sin(collisionProgress * Math.PI) * 0.5; // Daha küçük zıplama
                             
                             const currentX = startX + (collisionX - startX) * easeOut;
-                            const currentY = startY + (collisionY - startY) * easeOut - (parabola * 80);
+                            const currentY = startY + (collisionY - startY) * easeOut - (parabola * 60);
                             
-                            const rotationProgress = 1 - Math.pow(1 - collisionProgress, 1.5);
-                            const currentRotX = rollX * rotationProgress * 0.75; // Çarpışmaya kadar %75 rotasyon
-                            const currentRotY = rollY * rotationProgress * 0.75;
-                            const currentRotZ = rollZ * rotationProgress * 0.75;
+                            // Daha az dönüş - sadece %50 rotasyon
+                            const rotationProgress = collisionProgress * 0.5;
+                            const currentRotX = rollX * rotationProgress;
+                            const currentRotY = rollY * rotationProgress;
+                            const currentRotZ = rollZ * rotationProgress;
                             
                             diceEl.style.transform = `
                                 translateX(${currentX}px) 
@@ -5485,18 +5493,18 @@
                                 rotateZ(${currentRotZ}deg)
                             `;
                         } else if (step >= collisionSteps && step < steps) {
-                            // AŞAMA 2: Çarpışmadan final pozisyona
+                            // AŞAMA 2: Çarpışmadan final pozisyona - basit ve akışkan
                             const finalProgress = (step - collisionSteps) / (steps - collisionSteps);
-                            const finalEaseOut = 1 - Math.pow(1 - finalProgress, 2);
+                            const finalEaseOut = 1 - Math.pow(1 - finalProgress, 1.5); // Smooth easing
                             
-                            // Çarpışmadan sonra daha az zıplama
-                            const finalParabola = Math.sin(finalProgress * Math.PI) * 0.3;
+                            // Çarpışmadan sonra minimal zıplama
+                            const finalParabola = Math.sin(finalProgress * Math.PI) * 0.2;
                             
                             const currentX = collisionX + (finalX - collisionX) * finalEaseOut;
-                            const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 50);
+                            const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 30);
                             
-                            // Final rotasyon (kalan %25)
-                            const finalRotationProgress = 0.75 + (finalProgress * 0.25);
+                            // Final rotasyon (kalan %50, toplam %100)
+                            const finalRotationProgress = 0.5 + (finalProgress * 0.5);
                             const currentRotX = rollX * finalRotationProgress;
                             const currentRotY = rollY * finalRotationProgress;
                             const currentRotZ = rollZ * finalRotationProgress;

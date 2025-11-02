@@ -297,17 +297,31 @@
             opacity: 1;
         }
         
+        /* 🤚 El tasarımı */
+        .dice-hand {
+            position: absolute;
+            font-size: 40px;
+            z-index: 1001;
+            pointer-events: none;
+            transition: transform 0.3s ease-out;
+            opacity: 0;
+        }
+        
+        .dice-hand.show {
+            opacity: 1;
+        }
+        
         .dice-3d-container {
-            width: 70px;
-            height: 70px;
+            width: 50px;
+            height: 50px;
             position: relative;
             transform-style: preserve-3d;
             perspective: 1000px;
         }
         
         .dice-3d {
-            width: 70px;
-            height: 70px;
+            width: 50px;
+            height: 50px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s linear;
@@ -315,36 +329,36 @@
         
         .dice-face {
             position: absolute;
-            width: 70px;
-            height: 70px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            border: 3px solid #9333ea;
-            border-radius: 14px;
+            border: 2px solid #9333ea;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                inset 0 4px 8px rgba(255,255,255,0.8),
-                inset 0 -4px 8px rgba(0,0,0,0.1),
-                0 8px 16px rgba(0,0,0,0.3);
+                inset 0 3px 6px rgba(255,255,255,0.8),
+                inset 0 -3px 6px rgba(0,0,0,0.1),
+                0 6px 12px rgba(0,0,0,0.3);
         }
         
         .dice-dot {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             background: radial-gradient(circle, #9333ea 0%, #6b21a8 100%);
             border-radius: 50%;
             position: absolute;
-            box-shadow: inset 0 1px 3px rgba(255,255,255,0.3), inset 0 -1px 3px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2);
         }
         
         /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
-        .dice-face.front { transform: rotateY(0deg) translateZ(35px); }
-        .dice-face.back { transform: rotateY(180deg) translateZ(35px); }
-        .dice-face.right { transform: rotateY(90deg) translateZ(35px); }
-        .dice-face.left { transform: rotateY(-90deg) translateZ(35px); }
-        .dice-face.top { transform: rotateX(90deg) translateZ(35px); }
-        .dice-face.bottom { transform: rotateX(-90deg) translateZ(35px); }
+        .dice-face.front { transform: rotateY(0deg) translateZ(25px); }
+        .dice-face.back { transform: rotateY(180deg) translateZ(25px); }
+        .dice-face.right { transform: rotateY(90deg) translateZ(25px); }
+        .dice-face.left { transform: rotateY(-90deg) translateZ(25px); }
+        .dice-face.top { transform: rotateX(90deg) translateZ(25px); }
+        .dice-face.bottom { transform: rotateX(-90deg) translateZ(25px); }
         
         @keyframes diceRoll {
             0% {
@@ -366,6 +380,58 @@
         
         .dice-rolling {
             animation: diceRoll 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* 🎨 End Turn Button - RGB Animated Border */
+        .end-turn-btn {
+            position: relative;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            isolation: isolate;
+        }
+        
+        .end-turn-btn::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: inherit;
+            padding: 3px;
+            background: linear-gradient(45deg, 
+                #ff0000, #ff7f00, #ffff00, #00ff00, 
+                #0000ff, #4b0082, #9400d3, #ff0000);
+            background-size: 400% 400%;
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            animation: rgbFlow 3s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rgbFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .end-turn-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .end-turn-btn:disabled::before {
+            animation: none;
+            background: #4B5563;
         }
         
         .player-piece {
@@ -1823,6 +1889,9 @@
                         
                         <!-- 3D Dice Display - Animation Container -->
                         <div id="dice-animation-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" style="z-index: 1000;">
+                            <!-- El elementleri -->
+                            <div id="dice-hand-1" class="dice-hand">🤚</div>
+                            <div id="dice-hand-2" class="dice-hand">🤚</div>
                             <div id="dice-wrapper-3d" class="flex gap-4" style="transform-style: preserve-3d;">
                                 <div id="dice-3d-1" class="dice-3d-container"></div>
                                 <div id="dice-3d-2" class="dice-3d-container"></div>
@@ -1847,7 +1916,10 @@
                                 <span class="material-icons-outlined">business_center</span>
                                 Manage Properties
                             </button>
-                            <button id="endTurnBtn" class="w-full text-center font-semibold py-2 px-4 rounded-lg transition-colors" style="color: #9CA3AF; background: transparent;">End Turn</button>
+                            <button id="endTurnBtn" class="end-turn-btn w-full text-white font-bold py-3 px-4 rounded-lg transition-opacity shadow-lg flex items-center justify-center gap-2" style="background-color: #1F2937; position: relative; overflow: hidden;">
+                                <span class="material-icons-outlined">skip_next</span>
+                                End Turn
+                            </button>
                         </div>
                         
                         <div class="absolute bottom-0 left-0 right-0 h-1 shadow-glow" style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);"></div>
@@ -2512,7 +2584,7 @@
                                 auctionTimerInterval = setInterval(updateAuctionTimer, 1000);
                             }
                             
-                            // Bot auction bidding logic
+                            // Bot auction bidding logic - Botlar kendi adlarına bid veriyor
                             if (auctionChanged && gameData.players[gameData.currentPlayerIndex].isBot && 
                                 gameData.auction.playersInAuction.includes(gameData.players[gameData.currentPlayerIndex].id)) {
                                 // Bot should bid if current bid is less than property price
@@ -2520,12 +2592,19 @@
                                 const currentBid = gameData.auction.currentBid;
                                 const botPlayer = gameData.players[gameData.currentPlayerIndex];
                                 
-                                if (currentBid < space.price && botPlayer.money > currentBid + 10) {
+                                // Bot kendi ID'si ile bid vermeli
+                                const botId = botPlayer.id;
+                                
+                                // Can bid if not the last bidder
+                                if (gameData.auction.lastBidder !== botId && 
+                                    currentBid < space.price && 
+                                    botPlayer.money > currentBid + 10) {
                                     // Bot bids up to the original price
                                     const bidAmount = Math.min(currentBid + Math.floor(Math.random() * 20) + 10, space.price, botPlayer.money - 1);
                                     if (bidAmount > currentBid) {
                                         setTimeout(() => {
-                                            placeBid(bidAmount);
+                                            // Bot kendi ID'si ile bid veriyor
+                                            placeBid(bidAmount, botId);
                                         }, 1000 + Math.random() * 1000); // Random delay 1-2 seconds
                                     }
                                 }
@@ -5102,7 +5181,7 @@
             sendActivityPing();
 
             let logMessages = [];
-            
+
             // Update dice display after animation
             setTimeout(() => {
                 console.log('🎲 Updating dice display to:', die1, die2);
@@ -5217,14 +5296,14 @@
                 const faceEl = document.createElement('div');
                 faceEl.className = `dice-face ${face}`;
                 
-                // Her yüze nokta yerleştirme (1-6 için) - 70px zar için güncellendi
+                // Her yüze nokta yerleştirme (1-6 için) - 50px zar için güncellendi
                 const dotPositions = {
-                    1: [[35, 35]],
-                    2: [[22, 22], [48, 48]],
-                    3: [[22, 22], [35, 35], [48, 48]],
-                    4: [[22, 22], [48, 22], [22, 48], [48, 48]],
-                    5: [[22, 22], [48, 22], [35, 35], [22, 48], [48, 48]],
-                    6: [[22, 18], [48, 18], [22, 35], [48, 35], [22, 52], [48, 52]]
+                    1: [[25, 25]],
+                    2: [[16, 16], [34, 34]],
+                    3: [[16, 16], [25, 25], [34, 34]],
+                    4: [[16, 16], [34, 16], [16, 34], [34, 34]],
+                    5: [[16, 16], [34, 16], [25, 25], [16, 34], [34, 34]],
+                    6: [[16, 13], [34, 13], [16, 25], [34, 25], [16, 37], [34, 37]]
                 };
                 
                 // Her yüz için farklı değer (animasyon sırasında değişir)
@@ -5234,8 +5313,8 @@
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
                     dot.className = 'dice-dot';
-                    dot.style.left = `${x - 6}px`;
-                    dot.style.top = `${y - 6}px`;
+                    dot.style.left = `${x - 4}px`;
+                    dot.style.top = `${y - 4}px`;
                     faceEl.appendChild(dot);
                 });
                 
@@ -5284,26 +5363,56 @@
             window.diceCornerToggle = !window.diceCornerToggle;
             
             // Çapraz köşeler - her turda değişir
-            let start1, start2;
+            // El pozisyonları (köşelerden biraz yukarıda - el yukarıdan tutuyor)
+            let hand1Pos, hand2Pos, start1, start2;
             if (window.diceCornerToggle) {
                 // Tur 1: Sol alt + Sağ üst
-                start1 = { x: -boardWidth / 2 - 120, y: boardHeight / 2 + 120 };  // Sol alt
-                start2 = { x: boardWidth / 2 + 120, y: -boardHeight / 2 - 120 };  // Sağ üst
+                hand1Pos = { x: -boardWidth / 2 - 80, y: boardHeight / 2 + 80 };  // Sol alt el
+                hand2Pos = { x: boardWidth / 2 + 80, y: -boardHeight / 2 - 80 };  // Sağ üst el
+                start1 = { x: -boardWidth / 2 - 80, y: boardHeight / 2 + 60 };  // Sol alt - elin altından
+                start2 = { x: boardWidth / 2 + 80, y: -boardHeight / 2 - 60 };  // Sağ üst - elin altından
             } else {
                 // Tur 2: Sağ alt + Sol üst
-                start1 = { x: boardWidth / 2 + 120, y: boardHeight / 2 + 120 };   // Sağ alt
-                start2 = { x: -boardWidth / 2 - 120, y: -boardHeight / 2 - 120 };  // Sol üst
+                hand1Pos = { x: boardWidth / 2 + 80, y: boardHeight / 2 + 80 };   // Sağ alt el
+                hand2Pos = { x: -boardWidth / 2 - 80, y: -boardHeight / 2 - 80 };  // Sol üst el
+                start1 = { x: boardWidth / 2 + 80, y: boardHeight / 2 + 60 };   // Sağ alt - elin altından
+                start2 = { x: -boardWidth / 2 - 80, y: -boardHeight / 2 - 60 };  // Sol üst - elin altından
+            }
+            
+            // El animasyonu - eli göster ve zarı bırak
+            const hand1 = document.getElementById('dice-hand-1');
+            const hand2 = document.getElementById('dice-hand-2');
+            
+            if (hand1 && hand2) {
+                hand1.style.left = `${hand1Pos.x}px`;
+                hand1.style.top = `${hand1Pos.y}px`;
+                hand1.style.transform = 'translate(-50%, -50%) rotate(-20deg)';
+                hand1.classList.add('show');
+                
+                hand2.style.left = `${hand2Pos.x}px`;
+                hand2.style.top = `${hand2Pos.y}px`;
+                hand2.style.transform = 'translate(-50%, -50%) rotate(20deg)';
+                hand2.classList.add('show');
+                
+                // El zarı bırakıyor animasyonu
+                setTimeout(() => {
+                    hand1.style.transform = 'translate(-50%, -50%) rotate(-20deg) translateY(30px)';
+                    hand1.style.opacity = '0';
+                    hand2.style.transform = 'translate(-50%, -50%) rotate(20deg) translateY(30px)';
+                    hand2.style.opacity = '0';
+                }, 300);
             }
             
             // Çarpışma noktası (tahtanın ortası)
             const collisionX = 0;
             const collisionY = 0;
             
-            // Final pozisyon - pop-up'ın dışında ama tahtanın içinde
-            // Pop-up'ın sağ veya sol tarafında konumlan
+            // Final pozisyon - pop-up'ın ve property alanlarının dışında
+            // Center-board'un kenarlarına yakın ama içinde
+            const safeMargin = Math.min(boardWidth, boardHeight) * 0.2; // Tahtanın %20'si kadar içeride
             const finalSide = secureRandomInt(0, 1) === 0 ? -1 : 1; // -1: sol, 1: sağ
-            const finalX = finalSide * (popupWidth / 2 + popupMargin + 50);
-            const finalY = secureRandomInt(-60, 60); // Dikey olarak rastgele
+            const finalX = finalSide * (Math.min(boardWidth, boardHeight) * 0.25); // Tahtanın %25'i kadar kenardan
+            const finalY = secureRandomInt(-Math.min(boardWidth, boardHeight) * 0.15, Math.min(boardWidth, boardHeight) * 0.15); // Dikey olarak ortada
             
             // Fizik mekanikleri - farklı yönlerde yuvarlanma
             const roll1X = (Math.random() - 0.5) * 3600 + 1800;
@@ -5332,29 +5441,40 @@
             // İki aşamalı animasyon: Köşeden ortaya çarpışma, sonra final pozisyona
             const animateDice = (diceEl, startX, startY, collisionX, collisionY, finalX, finalY, rollX, rollY, rollZ, finalValue, isFirstDice) => {
                 return new Promise((resolve) => {
-                    // Başlangıç pozisyonunu ayarla (görünür)
-                    diceEl.style.opacity = '1';
-                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+                    // Başlangıçta görünmez (el tutuyor)
+                    diceEl.style.opacity = '0';
+                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY - 20}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+                    
+                    // El zarı bıraktıktan sonra görünür ol
+                    setTimeout(() => {
+                        diceEl.style.opacity = '1';
+                        diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+                    }, 300);
                     
                     let step = 0;
-                    const collisionSteps = Math.floor(steps * 0.6); // %60 çarpışma, %40 final pozisyon
+                    const delaySteps = Math.floor(steps * 0.1); // %10 gecikme (el zarı bırakıyor)
+                    const collisionSteps = delaySteps + Math.floor(steps * 0.55); // %55 çarpışma, %35 final pozisyon
                     
                     const interval = setInterval(() => {
                         const progress = step / steps;
                         
-                        if (step < collisionSteps) {
+                        if (step < delaySteps) {
+                            // GECİKME: El zarı tutuyor, zar henüz görünmez
+                            step++;
+                            return; // Henüz hareket yok
+                        } else if (step < collisionSteps) {
                             // AŞAMA 1: Köşeden ortaya çarpışma
-                            const collisionProgress = step / collisionSteps;
+                            const collisionProgress = (step - delaySteps) / (collisionSteps - delaySteps);
                             const easeOut = 1 - Math.pow(1 - collisionProgress, 2);
                             const parabola = Math.sin(collisionProgress * Math.PI) * 0.6;
                             
                             const currentX = startX + (collisionX - startX) * easeOut;
-                            const currentY = startY + (collisionY - startY) * easeOut - (parabola * 100);
+                            const currentY = startY + (collisionY - startY) * easeOut - (parabola * 80);
                             
                             const rotationProgress = 1 - Math.pow(1 - collisionProgress, 1.5);
-                            const currentRotX = rollX * rotationProgress * 0.8; // Çarpışmaya kadar %80 rotasyon
-                            const currentRotY = rollY * rotationProgress * 0.8;
-                            const currentRotZ = rollZ * rotationProgress * 0.8;
+                            const currentRotX = rollX * rotationProgress * 0.75; // Çarpışmaya kadar %75 rotasyon
+                            const currentRotY = rollY * rotationProgress * 0.75;
+                            const currentRotZ = rollZ * rotationProgress * 0.75;
                             
                             diceEl.style.transform = `
                                 translateX(${currentX}px) 
@@ -5375,8 +5495,8 @@
                             const currentX = collisionX + (finalX - collisionX) * finalEaseOut;
                             const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 50);
                             
-                            // Final rotasyon (kalan %20)
-                            const finalRotationProgress = 0.8 + (finalProgress * 0.2);
+                            // Final rotasyon (kalan %25)
+                            const finalRotationProgress = 0.75 + (finalProgress * 0.25);
                             const currentRotX = rollX * finalRotationProgress;
                             const currentRotY = rollY * finalRotationProgress;
                             const currentRotZ = rollZ * finalRotationProgress;
@@ -6900,23 +7020,43 @@
             );
         }
         
-        function placeBid(amount) {
-            const currentPlayer = gameData.players.find(p => p.id === localPlayer.id);
+        function placeBid(amount, playerId = null) {
+            // Eğer playerId verilmediyse localPlayer.id kullan (oyuncu bid veriyor)
+            // Eğer playerId verildiyse o ID'yi kullan (bot bid veriyor)
+            const bidderId = playerId || localPlayer.id;
+            const currentPlayer = gameData.players.find(p => p.id === bidderId);
             
-            if (amount > currentPlayer.money) {
-                alert('You don\'t have enough money!');
+            if (!currentPlayer) {
+                console.error('Cannot place bid: Player not found');
                 return;
             }
             
-            if (gameData.auction.lastBidder === localPlayer.id) {
+            // Bot kontrolü sadece oyuncular için - botlar kendi ID'leri ile bid verebilir
+            if (!playerId && currentPlayer.isBot) {
+                console.warn('⚠️ Bots must use placeBid with their own playerId!');
+                return;
+            }
+            
+            if (amount > currentPlayer.money) {
+                if (!playerId) {
+                    // Sadece oyuncular için alert göster
+                alert('You don\'t have enough money!');
+                }
+                return;
+            }
+            
+            if (gameData.auction.lastBidder === bidderId) {
+                if (!playerId) {
+                    // Sadece oyuncular için alert göster
                 alert('You must wait for someone else to bid!');
+                }
                 return;
             }
             
             const auctionCopy = JSON.parse(JSON.stringify(gameData.auction));
             auctionCopy.currentBid = amount;
-            auctionCopy.currentBidder = localPlayer.id;
-            auctionCopy.lastBidder = localPlayer.id;
+            auctionCopy.currentBidder = bidderId;
+            auctionCopy.lastBidder = bidderId;
             auctionCopy.roundsWithoutBid = 0; // Reset because someone bid
             
             // Reset timer when someone bids
@@ -8025,7 +8165,7 @@
             
             // Handle landing on new position
             setTimeout(() => {
-                handleLanding(newPos);
+            handleLanding(newPos);
             }, 300);
         };
         

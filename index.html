@@ -311,33 +311,33 @@
             opacity: 1;
         }
         
-        /* 🎲 YENİ ZAR TASARIMI - SIFIRDAN */
+        /* 🎲 YENİ ZAR TASARIMI - VERİLEN KODA GÖRE */
         .dice-3d-container {
             width: 40px;
             height: 40px;
             position: relative;
-            transform-style: preserve-3d;
             perspective: 1000px;
+            perspective-origin: 50% 50%;
         }
         
         .dice-3d {
             width: 40px;
             height: 40px;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             transform-style: preserve-3d;
             transition: transform 0.1s linear;
         }
         
         .dice-face {
+            background: #000000;
+            display: block;
             position: absolute;
             width: 40px;
             height: 40px;
-            background: #000000;
             border: 2px solid #FFD700;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 2px;
             box-shadow: 
                 0 0 4px rgba(255, 215, 0, 0.4),
                 inset 0 0 10px rgba(0, 0, 0, 0.8),
@@ -346,40 +346,38 @@
             backface-visibility: hidden;
         }
         
-        /* Köşelerde altın vurgu - çizgi değil, sadece köşeler */
-        .dice-face::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            width: 6px;
-            height: 6px;
-            border-top: 2px solid #FFD700;
-            border-left: 2px solid #FFD700;
-            box-shadow: 0 0 3px rgba(255, 215, 0, 0.6);
-            pointer-events: none;
-            z-index: 1;
+        /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 = 20px */
+        .dice-face.front {
+            transform: translateZ(20px);
         }
         
-        .dice-face::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 6px;
-            height: 6px;
-            border-bottom: 2px solid #FFD700;
-            border-right: 2px solid #FFD700;
-            box-shadow: 0 0 3px rgba(255, 215, 0, 0.6);
-            pointer-events: none;
-            z-index: 1;
+        .dice-face.back {
+            transform: rotateX(-180deg) translateZ(20px);
+        }
+        
+        .dice-face.right {
+            transform: rotateY(90deg) translateZ(20px);
+        }
+        
+        .dice-face.left {
+            transform: rotateY(-90deg) translateZ(20px);
+        }
+        
+        .dice-face.top {
+            transform: rotateX(90deg) translateZ(20px);
+        }
+        
+        .dice-face.bottom {
+            transform: rotateX(-90deg) translateZ(20px);
         }
         
         .dice-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            display: block;
             position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff0000;
+            border-radius: 50%;
             animation: rgbDot 3s infinite;
             box-shadow: 0 0 3px currentColor;
         }
@@ -394,13 +392,28 @@
             100% { background: #ff00ff; color: #ff00ff; }
         }
         
-        /* Zar yüzleri pozisyonları (3D cube) */
-        .dice-face.front { transform: rotateY(0deg) translateZ(20px); }
-        .dice-face.back { transform: rotateY(180deg) translateZ(20px); }
-        .dice-face.right { transform: rotateY(90deg) translateZ(20px); }
-        .dice-face.left { transform: rotateY(-90deg) translateZ(20px); }
-        .dice-face.top { transform: rotateX(90deg) translateZ(20px); }
-        .dice-face.bottom { transform: rotateX(-90deg) translateZ(20px); }
+        /* Nokta pozisyonları - 40px zar için ölçeklendirildi */
+        .dice-face.front .dice-dot.dot1 { top: 17px; left: 17px; }
+        .dice-face.back .dice-dot.dot1 { top: 9px; left: 9px; }
+        .dice-face.back .dice-dot.dot2 { top: 25px; left: 25px; }
+        .dice-face.right .dice-dot.dot1 { top: 9px; left: 9px; }
+        .dice-face.right .dice-dot.dot2 { top: 17px; left: 17px; }
+        .dice-face.right .dice-dot.dot3 { top: 25px; left: 25px; }
+        .dice-face.left .dice-dot.dot1 { top: 9px; left: 9px; }
+        .dice-face.left .dice-dot.dot2 { top: 9px; left: 25px; }
+        .dice-face.left .dice-dot.dot3 { top: 25px; left: 9px; }
+        .dice-face.left .dice-dot.dot4 { top: 25px; left: 25px; }
+        .dice-face.top .dice-dot.dot1 { top: 9px; left: 9px; }
+        .dice-face.top .dice-dot.dot2 { top: 9px; left: 25px; }
+        .dice-face.top .dice-dot.dot3 { top: 17px; left: 17px; }
+        .dice-face.top .dice-dot.dot4 { top: 25px; left: 9px; }
+        .dice-face.top .dice-dot.dot5 { top: 25px; left: 25px; }
+        .dice-face.bottom .dice-dot.dot1 { top: 9px; left: 9px; }
+        .dice-face.bottom .dice-dot.dot2 { top: 9px; left: 17px; }
+        .dice-face.bottom .dice-dot.dot3 { top: 9px; left: 25px; }
+        .dice-face.bottom .dice-dot.dot4 { top: 25px; left: 9px; }
+        .dice-face.bottom .dice-dot.dot5 { top: 25px; left: 17px; }
+        .dice-face.bottom .dice-dot.dot6 { top: 25px; left: 25px; }
         
         @keyframes diceRoll {
             0% {
@@ -5342,7 +5355,7 @@
             dice2El.textContent = die2;
         }
         
-        // 🎲 YENİ ZAR OLUŞTURMA - BASİT VE TEMİZ
+        // 🎲 ZAR OLUŞTURMA - VERİLEN KODA GÖRE
         function create3DDice(diceId, value) {
             const diceContainer = document.getElementById(diceId);
             if (!diceContainer) return null;
@@ -5352,32 +5365,32 @@
             dice.className = 'dice-3d';
             dice.id = `${diceId}-cube`;
             
-            // Klasik zar nokta düzeni - 40px zar için
-            const dotPositions = {
-                1: [[20, 20]],  // Merkez
-                2: [[13, 13], [27, 27]],  // Sol üst - sağ alt
-                3: [[13, 13], [20, 20], [27, 27]],  // Sol üst, merkez, sağ alt
-                4: [[13, 13], [27, 13], [13, 27], [27, 27]],  // 4 köşe
-                5: [[13, 13], [27, 13], [20, 20], [13, 27], [27, 27]],  // 4 köşe + merkez
-                6: [[13, 13], [13, 20], [13, 27], [27, 13], [27, 20], [27, 27]]  // 2 sütun, 3 satır
+            // Verilen HTML koduna göre: Her yüzde doğru sayıda nokta var
+            // front: 1 nokta, back: 2 nokta, right: 3 nokta, left: 4 nokta, top: 5 nokta, bottom: 6 nokta
+            const faceDotCount = {
+                'front': 1,
+                'back': 2,
+                'right': 3,
+                'left': 4,
+                'top': 5,
+                'bottom': 6
             };
             
-            // 6 yüz oluştur
+            // 6 yüz oluştur - her yüzde doğru sayıda nokta (verilen HTML'e göre)
             const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
             faces.forEach((face) => {
                 const faceEl = document.createElement('div');
                 faceEl.className = `dice-face ${face}`;
                 
-                // Her yüze aynı değerin noktalarını koy (final pozisyonda doğru görünsün)
-                const dots = dotPositions[value] || [];
+                // Her yüzde kendi değerinin noktaları var (front=1, back=2, vs.)
+                const dotCount = faceDotCount[face];
                 
-                dots.forEach(([x, y]) => {
-                    const dot = document.createElement('div');
-                    dot.className = 'dice-dot';
-                    dot.style.left = `${x - 4}px`;
-                    dot.style.top = `${y - 4}px`;
+                // Noktaları ekle - verilen HTML koduna göre
+                for (let i = 1; i <= dotCount; i++) {
+                    const dot = document.createElement('span');
+                    dot.className = `dice-dot dot${i}`;
                     faceEl.appendChild(dot);
-                });
+                }
                 
                 dice.appendChild(faceEl);
             });
@@ -5386,7 +5399,32 @@
             return dice;
         }
         
-        // 🎲 3D Zar animasyonu - Çapraz köşelerden ortaya fırlatma
+        // Random sayı üretici - verilen koda göre
+        function getRandom(max, min) {
+            return (Math.floor(Math.random() * (max - min)) + min) * 90;
+        }
+        
+        // Değere göre final rotation hesapla - verilen CSS koduna göre
+        function getFinalRotationForValue(value) {
+            // Verilen CSS'e göre transform'lar:
+            // front: translateZ(100px) - rotateX(0), rotateY(0)
+            // back: rotateX(-180deg) translateZ(100px) - rotateX(-180), rotateY(0)
+            // right: rotateY(90deg) translateZ(100px) - rotateX(0), rotateY(90)
+            // left: rotateY(-90deg) translateZ(100px) - rotateX(0), rotateY(-90)
+            // top: rotateX(90deg) translateZ(100px) - rotateX(90), rotateY(0)
+            // bottom: rotateX(-90deg) translateZ(100px) - rotateX(-90), rotateY(0)
+            const rotations = {
+                1: { x: 0, y: 0 },        // front
+                2: { x: -180, y: 0 },     // back
+                3: { x: 0, y: 90 },       // right
+                4: { x: 0, y: -90 },      // left
+                5: { x: 90, y: 0 },       // top
+                6: { x: -90, y: 0 }       // bottom
+            };
+            return rotations[value] || { x: 0, y: 0 };
+        }
+        
+        // 🎲 3D Zar animasyonu - VERİLEN KODA GÖRE
         async function animate3DDiceRoll(dice1Value, dice2Value) {
             const animationContainer = document.getElementById('dice-animation-container');
             const dice1Container = document.getElementById('dice-3d-1');
@@ -5477,14 +5515,16 @@
             const finalPos1 = getCornerPosition(corner1);
             const finalPos2 = getCornerPosition(corner2);
             
-            // Fizik mekanikleri - daha basit ve akışkan yuvarlanma (az dönüş)
-            const roll1X = (Math.random() - 0.5) * 720 + 360;  // 0-720 derece
-            const roll1Y = (Math.random() - 0.5) * 720 + 360;
-            const roll1Z = (Math.random() - 0.5) * 720 + 360;
+            // Verilen koda göre rastgele rotasyon - getRandom fonksiyonu kullanarak
+            const min = 1;
+            const max = 24;
+            const roll1X = getRandom(max, min);  // 90, 180, 270, 360... derece
+            const roll1Y = getRandom(max, min);
+            const roll1Z = 0; // Z rotasyonu kullanılmıyor
             
-            const roll2X = (Math.random() - 0.5) * 720 + 360;
-            const roll2Y = (Math.random() - 0.5) * 720 + 360;
-            const roll2Z = (Math.random() - 0.5) * 720 + 360;
+            const roll2X = getRandom(max, min);
+            const roll2Y = getRandom(max, min);
+            const roll2Z = 0;
             
             // Animasyon süresi - daha akışkan
             const duration = 1500; // 1.5 saniye (daha hızlı)
@@ -5503,7 +5543,7 @@
                 return new Promise((resolve) => {
                     // Başlangıçta görünür - gecikme yok
                     diceEl.style.opacity = '1';
-                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg)`;
                     
                     let step = 0;
                     const delaySteps = 0; // Gecikme yok - animasyon hemen başlıyor
@@ -5525,19 +5565,17 @@
                             const currentX = startX + (collisionX - startX) * easeOut;
                             const currentY = startY + (collisionY - startY) * easeOut - (parabola * 60);
                             
-                            // 3D rotasyon - zar yuvarlanıyor
+                            // 3D rotasyon - zar yuvarlanıyor (verilen koda göre sadece X ve Y)
                             const rotationProgress = collisionProgress;
                             const currentRotX = rollX * rotationProgress;
                             const currentRotY = rollY * rotationProgress;
-                            const currentRotZ = rollZ * rotationProgress;
                             
                             diceEl.style.transform = `
                                 translateX(${currentX}px) 
                                 translateY(${currentY}px) 
                                 translateZ(${collisionProgress * 15}px)
                                 rotateX(${currentRotX}deg) 
-                                rotateY(${currentRotY}deg) 
-                                rotateZ(${currentRotZ}deg)
+                                rotateY(${currentRotY}deg)
                             `;
                         } else if (step >= collisionSteps && step < steps) {
                             // AŞAMA 2: Çarpışmadan final pozisyona - 3D'den 2D'ye geçiş
@@ -5550,10 +5588,11 @@
                             const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 30);
                             
                             // 3D rotasyon'dan 2D düze geçiş (yavaş yavaş düzleşiyor)
-                            const rotationProgress = 1 - (finalProgress * 0.8); // %100'den %20'ye
-                            const currentRotX = rollX * rotationProgress;
-                            const currentRotY = rollY * rotationProgress;
-                            const currentRotZ = rollZ * rotationProgress;
+                            // Final değere doğru yumuşak geçiş
+                            const finalRot = getFinalRotationForValue(finalValue);
+                            const rotationProgress = 1 - (finalProgress * 0.9); // %100'den %10'a
+                            const currentRotX = rollX * rotationProgress + (finalRot.x * (1 - rotationProgress));
+                            const currentRotY = rollY * rotationProgress + (finalRot.y * (1 - rotationProgress));
                             
                             // Z değeri de azaltılıyor (3D'den 2D'ye)
                             const currentZ = 15 - (finalProgress * 15); // 15'ten 0'a
@@ -5563,24 +5602,16 @@
                                 translateY(${currentY}px) 
                                 translateZ(${currentZ}px)
                                 rotateX(${currentRotX}deg) 
-                                rotateY(${currentRotY}deg) 
-                                rotateZ(${currentRotZ}deg)
+                                rotateY(${currentRotY}deg)
                             `;
                         } else {
-                            // Final pozisyon - 2D düz zar, doğru değeri göster
-                            // Final rotation mapping: hangi değer hangi yüzü gösterir
-                            const finalRotations = {
-                                1: { x: 0, y: 0, z: 0 },      // front
-                                2: { x: 0, y: 90, z: 0 },     // right
-                                3: { x: -90, y: 0, z: 0 },    // top
-                                4: { x: 90, y: 0, z: 0 },     // bottom
-                                5: { x: 0, y: -90, z: 0 },    // left
-                                6: { x: 0, y: 180, z: 0 }     // back
-                            };
-                            
-                            const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
+                            // Final pozisyon - verilen koda göre final rotation
+                            // Değere göre hangi yüz görüneceğini hesapla ve o yüzü göster
+                            const finalRot = getFinalRotationForValue(finalValue);
                             console.log(`🎲 Final rotation for value ${finalValue}:`, finalRot);
-                            diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
+                            
+                            // Verilen koda göre: rotateX ve rotateY kullan
+                            diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg)`;
                             
                             clearInterval(interval);
                             resolve();

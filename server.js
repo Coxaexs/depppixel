@@ -477,6 +477,38 @@ function handleUpdateGame(ws, message) {
     game.lastActivity = Date.now();
     game.inactivityWarningShown = false; // Yeni aktivite oldu, uyarıyı sıfırla
     
+    // 🏦 Eğer players listesi güncelleniyorsa (kick işlemi olabilir)
+    // Kick edilen oyuncuların property'lerini de temizle
+    if (updates.players && Array.isArray(updates.players)) {
+        const currentPlayerIds = new Set(updates.players.map(p => p.id));
+        const oldPlayerIds = new Set(game.players.map(p => p.id));
+        
+        // Hangi oyuncular kaldırıldı?
+        const removedPlayerIds = [...oldPlayerIds].filter(id => !currentPlayerIds.has(id));
+        
+        // Kick edilen oyuncuların property'lerini bankaya devret
+        if (removedPlayerIds.length > 0 && game.properties) {
+            game.properties.forEach((prop) => {
+                if (prop.ownerId && removedPlayerIds.includes(prop.ownerId)) {
+                    // Property'yi bankaya devret
+                    prop.ownerId = null;
+                    prop.houses = 0;
+                    prop.mortgaged = false;
+                    // Shared ownership varsa onu da temizle
+                    if (prop.owners) {
+                        removedPlayerIds.forEach(removedId => {
+                            delete prop.owners[removedId];
+                        });
+                        // Eğer başka owner yoksa owners objesini de temizle
+                        if (Object.keys(prop.owners).length === 0) {
+                            prop.owners = null;
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
     // Apply updates to game state
     Object.assign(game, updates);
     

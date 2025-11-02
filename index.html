@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -2305,6 +2305,29 @@
                     }
                     break;
                     
+                case 'game_state':
+                    // Reconnection için game state
+                    currentGameId = message.gameId || currentGameId;
+                    gameData = message.game;
+                    
+                    if (!gameData || !gameData.settings) {
+                        console.error('Invalid game data received:', gameData);
+                        return;
+                    }
+                    
+                    // Game state güncellemesi - game_updated ile aynı işlemi yap
+                    const oldGameDataForState = gameData;
+                    if (gameData.state === 'playing' && gameContainer.classList.contains('hidden')) {
+                        showGame();
+                        setTimeout(() => {
+                            renderBoard();
+                            updateGameUI();
+                        }, 100);
+                    } else {
+                        updateGameUI();
+                    }
+                    break;
+                    
                 case 'game_updated':
                     const oldGameData = gameData;
                     gameData = message.game;
@@ -2312,6 +2335,14 @@
                     if (!gameData || !gameData.settings) {
                         console.error('Invalid game data received:', gameData);
                         return;
+                    }
+                    
+                    // 🔄 Manage Properties modal'ı açıksa güncelle
+                    if (!modal.classList.contains('hidden') && modalTitle.textContent.includes('Manage Properties')) {
+                        // Kısa bir delay ile modal'ı güncelle (gameData güncellendikten sonra)
+                        setTimeout(() => {
+                            refreshManagePropertiesModal();
+                        }, 100);
                     }
                     
                     // 📊 Kare ziyaret istatistiklerini başlat (eğer yoksa)
@@ -2544,21 +2575,38 @@
                     break;
                     
                 case 'error':
-                    console.error('❌ Server error:', message.message);
-                    lobbyError.textContent = message.message;
-                    lobbyError.style.color = 'red';
-                    
-                    // Re-enable join button if it was disabled
-                    if (joinGameBtn.disabled) {
-                        joinGameBtn.disabled = false;
-                        joinGameBtn.textContent = 'Join Game';
+                    // Sadece önemli hataları göster, "Unknown message type" gibi tekrarlayan hataları gösterme
+                    if (message.message && !message.message.includes('Unknown message type')) {
+                        console.error('❌ Server error:', message.message);
+                        lobbyError.textContent = message.message;
+                        lobbyError.style.color = 'red';
+                        
+                        // Re-enable join button if it was disabled
+                        if (joinGameBtn && joinGameBtn.disabled) {
+                            joinGameBtn.disabled = false;
+                            joinGameBtn.textContent = 'Join Game';
+                        }
+                        if (createGameBtn && createGameBtn.disabled) {
+                            createGameBtn.disabled = false;
+                            createGameBtn.textContent = 'Create New Game';
+                        }
+                        
+                        // Önemli hatalar için modal göster (lobby ekranındaysa)
+                        if (lobby && !lobby.classList.contains('hidden')) {
+                            // Lobby ekranındayken önemli hataları göster
+                            if (!message.message.includes('Unknown message type')) {
+                                showModal('Error', message.message, [{text:'OK', class:'bg-red-500', action:hideModal}]);
+                            }
+                        }
+                    } else {
+                        // "Unknown message type" gibi tekrarlayan hataları sadece console'da logla
+                        console.warn('⚠️ Ignored error message:', message.message);
                     }
-                    if (createGameBtn.disabled) {
-                        createGameBtn.disabled = false;
-                        createGameBtn.textContent = 'Create New Game';
-                    }
+                    break;
                     
-                    showModal('Error', message.message, [{text:'OK', class:'bg-red-500', action:hideModal}]);
+                default:
+                    // Bilinmeyen mesaj tipleri için sadece console'da logla, pop-up gösterme
+                    console.warn('⚠️ Unknown message type received:', message.type, message);
                     break;
             }
         }
@@ -7144,11 +7192,18 @@
             playersCopy[currentPlayerIndex].money -= space.houseCost;
             
             const buildingType = propertiesCopy[spaceIndex].houses === 5 ? 'hotel' : 'house';
+            
+            // Önce gameData'yı lokal olarak güncelle (anında görünür olsun)
+            gameData.properties = propertiesCopy;
+            gameData.players = playersCopy;
+            
             await updateGame({ properties: propertiesCopy, players: playersCopy });
             addLog(`${playersCopy[currentPlayerIndex].name} built a ${buildingType} on ${space.name}.`);
             
             // Modal içeriğini güncelle (modal açık kalacak)
-            refreshManagePropertiesModal();
+            setTimeout(() => {
+                refreshManagePropertiesModal();
+            }, 50);
         }
         
         // 🔨 Sell House/Hotel
@@ -7172,11 +7227,17 @@
             propertiesCopy[spaceIndex].houses--;
             playersCopy[currentPlayerIndex].money += sellPrice;
             
+            // Önce gameData'yı lokal olarak güncelle (anında görünür olsun)
+            gameData.properties = propertiesCopy;
+            gameData.players = playersCopy;
+            
             await updateGame({ properties: propertiesCopy, players: playersCopy });
             addLog(`${playersCopy[currentPlayerIndex].name} sold a ${buildingType} on ${space.name} for $${sellPrice}.`);
             
             // Modal içeriğini güncelle (modal açık kalacak)
-            refreshManagePropertiesModal();
+            setTimeout(() => {
+                refreshManagePropertiesModal();
+            }, 50);
         }
         
         // 🔒 Mortgage Property
@@ -7205,11 +7266,17 @@
             propertiesCopy[spaceIndex].mortgaged = true;
             playersCopy[currentPlayerIndex].money += mortgageValue;
             
+            // Önce gameData'yı lokal olarak güncelle (anında görünür olsun)
+            gameData.properties = propertiesCopy;
+            gameData.players = playersCopy;
+            
             await updateGame({ properties: propertiesCopy, players: playersCopy });
             addLog(`${playersCopy[currentPlayerIndex].name} mortgaged ${space.name} for $${mortgageValue}.`);
             
             // Modal içeriğini güncelle (modal açık kalacak)
-            refreshManagePropertiesModal();
+            setTimeout(() => {
+                refreshManagePropertiesModal();
+            }, 50);
         }
         
         // 🔓 Unmortgage Property
@@ -7237,11 +7304,17 @@
             propertiesCopy[spaceIndex].mortgaged = false;
             playersCopy[currentPlayerIndex].money -= unmortgageValue;
             
+            // Önce gameData'yı lokal olarak güncelle (anında görünür olsun)
+            gameData.properties = propertiesCopy;
+            gameData.players = playersCopy;
+            
             await updateGame({ properties: propertiesCopy, players: playersCopy });
             addLog(`${playersCopy[currentPlayerIndex].name} unmortgaged ${space.name} for $${unmortgageValue}.`);
             
             // Modal içeriğini güncelle (modal açık kalacak)
-            refreshManagePropertiesModal();
+            setTimeout(() => {
+                refreshManagePropertiesModal();
+            }, 50);
         }
         
         // 🔄 Manage Properties modal içeriğini yenile

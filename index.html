@@ -5273,25 +5273,32 @@
             
             if (!dice1 || !dice2) return;
             
-            // Rastgele başlangıç pozisyonları (tahtanın köşelerinden)
-            const corners = [
-                { x: -boardWidth / 2 - 150, y: -boardHeight / 2 - 150 }, // Sol üst
-                { x: boardWidth / 2 + 150, y: -boardHeight / 2 - 150 },  // Sağ üst
-                { x: -boardWidth / 2 - 150, y: boardHeight / 2 + 150 },   // Sol alt
-                { x: boardWidth / 2 + 150, y: boardHeight / 2 + 150 }     // Sağ alt
+            // Rastgele başlangıç pozisyonları (tahtanın kenarlarından - el pozisyonu simülasyonu)
+            const edges = [
+                { x: -boardWidth / 2 - 100, y: -boardHeight / 2 - 100 }, // Sol üst
+                { x: boardWidth / 2 + 100, y: -boardHeight / 2 - 100 },  // Sağ üst
+                { x: -boardWidth / 2 - 100, y: boardHeight / 2 + 100 },   // Sol alt
+                { x: boardWidth / 2 + 100, y: boardHeight / 2 + 100 },     // Sağ alt
+                { x: -boardWidth / 2 - 100, y: 0 }, // Sol orta
+                { x: boardWidth / 2 + 100, y: 0 },  // Sağ orta
+                { x: 0, y: -boardHeight / 2 - 100 }, // Üst orta
+                { x: 0, y: boardHeight / 2 + 100 }   // Alt orta
             ];
             
-            // Her zar için farklı köşe seç
-            const start1 = corners[secureRandomInt(0, 3)];
-            let start2 = corners[secureRandomInt(0, 3)];
-            // İkinci zarın farklı bir köşeden başlamasını sağla
-            while (start2.x === start1.x && start2.y === start1.y) {
-                start2 = corners[secureRandomInt(0, 3)];
+            // Her zar için rastgele kenar seç (farklı olmalı)
+            const start1 = edges[secureRandomInt(0, edges.length - 1)];
+            let start2 = edges[secureRandomInt(0, edges.length - 1)];
+            // İkinci zarın farklı bir kenardan başlamasını sağla
+            let attempts = 0;
+            while ((start2.x === start1.x && start2.y === start1.y) && attempts < 10) {
+                start2 = edges[secureRandomInt(0, edges.length - 1)];
+                attempts++;
             }
             
-            // Hedef pozisyon (tahtanın ortası)
-            const targetX = 0;
+            // Hedef pozisyon (tahtanın ortası - zarlar birbirinden biraz ayrı)
+            const targetX1 = -35;
             const targetY = 0;
+            const targetX2 = 35;
             
             // Fizik mekanikleri - farklı yönlerde yuvarlanma
             const roll1X = (Math.random() - 0.5) * 3600 + 1800;
@@ -5317,18 +5324,19 @@
                 6: { x: 0, y: 180, z: 0 }    // back
             };
             
-            // Her iki zar için animasyon - tahtanın köşesinden ortaya fırlatma
+            // Her iki zar için animasyon - tahtanın köşesinden ortaya fırlatma (gerçekçi fizik)
             const animateDice = (diceEl, startX, startY, targetX, targetY, rollX, rollY, rollZ, finalValue) => {
                 return new Promise((resolve) => {
-                    // Başlangıç pozisyonunu ayarla
-                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(-200px)`;
+                    // Başlangıç pozisyonunu ayarla (görünür)
+                    diceEl.style.opacity = '1';
+                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
                     
                     let step = 0;
                     const interval = setInterval(() => {
                         if (step >= steps) {
                             // Final pozisyon - doğru değeri göster
                             const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
-                            diceEl.style.transform = `translateX(${targetX}px) translateY(${targetY}px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
+                            diceEl.style.transform = `translateX(${targetX}px) translateY(${targetY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
                             
                             clearInterval(interval);
                             resolve();
@@ -5337,26 +5345,27 @@
                         
                         const progress = step / steps;
                         
-                        // Easing function (ease-out cubic)
-                        const easeOut = 1 - Math.pow(1 - progress, 3);
+                        // Gerçekçi fırlatma fizikleri:
+                        // 1. Başlangıçta hızlı, sonra yavaşlar (ease-out)
+                        const easeOut = 1 - Math.pow(1 - progress, 2);
                         
-                        // Parabolik yol (yukarıdan fırlatılmış gibi)
-                        const parabola = Math.sin(progress * Math.PI);
+                        // 2. Parabolik yol - önce yükselir, sonra düşer (yerçekimi)
+                        const parabola = Math.sin(progress * Math.PI) * 0.6; // 0-0.6 arası zıplama
                         
-                        // X ve Y pozisyonları (köşeden ortaya)
+                        // 3. X ve Y pozisyonları (düz çizgi + parabolik yukarı çıkış)
                         const currentX = startX + (targetX - startX) * easeOut;
-                        const currentY = startY + (targetY - startY) * easeOut - (parabola * 150); // Yukarı zıplama efekti
-                        const currentZ = -200 + (parabola * 200); // Derinlik animasyonu
+                        const currentY = startY + (targetY - startY) * easeOut - (parabola * 100); // Yukarı zıplama
                         
-                        // Rotation (yuvarlanma)
-                        const currentRotX = rollX * progress;
-                        const currentRotY = rollY * progress;
-                        const currentRotZ = rollZ * progress;
+                        // 4. Rotation - hızlı başlar, sonra yavaşlar (sürtünme etkisi)
+                        const rotationProgress = 1 - Math.pow(1 - progress, 1.5);
+                        const currentRotX = rollX * rotationProgress;
+                        const currentRotY = rollY * rotationProgress;
+                        const currentRotZ = rollZ * rotationProgress;
                         
                         diceEl.style.transform = `
                             translateX(${currentX}px) 
                             translateY(${currentY}px) 
-                            translateZ(${currentZ}px)
+                            translateZ(0px)
                             rotateX(${currentRotX}deg) 
                             rotateY(${currentRotY}deg) 
                             rotateZ(${currentRotZ}deg)
@@ -5367,10 +5376,9 @@
                 });
             };
             
-            // İki zarı aynı anda animasyonla
             await Promise.all([
-                animateDice(dice1, start1.x, start1.y, targetX - 40, targetY, roll1X, roll1Y, roll1Z, dice1Value),
-                animateDice(dice2, start2.x, start2.y, targetX + 40, targetY, roll2X, roll2Y, roll2Z, dice2Value)
+                animateDice(dice1, start1.x, start1.y, targetX1, targetY, roll1X, roll1Y, roll1Z, dice1Value),
+                animateDice(dice2, start2.x, start2.y, targetX2, targetY, roll2X, roll2Y, roll2Z, dice2Value)
             ]);
         }
         

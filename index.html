@@ -311,17 +311,18 @@
             opacity: 1;
         }
         
+        /* 🎲 YENİ ZAR TASARIMI - SIFIRDAN */
         .dice-3d-container {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             position: relative;
             transform-style: preserve-3d;
             perspective: 1000px;
         }
         
         .dice-3d {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s linear;
@@ -329,130 +330,64 @@
         
         .dice-face {
             position: absolute;
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             background: #000000;
-            border: 2px solid #FFD700;
-            border-radius: 6px;
+            border: 3px solid #FFD700;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                0 0 4px rgba(255, 215, 0, 0.3),
-                0 0 8px rgba(255, 215, 0, 0.2),
-                inset 0 0 12px rgba(0, 0, 0, 0.9),
-                0 4px 8px rgba(0, 0, 0, 0.7);
-            position: relative;
+                0 0 5px rgba(255, 215, 0, 0.4),
+                inset 0 0 10px rgba(0, 0, 0, 0.8),
+                0 3px 6px rgba(0, 0, 0, 0.6);
             overflow: hidden;
+            backface-visibility: hidden;
         }
         
-        /* 3D görünüm için kenarlar ve köşeler - farklı yüzler için farklı tonlar (daha sade) */
-        .dice-face.front {
-            background: #000000;
-            border-color: #FFD700;
-        }
-        .dice-face.back {
-            background: #0a0a0a;
-            border-color: #FFC700;
-        }
-        .dice-face.right {
-            background: #000000;
-            border-color: #FFD700;
-        }
-        .dice-face.left {
-            background: #0a0a0a;
-            border-color: #FFC700;
-        }
-        .dice-face.top {
-            background: #000000;
-            border-color: #FFE700;
-        }
-        .dice-face.bottom {
-            background: #0a0a0a;
-            border-color: #FFB700;
+        /* Altın kenarlar - köşelerde vurgu */
+        .dice-face::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border: 2px solid #FFD700;
+            border-radius: 4px;
+            box-shadow: 
+                inset 0 0 3px rgba(255, 215, 0, 0.5),
+                0 0 3px rgba(255, 215, 0, 0.3);
+            pointer-events: none;
         }
         
         .dice-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             position: absolute;
-            box-shadow: 
-                0 0 2px currentColor,
-                0 0 3px currentColor;
-            z-index: 2;
             animation: rgbDot 3s infinite;
+            box-shadow: 0 0 3px currentColor;
         }
         
         @keyframes rgbDot {
-            0% {
-                background: #ff0000;
-                color: #ff0000;
-            }
-            16.66% {
-                background: #ff8800;
-                color: #ff8800;
-            }
-            33.33% {
-                background: #ffff00;
-                color: #ffff00;
-            }
-            50% {
-                background: #00ff00;
-                color: #00ff00;
-            }
-            66.66% {
-                background: #0088ff;
-                color: #0088ff;
-            }
-            83.33% {
-                background: #0000ff;
-                color: #0000ff;
-            }
-            100% {
-                background: #ff00ff;
-                color: #ff00ff;
-            }
+            0% { background: #ff0000; color: #ff0000; }
+            16.66% { background: #ff8800; color: #ff8800; }
+            33.33% { background: #ffff00; color: #ffff00; }
+            50% { background: #00ff00; color: #00ff00; }
+            66.66% { background: #0088ff; color: #0088ff; }
+            83.33% { background: #0000ff; color: #0000ff; }
+            100% { background: #ff00ff; color: #ff00ff; }
         }
         
-        /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
-        /* Gap olmaması için exact 17.5px (zar boyutu / 2) kullanıyoruz */
-        .dice-face.front { 
-            transform: rotateY(0deg) translateZ(17.5px);
-        }
-        .dice-face.back { 
-            transform: rotateY(180deg) translateZ(17.5px);
-        }
-        .dice-face.right { 
-            transform: rotateY(90deg) translateZ(17.5px);
-        }
-        .dice-face.left { 
-            transform: rotateY(-90deg) translateZ(17.5px);
-        }
-        .dice-face.top { 
-            transform: rotateX(90deg) translateZ(17.5px);
-        }
-        .dice-face.bottom { 
-            transform: rotateX(-90deg) translateZ(17.5px);
-        }
-        
-        /* Zar kenarlarında gap olmaması için */
-        .dice-3d {
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-        
-        /* Zar yüzlerinin arkasını gizle - iç içe geçmeyi önler */
-        .dice-face {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            transform-style: preserve-3d;
-        }
-        
-        /* Zar yüzlerinin çakışmasını önle - sadece ön yüz görünsün */
-        .dice-3d-container {
-            transform-style: preserve-3d;
-        }
+        /* Zar yüzleri pozisyonları (3D cube) */
+        .dice-face.front { transform: rotateY(0deg) translateZ(20px); }
+        .dice-face.back { transform: rotateY(180deg) translateZ(20px); }
+        .dice-face.right { transform: rotateY(90deg) translateZ(20px); }
+        .dice-face.left { transform: rotateY(-90deg) translateZ(20px); }
+        .dice-face.top { transform: rotateX(90deg) translateZ(20px); }
+        .dice-face.bottom { transform: rotateX(-90deg) translateZ(20px); }
         
         @keyframes diceRoll {
             0% {
@@ -5394,7 +5329,7 @@
             dice2El.textContent = die2;
         }
         
-        // 🎲 3D Zar oluşturma fonksiyonu - Animasyonda 3D, finalde 2D
+        // 🎲 YENİ ZAR OLUŞTURMA - BASİT VE TEMİZ
         function create3DDice(diceId, value) {
             const diceContainer = document.getElementById(diceId);
             if (!diceContainer) return null;
@@ -5404,30 +5339,30 @@
             dice.className = 'dice-3d';
             dice.id = `${diceId}-cube`;
             
-            // Klasik zar nokta düzeni (standart Monopoly zarı) - tüm yüzlerde aynı
+            // Klasik zar nokta düzeni - 40px zar için
             const dotPositions = {
-                1: [[17.5, 17.5]],
-                2: [[12, 12], [23, 23]],
-                3: [[12, 12], [17.5, 17.5], [23, 23]],
-                4: [[12, 12], [23, 12], [12, 23], [23, 23]],
-                5: [[12, 12], [23, 12], [17.5, 17.5], [12, 23], [23, 23]],
-                6: [[12, 12], [12, 17.5], [12, 23], [23, 12], [23, 17.5], [23, 23]]
+                1: [[20, 20]],  // Merkez
+                2: [[13, 13], [27, 27]],  // Sol üst - sağ alt
+                3: [[13, 13], [20, 20], [27, 27]],  // Sol üst, merkez, sağ alt
+                4: [[13, 13], [27, 13], [13, 27], [27, 27]],  // 4 köşe
+                5: [[13, 13], [27, 13], [20, 20], [13, 27], [27, 27]],  // 4 köşe + merkez
+                6: [[13, 13], [13, 20], [13, 27], [27, 13], [27, 20], [27, 27]]  // 2 sütun, 3 satır
             };
             
-            // 6 yüz oluştur - animasyon için 3D cube
+            // 6 yüz oluştur
             const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
-            faces.forEach((face, index) => {
+            faces.forEach((face) => {
                 const faceEl = document.createElement('div');
                 faceEl.className = `dice-face ${face}`;
                 
-                // Her yüze final değerin noktalarını koy (final pozisyonda doğru görünsün)
+                // Her yüze aynı değerin noktalarını koy (final pozisyonda doğru görünsün)
                 const dots = dotPositions[value] || [];
                 
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
                     dot.className = 'dice-dot';
-                    dot.style.left = `${x - 3.5}px`;
-                    dot.style.top = `${y - 3.5}px`;
+                    dot.style.left = `${x - 4}px`;
+                    dot.style.top = `${y - 4}px`;
                     faceEl.appendChild(dot);
                 });
                 

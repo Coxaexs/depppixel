@@ -5394,7 +5394,7 @@
             dice2El.textContent = die2;
         }
         
-        // 🎲 3D Zar oluşturma fonksiyonu
+        // 🎲 3D Zar oluşturma fonksiyonu - Animasyonda 3D, finalde 2D
         function create3DDice(diceId, value) {
             const diceContainer = document.getElementById(diceId);
             if (!diceContainer) return null;
@@ -5404,64 +5404,24 @@
             dice.className = 'dice-3d';
             dice.id = `${diceId}-cube`;
             
-            // 6 yüz oluştur
+            // Klasik zar nokta düzeni (standart Monopoly zarı) - tüm yüzlerde aynı
+            const dotPositions = {
+                1: [[17.5, 17.5]],
+                2: [[12, 12], [23, 23]],
+                3: [[12, 12], [17.5, 17.5], [23, 23]],
+                4: [[12, 12], [23, 12], [12, 23], [23, 23]],
+                5: [[12, 12], [23, 12], [17.5, 17.5], [12, 23], [23, 23]],
+                6: [[12, 12], [12, 17.5], [12, 23], [23, 12], [23, 17.5], [23, 23]]
+            };
+            
+            // 6 yüz oluştur - animasyon için 3D cube
             const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
-            faces.forEach(face => {
+            faces.forEach((face, index) => {
                 const faceEl = document.createElement('div');
                 faceEl.className = `dice-face ${face}`;
                 
-                // Her yüze nokta yerleştirme (1-6 için) - Standart zar düzeni
-                // 35px zar için: merkez (17.5, 17.5), kenarlardan 5-7px içeride
-                const dotPositions = {
-                    // 1 nokta: tam ortada
-                    1: [[17.5, 17.5]],
-                    // 2 nokta: sol üst - sağ alt köşeler
-                    2: [[12, 12], [23, 23]],
-                    // 3 nokta: sol üst, merkez, sağ alt
-                    3: [[12, 12], [17.5, 17.5], [23, 23]],
-                    // 4 nokta: 4 köşe
-                    4: [[12, 12], [23, 12], [12, 23], [23, 23]],
-                    // 5 nokta: 4 köşe + merkez
-                    5: [[12, 12], [23, 12], [17.5, 17.5], [12, 23], [23, 23]],
-                    // 6 nokta: 2 sütun, 3 satır (standart zar düzeni)
-                    6: [[12, 12], [12, 17.5], [12, 23], [23, 12], [23, 17.5], [23, 23]]
-                };
-                
-                // Final rotation mapping'ine göre hangi yüz hangi değeri gösterecek:
-                // value=1 → front, value=2 → right, value=3 → top, value=4 → bottom, value=5 → left, value=6 → back
-                const valueToFace = {
-                    1: 'front',
-                    2: 'right',
-                    3: 'top',
-                    4: 'bottom',
-                    5: 'left',
-                    6: 'back'
-                };
-                
-                // Final rotation mapping'ine göre: value=1 → front, value=2 → right, etc.
-                // Her yüze, final rotation'da görünecekse 'value' değerindeki noktaları koy
-                // Değilse, o yüzün standart değerindeki noktaları koy (görsel efekt için)
-                let faceValue;
-                
-                // Final rotation'da hangi yüz görünecek?
-                // finalRotations mapping: 1=front, 2=right, 3=top, 4=bottom, 5=left, 6=back
-                if (valueToFace[value] === face) {
-                    // Bu yüz final rotation'da görünecek - doğru değeri kullan
-                    faceValue = value;
-                } else {
-                    // Bu yüz final rotation'da görünmeyecek - standart değerini kullan
-                    const faceToValue = {
-                        'front': 1,
-                        'right': 2,
-                        'top': 3,
-                        'bottom': 4,
-                        'left': 5,
-                        'back': 6
-                    };
-                    faceValue = faceToValue[face] || 1;
-                }
-                
-                const dots = dotPositions[faceValue] || [];
+                // Her yüze final değerin noktalarını koy (final pozisyonda doğru görünsün)
+                const dots = dotPositions[value] || [];
                 
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
@@ -5583,16 +5543,6 @@
             const steps = 60;
             const stepDuration = duration / steps;
             
-            // Final rotation mapping (her değer için hangi yüzü göster)
-            const finalRotations = {
-                1: { x: 0, y: 0, z: 0 },      // front
-                2: { x: 0, y: 90, z: 0 },     // right
-                3: { x: -90, y: 0, z: 0 },    // top
-                4: { x: 90, y: 0, z: 0 },     // bottom
-                5: { x: 0, y: -90, z: 0 },    // left
-                6: { x: 0, y: 180, z: 0 }    // back
-            };
-            
             // DEBUG: Console'a zar değerlerini yazdır
             console.log('🎲 Animating dice:', dice1Value, '+', dice2Value);
             
@@ -5619,16 +5569,16 @@
                             step++;
                             return; // Henüz hareket yok
                         } else if (step < collisionSteps) {
-                            // AŞAMA 1: Köşeden ortaya çarpışma - daha basit ve akışkan
+                            // AŞAMA 1: Köşeden ortaya çarpışma - 3D animasyon (zar yuvarlanıyor)
                             const collisionProgress = (step - delaySteps) / (collisionSteps - delaySteps);
-                            const easeOut = 1 - Math.pow(1 - collisionProgress, 1.5); // Daha smooth easing
-                            const parabola = Math.sin(collisionProgress * Math.PI) * 0.5; // Daha küçük zıplama
+                            const easeOut = 1 - Math.pow(1 - collisionProgress, 1.5);
+                            const parabola = Math.sin(collisionProgress * Math.PI) * 0.5;
                             
                             const currentX = startX + (collisionX - startX) * easeOut;
                             const currentY = startY + (collisionY - startY) * easeOut - (parabola * 60);
                             
-                            // Daha az dönüş - sadece %50 rotasyon
-                            const rotationProgress = collisionProgress * 0.5;
+                            // 3D rotasyon - zar yuvarlanıyor
+                            const rotationProgress = collisionProgress;
                             const currentRotX = rollX * rotationProgress;
                             const currentRotY = rollY * rotationProgress;
                             const currentRotZ = rollZ * rotationProgress;
@@ -5636,43 +5586,43 @@
                             diceEl.style.transform = `
                                 translateX(${currentX}px) 
                                 translateY(${currentY}px) 
-                                translateZ(0px)
+                                translateZ(${collisionProgress * 15}px)
                                 rotateX(${currentRotX}deg) 
                                 rotateY(${currentRotY}deg) 
                                 rotateZ(${currentRotZ}deg)
                             `;
                         } else if (step >= collisionSteps && step < steps) {
-                            // AŞAMA 2: Çarpışmadan final pozisyona - basit ve akışkan
+                            // AŞAMA 2: Çarpışmadan final pozisyona - 3D'den 2D'ye geçiş
                             const finalProgress = (step - collisionSteps) / (steps - collisionSteps);
-                            const finalEaseOut = 1 - Math.pow(1 - finalProgress, 1.5); // Smooth easing
+                            const finalEaseOut = 1 - Math.pow(1 - finalProgress, 1.5);
                             
-                            // Çarpışmadan sonra minimal zıplama
                             const finalParabola = Math.sin(finalProgress * Math.PI) * 0.2;
                             
-                            // Final pozisyona doğrudan git (collision noktasından)
                             const currentX = collisionX + (finalX - collisionX) * finalEaseOut;
                             const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 30);
                             
-                            // Final rotasyon (kalan %50, toplam %100)
-                            const finalRotationProgress = 0.5 + (finalProgress * 0.5);
-                            const currentRotX = rollX * finalRotationProgress;
-                            const currentRotY = rollY * finalRotationProgress;
-                            const currentRotZ = rollZ * finalRotationProgress;
+                            // 3D rotasyon'dan 2D düze geçiş (yavaş yavaş düzleşiyor)
+                            const rotationProgress = 1 - (finalProgress * 0.8); // %100'den %20'ye
+                            const currentRotX = rollX * rotationProgress;
+                            const currentRotY = rollY * rotationProgress;
+                            const currentRotZ = rollZ * rotationProgress;
+                            
+                            // Z değeri de azaltılıyor (3D'den 2D'ye)
+                            const currentZ = 15 - (finalProgress * 15); // 15'ten 0'a
                             
                             diceEl.style.transform = `
                                 translateX(${currentX}px) 
                                 translateY(${currentY}px) 
-                                translateZ(0px)
+                                translateZ(${currentZ}px)
                                 rotateX(${currentRotX}deg) 
                                 rotateY(${currentRotY}deg) 
                                 rotateZ(${currentRotZ}deg)
                             `;
                         } else {
-                            // Final pozisyon - doğru değeri göster
-                            const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
-                            // DEBUG: Final rotation değerini logla
-                            console.log(`🎲 Final rotation for value ${finalValue}:`, finalRot);
-                            diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
+                            // Final pozisyon - 2D düz zar (sadece üst yüz görünsün)
+                            // Animasyon 3D olur ama finalde 2D düz zar görünür
+                            // Final rotation sıfırla - düz bir zar yüzü göster
+                            diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
                             
                             clearInterval(interval);
                             resolve();

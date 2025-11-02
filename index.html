@@ -332,8 +332,8 @@
             width: 35px;
             height: 35px;
             background: #000000;
-            border: 3px solid #FFD700;
-            border-radius: 8px;
+            border: 2px solid #FFD700;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -341,35 +341,34 @@
                 0 0 4px rgba(255, 215, 0, 0.3),
                 0 0 8px rgba(255, 215, 0, 0.2),
                 inset 0 0 12px rgba(0, 0, 0, 0.9),
-                0 4px 8px rgba(0, 0, 0, 0.7),
-                inset 0 0 0 2px rgba(255, 215, 0, 0.2);
+                0 4px 8px rgba(0, 0, 0, 0.7);
             position: relative;
-            overflow: visible;
+            overflow: hidden;
         }
         
-        /* 3D görünüm için kenarlar ve köşeler - farklı yüzler için farklı tonlar */
+        /* 3D görünüm için kenarlar ve köşeler - farklı yüzler için farklı tonlar (daha sade) */
         .dice-face.front {
-            background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%);
+            background: #000000;
             border-color: #FFD700;
         }
         .dice-face.back {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            background: #0a0a0a;
             border-color: #FFC700;
         }
         .dice-face.right {
-            background: linear-gradient(135deg, #0a0a0a 0%, #000000 50%, #0a0a0a 100%);
+            background: #000000;
             border-color: #FFD700;
         }
         .dice-face.left {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #1a1a1a 100%);
+            background: #0a0a0a;
             border-color: #FFC700;
         }
         .dice-face.top {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+            background: #000000;
             border-color: #FFE700;
         }
         .dice-face.bottom {
-            background: linear-gradient(135deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+            background: #0a0a0a;
             border-color: #FFB700;
         }
         
@@ -6354,6 +6353,9 @@
             const newPosition = (currentPlayer.position + total) % gameData.settings.board.length;
             const newMoney = currentPlayer.money;
             
+            // 🎲 Bot zar animasyonu - insan oyuncular gibi görünsün
+            animate3DDiceRoll(die1, die2);
+            
             // 📊 Kare ziyaret istatistiklerini güncelle
             if (!gameData.spaceVisits) {
                 gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
@@ -6370,6 +6372,9 @@
                 rollPlayersCopy[gameData.currentPlayerIndex].doublesCount = (currentPlayer.doublesCount || 0) + 1;
                 logMessages.push(`🎲 ${currentPlayer.name} rolled DOUBLES!`);
             }
+            
+            // Zar animasyonunun bitmesini bekle (1.5 saniye)
+            await new Promise(resolve => setTimeout(resolve, 1500));
             
             // 🎬 Bot için karakter animasyonu
             await animatePlayerMovement(currentPlayer.id, oldPosition, newPosition, total);

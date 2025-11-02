@@ -86,6 +86,13 @@
             font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
         }
+        .character-icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            object-fit: contain;
+        }
         @media (max-width: 900px) {
             /* Mobilde sidebarları gizle */
             #game-container > aside {
@@ -3226,7 +3233,14 @@
         let selectedMap = '';
 
         const characterIcons = {
-          car: '🚗', hat: '🎩', dog: '🐕', shoe: '👞', iron: '🧲', ship: '🚢', cat: '🐈', money: '💰'
+          car: '🚗', 
+          hat: '<img src="sapkaemoji.png" class="character-icon" alt="hat">', 
+          dog: '<img src="kopekemoji.png" class="character-icon" alt="dog">', 
+          shoe: '<img src="shoeemoji.png" class="character-icon" alt="shoe">', 
+          iron: '🧲', 
+          ship: '🚢', 
+          cat: '<img src="catemoji.png" class="character-icon" alt="cat">', 
+          money: '<img src="moneysack.png" class="character-icon" alt="money">'
         };
         
         // Her karaktere özel renk
@@ -5183,7 +5197,7 @@
                 // Debug log
                 console.log(`🎮 Player ${p.name}: character='${p.character}', emoji='${emoji}'`);
                 
-                pieceEl.textContent = emoji;
+                pieceEl.innerHTML = emoji; // Use innerHTML to support <img> tags
                 
                 const targetSpace = document.getElementById(`space-${p.position}`);
                 if (targetSpace) {

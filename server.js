@@ -236,6 +236,14 @@ wss.on('connection', (ws, req) => {
                     // WebRTC signaling
                     handleVoiceSignal(ws, message);
                     break;
+                case 'activity_ping':
+                    // Aktivite ping - son aktivite zamanını güncelle
+                    handleActivityPing(ws, message);
+                    break;
+                case 'inactivity_response':
+                    // Host'tan inaktivite uyarısına yanıt
+                    handleInactivityResponse(ws, message);
+                    break;
                 default:
                     ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
             }
@@ -266,7 +274,11 @@ function handleCreateGame(ws, message) {
         },
         trade: null,
         voiceChat: [], // Track players in voice chat
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        lastActivity: Date.now(), // Son aktivite zamanı
+        inactivityWarningShown: false, // İnaktivite uyarısı gösterildi mi?
+        inactivityWarningTime: null, // Uyarı gösterilme zamanı
+        humanPlayerMissedTurns: {} // İnsan oyuncuların kaç tur geçirdiği (playerId -> count)
     };
     
     games.set(gameId, newGame);
@@ -432,6 +444,11 @@ function handleStartGame(ws, message) {
     game.spaceVisits = new Array(game.settings.board.length).fill(0); // Kare ziyaret istatistikleri
     game.gameLog = [`Game started with ${game.players.length} players! It's ${game.players[0].name}'s turn.`];
     
+    // İnaktivite takibi başlat
+    if (!game.lastActivity) game.lastActivity = Date.now();
+    if (!game.inactivityWarningShown) game.inactivityWarningShown = false;
+    if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
+    
     // Broadcast game start to all players
     broadcastToGame(gameId, {
         type: 'game_started',
@@ -455,6 +472,10 @@ function handleUpdateGame(ws, message) {
         ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
         return;
     }
+    
+    // Aktivite zamanını güncelle
+    game.lastActivity = Date.now();
+    game.inactivityWarningShown = false; // Yeni aktivite oldu, uyarıyı sıfırla
     
     // Apply updates to game state
     Object.assign(game, updates);
@@ -715,6 +736,12 @@ function handleRollDice(ws, message) {
         console.log('⚠️ handleRollDice: No player or player bankrupt');
         return;
     }
+    
+    // Aktivite zamanını güncelle
+    if (!game.lastActivity) game.lastActivity = Date.now();
+    game.lastActivity = Date.now();
+    game.inactivityWarningShown = false;
+    
     console.log(`🎲 ${player.name} rolling dice...`);
     // Zar at - Güvenli rastgele sayı ile
     const die1 = secureRandomInt(1, 6);
@@ -795,6 +822,11 @@ function handleBuyProperty(ws, message) {
         return;
     }
     const game = games.get(gameId);
+    
+    // Aktivite zamanını güncelle
+    if (!game.lastActivity) game.lastActivity = Date.now();
+    game.lastActivity = Date.now();
+    game.inactivityWarningShown = false;
     const player = game.players[game.currentPlayerIndex];
     if (!player || player.isBankrupt) {
         console.log('⚠️ handleBuyProperty: No player or player bankrupt');
@@ -834,7 +866,35 @@ function handleEndTurn(ws, message) {
         return;
     }
     const game = games.get(gameId);
-    console.log(`⏭️ ${game.players[game.currentPlayerIndex].name} ending turn...`);
+    const currentPlayer = game.players[game.currentPlayerIndex];
+    
+    if (!currentPlayer || currentPlayer.isBankrupt) {
+        console.log('⚠️ handleEndTurn: No player or player bankrupt');
+        return;
+    }
+    
+    // Aktivite zamanını güncelle
+    game.lastActivity = Date.now();
+    game.inactivityWarningShown = false;
+    
+    // İnsan oyuncu turunu kaçırdı mı kontrol et
+    if (!currentPlayer.isBot) {
+        // İnsan oyuncu turunu oynadı, sayacı sıfırla
+        if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
+        if (game.humanPlayerMissedTurns[currentPlayer.id]) {
+            delete game.humanPlayerMissedTurns[currentPlayer.id];
+        }
+    } else {
+        // Bot turunu bitirdi, diğer insan oyuncuların sayacını artır
+        if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
+        game.players.forEach(p => {
+            if (!p.isBot && !p.isBankrupt && p.id !== currentPlayer.id) {
+                game.humanPlayerMissedTurns[p.id] = (game.humanPlayerMissedTurns[p.id] || 0) + 1;
+            }
+        });
+    }
+    
+    console.log(`⏭️ ${currentPlayer.name} ending turn...`);
     // Sıradaki oyuncuya geç
     let nextPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
     // Bankrupt olanları atla
@@ -931,6 +991,157 @@ function handleVoiceSignal(ws, message) {
         });
     }
 }
+
+// Aktivite ping handler
+function handleActivityPing(ws, message) {
+    const gameId = ws.gameId;
+    if (!gameId || !games.has(gameId)) return;
+    
+    const game = games.get(gameId);
+    if (game && game.state === 'playing') {
+        game.lastActivity = Date.now();
+        game.inactivityWarningShown = false; // Yeni aktivite oldu
+    }
+}
+
+// İnaktivite uyarısına host'tan yanıt
+function handleInactivityResponse(ws, message) {
+    const { gameId, continueGame } = message;
+    if (!gameId || !games.has(gameId)) return;
+    
+    const game = games.get(gameId);
+    if (!game) return;
+    
+    if (continueGame) {
+        // Host devam etmek istiyor
+        game.lastActivity = Date.now();
+        game.inactivityWarningShown = false;
+        game.inactivityWarningTime = null;
+        console.log(`✅ Game ${gameId} continues - host responded`);
+    } else {
+        // Host bitirmek istiyor
+        endGameDueToInactivity(gameId);
+    }
+}
+
+// Oyunu inaktivite nedeniyle bitir
+function endGameDueToInactivity(gameId) {
+    const game = games.get(gameId);
+    if (!game) return;
+    
+    game.state = 'finished';
+    game.gameLog = game.gameLog || [];
+    game.gameLog.push('⏰ Oyun inaktivite nedeniyle sonlandırıldı.');
+    
+    // Tüm oyunculara bildir
+    broadcastToGame(gameId, {
+        type: 'game_updated',
+        game
+    });
+    
+    // Oyunu 5 dakika sonra sil
+    setTimeout(() => {
+        if (games.has(gameId)) {
+            games.delete(gameId);
+            console.log(`🗑️ Game ${gameId} deleted due to inactivity`);
+        }
+    }, 5 * 60 * 1000);
+    
+    console.log(`⏰ Game ${gameId} ended due to inactivity`);
+}
+
+// İnsan oyuncu 5 tur geçirdi mi kontrol et
+function checkHumanPlayerMissedTurns(gameId) {
+    const game = games.get(gameId);
+    if (!game || game.state !== 'playing') return;
+    
+    if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
+    
+    // Her insan oyuncu için kontrol et
+    game.players.forEach(player => {
+        if (!player.isBot && !player.isBankrupt) {
+            const missedTurns = game.humanPlayerMissedTurns[player.id] || 0;
+            if (missedTurns >= 5) {
+                // İnsan oyuncu 5 tur geçmiş, oyunu bitir
+                game.state = 'finished';
+                game.gameLog = game.gameLog || [];
+                game.gameLog.push(`⏰ ${player.name} 5 tur geçti, oyun sonlandırıldı.`);
+                
+                broadcastToGame(gameId, {
+                    type: 'game_updated',
+                    game
+                });
+                
+                // Oyunu 5 dakika sonra sil
+                setTimeout(() => {
+                    if (games.has(gameId)) {
+                        games.delete(gameId);
+                        console.log(`🗑️ Game ${gameId} deleted - human player missed 5 turns`);
+                    }
+                }, 5 * 60 * 1000);
+                
+                console.log(`⏰ Game ${gameId} ended - ${player.name} missed 5 turns`);
+                return;
+            }
+        }
+    });
+}
+
+// Periyodik inaktivite kontrolü (her 30 saniyede bir)
+setInterval(() => {
+    const now = Date.now();
+    const INACTIVITY_THRESHOLD = 300 * 1000; // 300 saniye (5 dakika)
+    const WARNING_TIMEOUT = 30 * 1000; // 30 saniye uyarı süresi
+    
+    games.forEach((game, gameId) => {
+        if (game.state !== 'playing') return;
+        
+        // İnsan oyuncu 5 tur geçirdi mi kontrol et
+        checkHumanPlayerMissedTurns(gameId);
+        
+        // Eğer oyun bitmişse devam etme
+        if (game.state === 'finished') return;
+        
+        const timeSinceLastActivity = now - (game.lastActivity || game.createdAt);
+        
+        // 300 saniye inaktivite varsa
+        if (timeSinceLastActivity >= INACTIVITY_THRESHOLD) {
+            // Eğer henüz uyarı gösterilmediyse
+            if (!game.inactivityWarningShown) {
+                game.inactivityWarningShown = true;
+                game.inactivityWarningTime = now;
+                
+                // Host'a uyarı gönder
+                const hostId = game.hostId;
+                let hostWs = null;
+                wss.clients.forEach(client => {
+                    if (client.gameId === gameId && client.playerId === hostId && client.readyState === WebSocket.OPEN) {
+                        hostWs = client;
+                    }
+                });
+                
+                if (hostWs) {
+                    hostWs.send(JSON.stringify({
+                        type: 'inactivity_warning',
+                        gameId: gameId,
+                        timeLeft: WARNING_TIMEOUT
+                    }));
+                    console.log(`⚠️ Inactivity warning sent to host of game ${gameId}`);
+                } else {
+                    // Host bağlı değilse direkt bitir
+                    endGameDueToInactivity(gameId);
+                }
+            } else if (game.inactivityWarningTime) {
+                // Uyarı gösterildi, 30 saniye geçti mi kontrol et
+                const timeSinceWarning = now - game.inactivityWarningTime;
+                if (timeSinceWarning >= WARNING_TIMEOUT) {
+                    // Host yanıt vermedi, oyunu bitir
+                    endGameDueToInactivity(gameId);
+                }
+            }
+        }
+    });
+}, 30000); // Her 30 saniyede bir kontrol et
 
 // 🔄 Periodic game state synchronization
 setInterval(() => {

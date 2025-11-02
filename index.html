@@ -5246,7 +5246,7 @@
             return dice;
         }
         
-        // 🎲 3D Zar animasyonu - Tahtanın rastgele bir tarafından ortaya fırlatma
+        // 🎲 3D Zar animasyonu - Çapraz köşelerden ortaya fırlatma
         async function animate3DDiceRoll(dice1Value, dice2Value) {
             const animationContainer = document.getElementById('dice-animation-container');
             const dice1Container = document.getElementById('dice-3d-1');
@@ -5264,6 +5264,12 @@
             const boardWidth = boardRect.width;
             const boardHeight = boardRect.height;
             
+            // Pop-up'ın boyutlarını tahmin et (property-buy-panel en büyük)
+            // max-w-md = ~28rem = ~448px genişlik, yükseklik ~300-400px arası
+            const popupWidth = 450;
+            const popupHeight = 350;
+            const popupMargin = 20; // Pop-up'ın etrafındaki boşluk
+            
             // Zar container'larını göster
             animationContainer.classList.add('show');
             
@@ -5273,32 +5279,31 @@
             
             if (!dice1 || !dice2) return;
             
-            // Rastgele başlangıç pozisyonları (tahtanın kenarlarından - el pozisyonu simülasyonu)
-            const edges = [
-                { x: -boardWidth / 2 - 100, y: -boardHeight / 2 - 100 }, // Sol üst
-                { x: boardWidth / 2 + 100, y: -boardHeight / 2 - 100 },  // Sağ üst
-                { x: -boardWidth / 2 - 100, y: boardHeight / 2 + 100 },   // Sol alt
-                { x: boardWidth / 2 + 100, y: boardHeight / 2 + 100 },     // Sağ alt
-                { x: -boardWidth / 2 - 100, y: 0 }, // Sol orta
-                { x: boardWidth / 2 + 100, y: 0 },  // Sağ orta
-                { x: 0, y: -boardHeight / 2 - 100 }, // Üst orta
-                { x: 0, y: boardHeight / 2 + 100 }   // Alt orta
-            ];
+            // Tur sayısını takip et (her turda köşeler değişsin)
+            if (!window.diceCornerToggle) window.diceCornerToggle = false;
+            window.diceCornerToggle = !window.diceCornerToggle;
             
-            // Her zar için rastgele kenar seç (farklı olmalı)
-            const start1 = edges[secureRandomInt(0, edges.length - 1)];
-            let start2 = edges[secureRandomInt(0, edges.length - 1)];
-            // İkinci zarın farklı bir kenardan başlamasını sağla
-            let attempts = 0;
-            while ((start2.x === start1.x && start2.y === start1.y) && attempts < 10) {
-                start2 = edges[secureRandomInt(0, edges.length - 1)];
-                attempts++;
+            // Çapraz köşeler - her turda değişir
+            let start1, start2;
+            if (window.diceCornerToggle) {
+                // Tur 1: Sol alt + Sağ üst
+                start1 = { x: -boardWidth / 2 - 120, y: boardHeight / 2 + 120 };  // Sol alt
+                start2 = { x: boardWidth / 2 + 120, y: -boardHeight / 2 - 120 };  // Sağ üst
+            } else {
+                // Tur 2: Sağ alt + Sol üst
+                start1 = { x: boardWidth / 2 + 120, y: boardHeight / 2 + 120 };   // Sağ alt
+                start2 = { x: -boardWidth / 2 - 120, y: -boardHeight / 2 - 120 };  // Sol üst
             }
             
-            // Hedef pozisyon (tahtanın ortası - zarlar birbirinden biraz ayrı)
-            const targetX1 = -35;
-            const targetY = 0;
-            const targetX2 = 35;
+            // Çarpışma noktası (tahtanın ortası)
+            const collisionX = 0;
+            const collisionY = 0;
+            
+            // Final pozisyon - pop-up'ın dışında ama tahtanın içinde
+            // Pop-up'ın sağ veya sol tarafında konumlan
+            const finalSide = secureRandomInt(0, 1) === 0 ? -1 : 1; // -1: sol, 1: sağ
+            const finalX = finalSide * (popupWidth / 2 + popupMargin + 50);
+            const finalY = secureRandomInt(-60, 60); // Dikey olarak rastgele
             
             // Fizik mekanikleri - farklı yönlerde yuvarlanma
             const roll1X = (Math.random() - 0.5) * 3600 + 1800;
@@ -5324,61 +5329,90 @@
                 6: { x: 0, y: 180, z: 0 }    // back
             };
             
-            // Her iki zar için animasyon - tahtanın köşesinden ortaya fırlatma (gerçekçi fizik)
-            const animateDice = (diceEl, startX, startY, targetX, targetY, rollX, rollY, rollZ, finalValue) => {
+            // İki aşamalı animasyon: Köşeden ortaya çarpışma, sonra final pozisyona
+            const animateDice = (diceEl, startX, startY, collisionX, collisionY, finalX, finalY, rollX, rollY, rollZ, finalValue, isFirstDice) => {
                 return new Promise((resolve) => {
                     // Başlangıç pozisyonunu ayarla (görünür)
                     diceEl.style.opacity = '1';
                     diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
                     
                     let step = 0;
+                    const collisionSteps = Math.floor(steps * 0.6); // %60 çarpışma, %40 final pozisyon
+                    
                     const interval = setInterval(() => {
-                        if (step >= steps) {
+                        const progress = step / steps;
+                        
+                        if (step < collisionSteps) {
+                            // AŞAMA 1: Köşeden ortaya çarpışma
+                            const collisionProgress = step / collisionSteps;
+                            const easeOut = 1 - Math.pow(1 - collisionProgress, 2);
+                            const parabola = Math.sin(collisionProgress * Math.PI) * 0.6;
+                            
+                            const currentX = startX + (collisionX - startX) * easeOut;
+                            const currentY = startY + (collisionY - startY) * easeOut - (parabola * 100);
+                            
+                            const rotationProgress = 1 - Math.pow(1 - collisionProgress, 1.5);
+                            const currentRotX = rollX * rotationProgress * 0.8; // Çarpışmaya kadar %80 rotasyon
+                            const currentRotY = rollY * rotationProgress * 0.8;
+                            const currentRotZ = rollZ * rotationProgress * 0.8;
+                            
+                            diceEl.style.transform = `
+                                translateX(${currentX}px) 
+                                translateY(${currentY}px) 
+                                translateZ(0px)
+                                rotateX(${currentRotX}deg) 
+                                rotateY(${currentRotY}deg) 
+                                rotateZ(${currentRotZ}deg)
+                            `;
+                        } else if (step >= collisionSteps && step < steps) {
+                            // AŞAMA 2: Çarpışmadan final pozisyona
+                            const finalProgress = (step - collisionSteps) / (steps - collisionSteps);
+                            const finalEaseOut = 1 - Math.pow(1 - finalProgress, 2);
+                            
+                            // Çarpışmadan sonra daha az zıplama
+                            const finalParabola = Math.sin(finalProgress * Math.PI) * 0.3;
+                            
+                            const currentX = collisionX + (finalX - collisionX) * finalEaseOut;
+                            const currentY = collisionY + (finalY - collisionY) * finalEaseOut - (finalParabola * 50);
+                            
+                            // Final rotasyon (kalan %20)
+                            const finalRotationProgress = 0.8 + (finalProgress * 0.2);
+                            const currentRotX = rollX * finalRotationProgress;
+                            const currentRotY = rollY * finalRotationProgress;
+                            const currentRotZ = rollZ * finalRotationProgress;
+                            
+                            diceEl.style.transform = `
+                                translateX(${currentX}px) 
+                                translateY(${currentY}px) 
+                                translateZ(0px)
+                                rotateX(${currentRotX}deg) 
+                                rotateY(${currentRotY}deg) 
+                                rotateZ(${currentRotZ}deg)
+                            `;
+                        } else {
                             // Final pozisyon - doğru değeri göster
                             const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
-                            diceEl.style.transform = `translateX(${targetX}px) translateY(${targetY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
+                            diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
                             
                             clearInterval(interval);
                             resolve();
                             return;
                         }
                         
-                        const progress = step / steps;
-                        
-                        // Gerçekçi fırlatma fizikleri:
-                        // 1. Başlangıçta hızlı, sonra yavaşlar (ease-out)
-                        const easeOut = 1 - Math.pow(1 - progress, 2);
-                        
-                        // 2. Parabolik yol - önce yükselir, sonra düşer (yerçekimi)
-                        const parabola = Math.sin(progress * Math.PI) * 0.6; // 0-0.6 arası zıplama
-                        
-                        // 3. X ve Y pozisyonları (düz çizgi + parabolik yukarı çıkış)
-                        const currentX = startX + (targetX - startX) * easeOut;
-                        const currentY = startY + (targetY - startY) * easeOut - (parabola * 100); // Yukarı zıplama
-                        
-                        // 4. Rotation - hızlı başlar, sonra yavaşlar (sürtünme etkisi)
-                        const rotationProgress = 1 - Math.pow(1 - progress, 1.5);
-                        const currentRotX = rollX * rotationProgress;
-                        const currentRotY = rollY * rotationProgress;
-                        const currentRotZ = rollZ * rotationProgress;
-                        
-                        diceEl.style.transform = `
-                            translateX(${currentX}px) 
-                            translateY(${currentY}px) 
-                            translateZ(0px)
-                            rotateX(${currentRotX}deg) 
-                            rotateY(${currentRotY}deg) 
-                            rotateZ(${currentRotZ}deg)
-                        `;
-                        
                         step++;
                     }, stepDuration);
                 });
             };
             
+            // İki zar için final pozisyonları (biraz ayrı)
+            const finalX1 = finalX - (finalSide * 25);
+            const finalX2 = finalX + (finalSide * 25);
+            const finalY1 = finalY - 15;
+            const finalY2 = finalY + 15;
+            
             await Promise.all([
-                animateDice(dice1, start1.x, start1.y, targetX1, targetY, roll1X, roll1Y, roll1Z, dice1Value),
-                animateDice(dice2, start2.x, start2.y, targetX2, targetY, roll2X, roll2Y, roll2Z, dice2Value)
+                animateDice(dice1, start1.x, start1.y, collisionX, collisionY, finalX1, finalY1, roll1X, roll1Y, roll1Z, dice1Value, true),
+                animateDice(dice2, start2.x, start2.y, collisionX, collisionY, finalX2, finalY2, roll2X, roll2Y, roll2Z, dice2Value, false)
             ]);
         }
         

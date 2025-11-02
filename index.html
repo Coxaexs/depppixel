@@ -331,70 +331,79 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            background: 
-                linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #1a1a2e 50%, #0a0a0a 75%, #000000 100%),
-                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 70%);
-            border: 2px solid #00ffff;
-            border-radius: 6px;
+            background: #000000;
+            border: 3px solid #FFD700;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                0 0 15px rgba(0, 255, 255, 0.6),
-                0 0 25px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.15),
-                inset 0 2px 4px rgba(0, 255, 255, 0.2),
-                0 4px 10px rgba(0, 0, 0, 0.7);
+                0 0 8px rgba(255, 215, 0, 0.6),
+                0 0 15px rgba(255, 215, 0, 0.4),
+                inset 0 0 10px rgba(0, 0, 0, 0.5),
+                0 4px 8px rgba(0, 0, 0, 0.7);
             position: relative;
-            overflow: hidden;
-        }
-        
-        .dice-face::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, 
-                transparent 30%, 
-                rgba(0, 255, 255, 0.1) 50%, 
-                transparent 70%);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            overflow: visible;
         }
         
         .dice-dot {
             width: 10px;
             height: 10px;
-            background: radial-gradient(circle, #00ffff 0%, #00ccff 40%, #0080ff 80%, #0040ff 100%);
             border-radius: 50%;
             position: absolute;
             box-shadow: 
-                0 0 10px rgba(0, 255, 255, 0.9),
-                0 0 15px rgba(0, 255, 255, 0.6),
-                0 0 20px rgba(0, 255, 255, 0.4),
-                inset 0 0 6px rgba(255, 255, 255, 0.4),
-                inset 0 1px 2px rgba(255, 255, 255, 0.6);
-            border: 1.5px solid rgba(0, 255, 255, 0.8);
+                0 0 8px currentColor,
+                0 0 12px currentColor,
+                0 0 16px currentColor;
             z-index: 2;
+            animation: rgbDot 3s infinite;
+        }
+        
+        @keyframes rgbDot {
+            0% {
+                background: #ff0000;
+                color: #ff0000;
+            }
+            16.66% {
+                background: #ff8800;
+                color: #ff8800;
+            }
+            33.33% {
+                background: #ffff00;
+                color: #ffff00;
+            }
+            50% {
+                background: #00ff00;
+                color: #00ff00;
+            }
+            66.66% {
+                background: #0088ff;
+                color: #0088ff;
+            }
+            83.33% {
+                background: #0000ff;
+                color: #0000ff;
+            }
+            100% {
+                background: #ff00ff;
+                color: #ff00ff;
+            }
         }
         
         /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
+        /* Gap olmaması için exact 25px (zar boyutu / 2) kullanıyoruz */
         .dice-face.front { transform: rotateY(0deg) translateZ(25px); }
         .dice-face.back { transform: rotateY(180deg) translateZ(25px); }
         .dice-face.right { transform: rotateY(90deg) translateZ(25px); }
         .dice-face.left { transform: rotateY(-90deg) translateZ(25px); }
         .dice-face.top { transform: rotateX(90deg) translateZ(25px); }
         .dice-face.bottom { transform: rotateX(-90deg) translateZ(25px); }
+        
+        /* Zar kenarlarında gap olmaması için */
+        .dice-3d {
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
         
         @keyframes diceRoll {
             0% {
@@ -4535,9 +4544,29 @@
             if (!confirm(`Are you sure you want to kick ${player.name}?`)) return;
             
             const playersCopy = gameData.players.filter(p => p.id !== playerId);
-            await updateGame({ players: playersCopy });
+            
+            // 🏦 Kick edilen oyuncunun tüm property'lerini bankaya devret (sıfırla)
+            const propertiesCopy = JSON.parse(JSON.stringify(gameData.properties));
+            propertiesCopy.forEach((prop, index) => {
+                if (prop.ownerId === playerId) {
+                    // Property'yi bankaya devret - hiç satın alınmamış gibi yap
+                    prop.ownerId = null;
+                    prop.houses = 0;
+                    prop.mortgaged = false;
+                    // Shared ownership varsa onu da temizle
+                    if (prop.owners) {
+                        delete prop.owners[playerId];
+                        // Eğer başka owner yoksa owners objesini de temizle
+                        if (Object.keys(prop.owners).length === 0) {
+                            prop.owners = null;
+                        }
+                    }
+                }
+            });
+            
+            await updateGame({ players: playersCopy, properties: propertiesCopy });
             hideGameManagementModal();
-            addLog(`🎮 Host kicked ${player.name} from the game`);
+            addLog(`🎮 Host kicked ${player.name} from the game. All their properties returned to the bank.`);
         };
         
         window.forceEndTurnPlayer = async function(playerId) {
@@ -5445,10 +5474,31 @@
             
             // Final pozisyon - pop-up'ın ve property alanlarının dışında
             // Center-board'un kenarlarına yakın ama içinde
-            const safeMargin = Math.min(boardWidth, boardHeight) * 0.2; // Tahtanın %20'si kadar içeride
-            const finalSide = secureRandomInt(0, 1) === 0 ? -1 : 1; // -1: sol, 1: sağ
-            const finalX = finalSide * (Math.min(boardWidth, boardHeight) * 0.25); // Tahtanın %25'i kadar kenardan
-            const finalY = secureRandomInt(-Math.min(boardWidth, boardHeight) * 0.15, Math.min(boardWidth, boardHeight) * 0.15); // Dikey olarak ortada
+            // Zarlar farklı köşelere gidecek - bir tanesi bir köşeye, diğeri başka bir köşeye
+            const boardMin = Math.min(boardWidth, boardHeight);
+            
+            // İki zar için farklı final pozisyonlar (farklı köşelere)
+            const corner1 = secureRandomInt(0, 3); // 0: sol-üst, 1: sağ-üst, 2: sağ-alt, 3: sol-alt
+            let corner2 = secureRandomInt(0, 3);
+            // İkinci köşe birinciden farklı olsun
+            while (corner2 === corner1) {
+                corner2 = secureRandomInt(0, 3);
+            }
+            
+            const getCornerPosition = (corner) => {
+                switch(corner) {
+                    case 0: return { x: -boardMin * 0.3, y: -boardMin * 0.3 }; // sol-üst
+                    case 1: return { x: boardMin * 0.3, y: -boardMin * 0.3 }; // sağ-üst
+                    case 2: return { x: boardMin * 0.3, y: boardMin * 0.3 }; // sağ-alt
+                    case 3: return { x: -boardMin * 0.3, y: boardMin * 0.3 }; // sol-alt
+                    default: return { x: 0, y: 0 };
+                }
+            };
+            
+            const finalPos1 = getCornerPosition(corner1);
+            const finalPos2 = getCornerPosition(corner2);
+            const finalX = (finalPos1.x + finalPos2.x) / 2; // İkisinin ortası (collision point için)
+            const finalY = (finalPos1.y + finalPos2.y) / 2;
             
             // Fizik mekanikleri - daha basit ve akışkan yuvarlanma (az dönüş)
             const roll1X = (Math.random() - 0.5) * 720 + 360;  // 0-720 derece
@@ -5561,11 +5611,11 @@
                 });
             };
             
-            // İki zar için final pozisyonları (biraz ayrı)
-            const finalX1 = finalX - (finalSide * 25);
-            const finalX2 = finalX + (finalSide * 25);
-            const finalY1 = finalY - 15;
-            const finalY2 = finalY + 15;
+            // İki zar için final pozisyonları (farklı köşelere)
+            const finalX1 = finalPos1.x;
+            const finalY1 = finalPos1.y;
+            const finalX2 = finalPos2.x;
+            const finalY2 = finalPos2.y;
             
             await Promise.all([
                 animateDice(dice1, start1.x, start1.y, collisionX, collisionY, finalX1, finalY1, roll1X, roll1Y, roll1Z, dice1Value, true),

@@ -4366,6 +4366,15 @@
         // 🏠 Show Property Details Modal
         function showPropertyDetails(position, spaceData) {
             const property = gameData.properties[position];
+            // Owner bilgisini al (hisse sistemi varsa ilk owner'ı, yoksa ownerId'den)
+            let owner = null;
+            if (property && property.owners && Object.keys(property.owners).length > 0) {
+                const firstOwnerId = Object.keys(property.owners)[0];
+                owner = gameData.players.find(p => p.id === firstOwnerId);
+            } else if (property && property.ownerId) {
+                owner = gameData.players.find(p => p.id === property.ownerId);
+            }
+            
             let detailsHTML = `
                 <div class="text-center mb-4">
                     <div class="text-3xl mb-2">${spaceData.type === 'property' ? '🏠' : spaceData.type === 'railroad' ? '🚂' : '⚡'}</div>
@@ -4438,12 +4447,17 @@
                             </div>
                         </div>
                         
-                        ${owner ? `
-                            <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
-                                <div class="text-sm text-gray-600">👤 Owner</div>
-                                <div class="text-xl font-bold" style="color: ${owner.color}">${owner.name} ${characterIcons[owner.character]}</div>
+                        <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                            <div class="text-sm text-gray-600">👤 Owners</div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${property && property.owners ? Object.entries(property.owners).map(([ownerId, percentage]) => {
+                                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
+                                    if (!ownerPlayer) return '';
+                                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300" style="color:${ownerPlayer.color}">${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
+                                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300" style="color:${owner.color}">${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500">🆓 Available for Purchase</span>'}
                             </div>
-                        ` : '<div class="bg-gray-50 p-3 rounded-lg border-l-4 border-gray-400 text-center text-gray-600">🆓 Available for Purchase</div>'}
+                            ${property && property.mortgaged ? `<div class="text-sm text-red-600 mt-1">🔒 MORTGAGED</div>` : ''}
+                        </div>
                     </div>
                 `;
             } else if (spaceData.type === 'utility') {
@@ -4468,17 +4482,25 @@
                             </div>
                         </div>
                         
-                        ${owner ? `
-                            <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
-                                <div class="text-sm text-gray-600">👤 Owner</div>
-                                <div class="text-xl font-bold" style="color: ${owner.color}">${owner.name} ${characterIcons[owner.character]}</div>
+                        <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                            <div class="text-sm text-gray-600">👤 Owners</div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${property && property.owners ? Object.entries(property.owners).map(([ownerId, percentage]) => {
+                                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
+                                    if (!ownerPlayer) return '';
+                                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300" style="color:${ownerPlayer.color}">${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
+                                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300" style="color:${owner.color}">${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500">🆓 Available for Purchase</span>'}
                             </div>
-                        ` : '<div class="bg-gray-50 p-3 rounded-lg border-l-4 border-gray-400 text-center text-gray-600">🆓 Available for Purchase</div>'}
+                            ${property && property.mortgaged ? `<div class="text-sm text-red-600 mt-1">🔒 MORTGAGED</div>` : ''}
+                        </div>
                     </div>
                 `;
             }
             
-            showModal(`🏠 Property Details`, detailsHTML, [
+            // Modal başlığını tipine göre ayarla
+            const modalTitle = spaceData.type === 'property' ? '🏠 Property Details' : spaceData.type === 'railroad' ? '🚂 Railroad Details' : '⚡ Utility Details';
+            
+            showModal(modalTitle, detailsHTML, [
                 { text: 'Close', class: 'bg-blue-500', action: hideModal }
             ]);
         }

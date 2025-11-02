@@ -3,6 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const crypto = require('crypto');
 
 // Create HTTP server to serve files
 const server = http.createServer((req, res) => {
@@ -428,6 +429,7 @@ function handleStartGame(ws, message) {
     game.currentPlayerIndex = 0;
     game.turnState = 'start';
     game.lastDiceRoll = [0, 0];
+    game.spaceVisits = new Array(game.settings.board.length).fill(0); // Kare ziyaret istatistikleri
     game.gameLog = [`Game started with ${game.players.length} players! It's ${game.players[0].name}'s turn.`];
     
     // Broadcast game start to all players
@@ -689,6 +691,18 @@ function handleAddBot(ws, message) {
 }
 
 // Bot ve oyuncu için zar atma, mülk alma ve turu bitirme işlemlerini loglamak için temel handler fonksiyonları
+// Güvenli rastgele sayı üretici (Node.js crypto modülü ile)
+function secureRandomInt(min, max) {
+    const range = max - min + 1;
+    const maxValid = Math.floor(256 / range) * range - 1;
+    let randomValue;
+    do {
+        const randomArray = crypto.randomBytes(1);
+        randomValue = randomArray[0];
+    } while (randomValue > maxValid);
+    return min + (randomValue % range);
+}
+
 function handleRollDice(ws, message) {
     const gameId = ws.gameId;
     if (!gameId || !games.has(gameId)) {
@@ -702,11 +716,18 @@ function handleRollDice(ws, message) {
         return;
     }
     console.log(`🎲 ${player.name} rolling dice...`);
-    // Zar at
-    const die1 = Math.floor(Math.random() * 6) + 1;
-    const die2 = Math.floor(Math.random() * 6) + 1;
+    // Zar at - Güvenli rastgele sayı ile
+    const die1 = secureRandomInt(1, 6);
+    const die2 = secureRandomInt(1, 6);
     const total = die1 + die2;
     player.position = (player.position + total) % game.settings.board.length;
+    
+    // Kare ziyaret istatistiklerini güncelle
+    if (!game.spaceVisits) {
+        game.spaceVisits = new Array(game.settings.board.length).fill(0);
+    }
+    game.spaceVisits[player.position] = (game.spaceVisits[player.position] || 0) + 1;
+    
     game.lastDiceRoll = [die1, die2];
     game.turnState = 'rolled';
     game.gameLog = game.gameLog || [];

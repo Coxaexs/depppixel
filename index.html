@@ -331,25 +331,61 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            border: 2px solid #9333ea;
-            border-radius: 10px;
+            background: 
+                linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #1a1a2e 50%, #0a0a0a 75%, #000000 100%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 70%);
+            border: 2px solid #00ffff;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                inset 0 3px 6px rgba(255,255,255,0.8),
-                inset 0 -3px 6px rgba(0,0,0,0.1),
-                0 6px 12px rgba(0,0,0,0.3);
+                0 0 15px rgba(0, 255, 255, 0.6),
+                0 0 25px rgba(0, 255, 255, 0.4),
+                inset 0 0 20px rgba(0, 255, 255, 0.15),
+                inset 0 2px 4px rgba(0, 255, 255, 0.2),
+                0 4px 10px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dice-face::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(0, 255, 255, 0.1) 50%, 
+                transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
         
         .dice-dot {
-            width: 8px;
-            height: 8px;
-            background: radial-gradient(circle, #9333ea 0%, #6b21a8 100%);
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #00ffff 0%, #00ccff 40%, #0080ff 80%, #0040ff 100%);
             border-radius: 50%;
             position: absolute;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2);
+            box-shadow: 
+                0 0 10px rgba(0, 255, 255, 0.9),
+                0 0 15px rgba(0, 255, 255, 0.6),
+                0 0 20px rgba(0, 255, 255, 0.4),
+                inset 0 0 6px rgba(255, 255, 255, 0.4),
+                inset 0 1px 2px rgba(255, 255, 255, 0.6);
+            border: 1.5px solid rgba(0, 255, 255, 0.8);
+            z-index: 2;
         }
         
         /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
@@ -5168,15 +5204,8 @@
             console.log('🎲 Rolled dice:', die1, '+', die2, '=', total);
             
             // 🎲 3D Zar animasyonu başlat
-            animate3DDiceRoll(die1, die2).then(() => {
-                // Animasyon bittikten sonra zar container'ını gizle
-                setTimeout(() => {
-                    const animationContainer = document.getElementById('dice-animation-container');
-                    if (animationContainer) {
-                        animationContainer.classList.remove('show');
-                    }
-                }, 500);
-            });
+            // Zarlar end turn'e kadar masada kalacak, burada gizlenmiyor
+            animate3DDiceRoll(die1, die2);
             
             // Eski animasyon (geriye dönük uyumluluk)
             animateDiceRoll();
@@ -5320,8 +5349,8 @@
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
                     dot.className = 'dice-dot';
-                    dot.style.left = `${x - 4}px`;
-                    dot.style.top = `${y - 4}px`;
+                    dot.style.left = `${x - 5}px`;
+                    dot.style.top = `${y - 5}px`;
                     faceEl.appendChild(dot);
                 });
                 
@@ -7485,6 +7514,24 @@
         }
         
         async function endTurn() {
+            // 🎲 End turn yapıldığında zarları gizle
+            const animationContainer = document.getElementById('dice-animation-container');
+            if (animationContainer) {
+                animationContainer.classList.remove('show');
+            }
+            
+            // El elementlerini de temizle
+            const hand1 = document.getElementById('dice-hand-1');
+            const hand2 = document.getElementById('dice-hand-2');
+            if (hand1) {
+                hand1.classList.remove('show');
+                hand1.style.opacity = '0';
+            }
+            if (hand2) {
+                hand2.classList.remove('show');
+                hand2.style.opacity = '0';
+            }
+            
             // ⏰ Aktivite ping gönder
             sendActivityPing();
             

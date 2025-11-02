@@ -298,16 +298,16 @@
         }
         
         .dice-3d-container {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             position: relative;
             transform-style: preserve-3d;
             perspective: 1000px;
         }
         
         .dice-3d {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s linear;
@@ -315,36 +315,36 @@
         
         .dice-face {
             position: absolute;
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            border: 4px solid #9333ea;
-            border-radius: 20px;
+            border: 3px solid #9333ea;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                inset 0 5px 10px rgba(255,255,255,0.8),
-                inset 0 -5px 10px rgba(0,0,0,0.1),
-                0 10px 20px rgba(0,0,0,0.3);
+                inset 0 4px 8px rgba(255,255,255,0.8),
+                inset 0 -4px 8px rgba(0,0,0,0.1),
+                0 8px 16px rgba(0,0,0,0.3);
         }
         
         .dice-dot {
-            width: 18px;
-            height: 18px;
+            width: 12px;
+            height: 12px;
             background: radial-gradient(circle, #9333ea 0%, #6b21a8 100%);
             border-radius: 50%;
             position: absolute;
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 3px rgba(255,255,255,0.3), inset 0 -1px 3px rgba(0,0,0,0.2);
         }
         
-        /* Zar yüzleri pozisyonları (3D cube) */
-        .dice-face.front { transform: rotateY(0deg) translateZ(50px); }
-        .dice-face.back { transform: rotateY(180deg) translateZ(50px); }
-        .dice-face.right { transform: rotateY(90deg) translateZ(50px); }
-        .dice-face.left { transform: rotateY(-90deg) translateZ(50px); }
-        .dice-face.top { transform: rotateX(90deg) translateZ(50px); }
-        .dice-face.bottom { transform: rotateX(-90deg) translateZ(50px); }
+        /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
+        .dice-face.front { transform: rotateY(0deg) translateZ(35px); }
+        .dice-face.back { transform: rotateY(180deg) translateZ(35px); }
+        .dice-face.right { transform: rotateY(90deg) translateZ(35px); }
+        .dice-face.left { transform: rotateY(-90deg) translateZ(35px); }
+        .dice-face.top { transform: rotateX(90deg) translateZ(35px); }
+        .dice-face.bottom { transform: rotateX(-90deg) translateZ(35px); }
         
         @keyframes diceRoll {
             0% {
@@ -1823,7 +1823,7 @@
                         
                         <!-- 3D Dice Display - Animation Container -->
                         <div id="dice-animation-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" style="z-index: 1000;">
-                            <div id="dice-wrapper-3d" class="flex gap-6">
+                            <div id="dice-wrapper-3d" class="flex gap-4" style="transform-style: preserve-3d;">
                                 <div id="dice-3d-1" class="dice-3d-container"></div>
                                 <div id="dice-3d-2" class="dice-3d-container"></div>
                             </div>
@@ -5217,14 +5217,14 @@
                 const faceEl = document.createElement('div');
                 faceEl.className = `dice-face ${face}`;
                 
-                // Her yüze nokta yerleştirme (1-6 için)
+                // Her yüze nokta yerleştirme (1-6 için) - 70px zar için güncellendi
                 const dotPositions = {
-                    1: [[50, 50]],
-                    2: [[30, 30], [70, 70]],
-                    3: [[30, 30], [50, 50], [70, 70]],
-                    4: [[30, 30], [70, 30], [30, 70], [70, 70]],
-                    5: [[30, 30], [70, 30], [50, 50], [30, 70], [70, 70]],
-                    6: [[30, 25], [70, 25], [30, 50], [70, 50], [30, 75], [70, 75]]
+                    1: [[35, 35]],
+                    2: [[22, 22], [48, 48]],
+                    3: [[22, 22], [35, 35], [48, 48]],
+                    4: [[22, 22], [48, 22], [22, 48], [48, 48]],
+                    5: [[22, 22], [48, 22], [35, 35], [22, 48], [48, 48]],
+                    6: [[22, 18], [48, 18], [22, 35], [48, 35], [22, 52], [48, 52]]
                 };
                 
                 // Her yüz için farklı değer (animasyon sırasında değişir)
@@ -5234,8 +5234,8 @@
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
                     dot.className = 'dice-dot';
-                    dot.style.left = `${x - 9}px`;
-                    dot.style.top = `${y - 9}px`;
+                    dot.style.left = `${x - 6}px`;
+                    dot.style.top = `${y - 6}px`;
                     faceEl.appendChild(dot);
                 });
                 
@@ -5246,13 +5246,23 @@
             return dice;
         }
         
-        // 🎲 3D Zar animasyonu - Yuvarlanma
+        // 🎲 3D Zar animasyonu - Tahtanın rastgele bir tarafından ortaya fırlatma
         async function animate3DDiceRoll(dice1Value, dice2Value) {
             const animationContainer = document.getElementById('dice-animation-container');
             const dice1Container = document.getElementById('dice-3d-1');
             const dice2Container = document.getElementById('dice-3d-2');
             
             if (!animationContainer || !dice1Container || !dice2Container) return;
+            
+            // Tahtanın boyutlarını al (center-board)
+            const centerBoard = document.querySelector('.center-board');
+            if (!centerBoard) return;
+            
+            const boardRect = centerBoard.getBoundingClientRect();
+            
+            // Tahtanın genişlik ve yüksekliği
+            const boardWidth = boardRect.width;
+            const boardHeight = boardRect.height;
             
             // Zar container'larını göster
             animationContainer.classList.add('show');
@@ -5263,6 +5273,26 @@
             
             if (!dice1 || !dice2) return;
             
+            // Rastgele başlangıç pozisyonları (tahtanın köşelerinden)
+            const corners = [
+                { x: -boardWidth / 2 - 150, y: -boardHeight / 2 - 150 }, // Sol üst
+                { x: boardWidth / 2 + 150, y: -boardHeight / 2 - 150 },  // Sağ üst
+                { x: -boardWidth / 2 - 150, y: boardHeight / 2 + 150 },   // Sol alt
+                { x: boardWidth / 2 + 150, y: boardHeight / 2 + 150 }     // Sağ alt
+            ];
+            
+            // Her zar için farklı köşe seç
+            const start1 = corners[secureRandomInt(0, 3)];
+            let start2 = corners[secureRandomInt(0, 3)];
+            // İkinci zarın farklı bir köşeden başlamasını sağla
+            while (start2.x === start1.x && start2.y === start1.y) {
+                start2 = corners[secureRandomInt(0, 3)];
+            }
+            
+            // Hedef pozisyon (tahtanın ortası)
+            const targetX = 0;
+            const targetY = 0;
+            
             // Fizik mekanikleri - farklı yönlerde yuvarlanma
             const roll1X = (Math.random() - 0.5) * 3600 + 1800;
             const roll1Y = (Math.random() - 0.5) * 3600 + 1800;
@@ -5271,24 +5301,6 @@
             const roll2X = (Math.random() - 0.5) * 3600 + 1800;
             const roll2Y = (Math.random() - 0.5) * 3600 + 1800;
             const roll2Z = (Math.random() - 0.5) * 3600 + 1800;
-            
-            // İlk zar için hareket animasyonu
-            const bounce1 = [
-                { x: 0, y: -150 },
-                { x: 50, y: -80 },
-                { x: -30, y: -40 },
-                { x: 20, y: -10 },
-                { x: 0, y: 0 }
-            ];
-            
-            // İkinci zar için hareket animasyonu
-            const bounce2 = [
-                { x: 0, y: -150 },
-                { x: -50, y: -80 },
-                { x: 30, y: -40 },
-                { x: -20, y: -10 },
-                { x: 0, y: 0 }
-            ];
             
             // Animasyon süresi
             const duration = 2000; // 2 saniye
@@ -5305,15 +5317,18 @@
                 6: { x: 0, y: 180, z: 0 }    // back
             };
             
-            // Her iki zar için animasyon
-            const animateDice = (diceEl, rollX, rollY, rollZ, bouncePath, finalValue) => {
+            // Her iki zar için animasyon - tahtanın köşesinden ortaya fırlatma
+            const animateDice = (diceEl, startX, startY, targetX, targetY, rollX, rollY, rollZ, finalValue) => {
                 return new Promise((resolve) => {
+                    // Başlangıç pozisyonunu ayarla
+                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(-200px)`;
+                    
                     let step = 0;
                     const interval = setInterval(() => {
                         if (step >= steps) {
                             // Final pozisyon - doğru değeri göster
                             const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
-                            diceEl.style.transform = `rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
+                            diceEl.style.transform = `translateX(${targetX}px) translateY(${targetY}px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
                             
                             clearInterval(interval);
                             resolve();
@@ -5321,14 +5336,19 @@
                         }
                         
                         const progress = step / steps;
-                        const bounceIndex = Math.floor(progress * (bouncePath.length - 1));
-                        const bounce = bouncePath[Math.min(bounceIndex, bouncePath.length - 1)];
                         
-                        // Easing function (bounce effect)
-                        const ease = 1 - Math.pow(1 - progress, 3);
+                        // Easing function (ease-out cubic)
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
                         
-                        const currentX = bounce.x * (1 - ease);
-                        const currentY = bounce.y * (1 - ease);
+                        // Parabolik yol (yukarıdan fırlatılmış gibi)
+                        const parabola = Math.sin(progress * Math.PI);
+                        
+                        // X ve Y pozisyonları (köşeden ortaya)
+                        const currentX = startX + (targetX - startX) * easeOut;
+                        const currentY = startY + (targetY - startY) * easeOut - (parabola * 150); // Yukarı zıplama efekti
+                        const currentZ = -200 + (parabola * 200); // Derinlik animasyonu
+                        
+                        // Rotation (yuvarlanma)
                         const currentRotX = rollX * progress;
                         const currentRotY = rollY * progress;
                         const currentRotZ = rollZ * progress;
@@ -5336,6 +5356,7 @@
                         diceEl.style.transform = `
                             translateX(${currentX}px) 
                             translateY(${currentY}px) 
+                            translateZ(${currentZ}px)
                             rotateX(${currentRotX}deg) 
                             rotateY(${currentRotY}deg) 
                             rotateZ(${currentRotZ}deg)
@@ -5348,8 +5369,8 @@
             
             // İki zarı aynı anda animasyonla
             await Promise.all([
-                animateDice(dice1, roll1X, roll1Y, roll1Z, bounce1, dice1Value),
-                animateDice(dice2, roll2X, roll2Y, roll2Z, bounce2, dice2Value)
+                animateDice(dice1, start1.x, start1.y, targetX - 40, targetY, roll1X, roll1Y, roll1Z, dice1Value),
+                animateDice(dice2, start2.x, start2.y, targetX + 40, targetY, roll2X, roll2Y, roll2Z, dice2Value)
             ]);
         }
         

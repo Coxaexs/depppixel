@@ -658,7 +658,79 @@
             75% { transform: translate(-2px, 3px) rotate(-5deg); }
         }
         
-        /* � Property Buy Panel Styles */
+        /* 🎲 Modern 3D Dice Cube */
+        .dice-container {
+            perspective: 1000px;
+            display: inline-block;
+            margin: 0 10px;
+        }
+        
+        .dice-cube {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .dice-cube.rolling {
+            animation: diceRoll 1.2s ease-out;
+        }
+        
+        @keyframes diceRoll {
+            0% {
+                transform: translateY(-100px) rotateX(0) rotateY(0) rotateZ(0);
+            }
+            25% {
+                transform: translateY(-50px) rotateX(180deg) rotateY(180deg) rotateZ(90deg);
+            }
+            50% {
+                transform: translateY(0px) rotateX(360deg) rotateY(360deg) rotateZ(180deg);
+            }
+            75% {
+                transform: translateY(-20px) rotateX(540deg) rotateY(540deg) rotateZ(270deg);
+            }
+            100% {
+                transform: translateY(0) rotateX(720deg) rotateY(720deg) rotateZ(360deg);
+            }
+        }
+        
+        .dice-cube .face {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border: 2px solid #9333ea;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            padding: 8px;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.3),
+                        inset 0 2px 10px rgba(255, 255, 255, 0.5),
+                        inset 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dice-cube .dot {
+            width: 12px;
+            height: 12px;
+            background: #9333ea;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            justify-self: center;
+            align-self: center;
+        }
+        
+        /* Face positions */
+        .dice-cube .face.front  { transform: rotateY(0deg) translateZ(40px); }
+        .dice-cube .face.back   { transform: rotateY(180deg) translateZ(40px); }
+        .dice-cube .face.right  { transform: rotateY(90deg) translateZ(40px); }
+        .dice-cube .face.left   { transform: rotateY(-90deg) translateZ(40px); }
+        .dice-cube .face.top    { transform: rotateX(90deg) translateZ(40px); }
+        .dice-cube .face.bottom { transform: rotateX(-90deg) translateZ(40px); }
+        
+        /* 🎲 Property Buy Panel Styles */
         #property-buy-panel {
             animation: slideIn 0.3s ease-out;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
@@ -675,7 +747,19 @@
             }
         }
         
-        /* �🎭 Character & Map Button Styles */
+        /* 🎉 Pulse animation for your turn */
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);
+            }
+            50% { 
+                transform: scale(1.1); 
+                text-shadow: 0 0 20px rgba(167, 139, 250, 1), 0 0 40px rgba(147, 51, 234, 0.8);
+            }
+        }
+        
+        /* 🎭 Character & Map Button Styles */
         .character-btn, .map-btn {
             transition: all 0.3s ease;
             cursor: pointer;
@@ -1962,20 +2046,34 @@
                         <h1 id="board-title" class="text-4xl font-bold tracking-widest" style="color: #9333ea;">DEEPPIXEL</h1>
                         
                         <!-- 3D Dice Display - Animation Container -->
-                        <div id="dice-animation-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" style="z-index: 1000;">
-                            <!-- El elementleri -->
-                            <div id="dice-hand-1" class="dice-hand">🤚</div>
-                            <div id="dice-hand-2" class="dice-hand">🤚</div>
-                            <div id="dice-wrapper-3d" class="flex gap-4" style="transform-style: preserve-3d;">
-                                <div id="dice-3d-1" class="dice-3d-container"></div>
-                                <div id="dice-3d-2" class="dice-3d-container"></div>
+                        <!-- 🎲 Modern 3D Dice Cubes -->
+                        <div id="dice-box" style="display: flex; gap: 20px; justify-content: center; align-items: center; min-height: 120px; margin: 10px 0;">
+                            <div class="dice-container">
+                                <div id="dice-cube-1" class="dice-cube">
+                                    <div class="face front"></div>
+                                    <div class="face back"></div>
+                                    <div class="face right"></div>
+                                    <div class="face left"></div>
+                                    <div class="face top"></div>
+                                    <div class="face bottom"></div>
+                                </div>
+                            </div>
+                            <div class="dice-container">
+                                <div id="dice-cube-2" class="dice-cube">
+                                    <div class="face front"></div>
+                                    <div class="face back"></div>
+                                    <div class="face right"></div>
+                                    <div class="face left"></div>
+                                    <div class="face top"></div>
+                                    <div class="face bottom"></div>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Dice Display (Static) -->
-                        <div id="dice-container" class="flex gap-4">
-                            <div id="dice1" class="flex items-center justify-center font-bold text-4xl rounded-xl shadow-lg" style="width: 80px; height: 80px; background: #ffffff; color: #000; border: 3px solid #374151;">?</div>
-                            <div id="dice2" class="flex items-center justify-center font-bold text-4xl rounded-xl shadow-lg" style="width: 80px; height: 80px; background: #ffffff; color: #000; border: 3px solid #374151;">?</div>
+                        <!-- Dice Result Display -->
+                        <div id="dice-result" class="flex gap-4 items-center justify-center mb-4">
+                            <div id="dice1-result" class="flex items-center justify-center font-bold text-3xl rounded-xl shadow-lg" style="width: 60px; height: 60px; background: #ffffff; color: #000; border: 3px solid #9333ea;">?</div>
+                            <div id="dice2-result" class="flex items-center justify-center font-bold text-3xl rounded-xl shadow-lg" style="width: 60px; height: 60px; background: #ffffff; color: #000; border: 3px solid #9333ea;">?</div>
                         </div>
                         
                         <p id="turn-info" class="text-lg font-semibold" style="color: #E5E7EB;">It's <span class="font-bold" style="color: #9333ea;">your</span> turn to roll.</p>
@@ -2745,9 +2843,11 @@
                     }
                     
                     showGame();
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         renderBoard();
                         updateGameUI();
+                        // Initialize 3D Dice Box
+                        await initDiceBox();
                     }, 100);
                     break;
                     
@@ -2889,8 +2989,8 @@
         const endTurnBtn = document.getElementById('endTurnBtn');
         const managePropertiesBtn = document.getElementById('managePropertiesBtn');
         const jokerCardsBtn = document.getElementById('jokerCardsBtn');
-        const dice1El = document.getElementById('dice1');
-        const dice2El = document.getElementById('dice2');
+        const dice1El = document.getElementById('dice1-result');
+        const dice2El = document.getElementById('dice2-result');
         const gameLogEl = document.getElementById('game-log');
 
         const modal = document.getElementById('modal');
@@ -3192,6 +3292,34 @@
                     oscillator.start(audioContext.currentTime);
                     oscillator.stop(audioContext.currentTime + 0.5);
                     break;
+                    
+                case 'turn':
+                    // Your turn notification - pleasant bell
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(1047, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                    break;
+            }
+        }
+        
+        // 🎉 Your Turn Notification
+        function notifyYourTurn() {
+            // Play sound
+            playSound('turn');
+            
+            // Screen confetti
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            createConfetti(centerX, centerY);
+            
+            // Flash animation on board
+            const boardTitle = document.getElementById('board-title');
+            if (boardTitle) {
+                boardTitle.style.animation = 'pulse 0.5s ease-in-out 3';
             }
         }
 
@@ -4288,7 +4416,126 @@
             document.getElementById('board-title').textContent = `${currentPlayer.name} - ${remaining}s`;
         }
 
+        // 🎲 Initialize CSS 3D Dice
+        async function initDiceBox() {
+            // CSS dice don't need initialization
+            console.log('✅ CSS 3D Dice ready!');
+            return true;
+        }
+        
+        // 🎲 Roll CSS 3D Dice with animation
+        async function rollCSSDice(die1Value, die2Value) {
+            const cube1 = document.getElementById('dice-cube-1');
+            const cube2 = document.getElementById('dice-cube-2');
+            
+            if (!cube1 || !cube2) {
+                console.error('❌ Dice cubes not found');
+                return;
+            }
+            
+            // Update dice faces to show correct values
+            updateDiceFaces(cube1, die1Value);
+            updateDiceFaces(cube2, die2Value);
+            
+            // Add rolling animation
+            cube1.classList.add('rolling');
+            cube2.classList.add('rolling');
+            
+            // Wait for animation to complete
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            
+            // Remove rolling class
+            cube1.classList.remove('rolling');
+            cube2.classList.remove('rolling');
+            
+            // Set final rotation to show correct face
+            const rotations1 = getDiceRotation(die1Value);
+            const rotations2 = getDiceRotation(die2Value);
+            
+            cube1.style.transform = `rotateX(${rotations1.x}deg) rotateY(${rotations1.y}deg)`;
+            cube2.style.transform = `rotateX(${rotations2.x}deg) rotateY(${rotations2.y}deg)`;
+        }
+        
+        // 🎲 Update dice faces with correct dot pattern
+        function updateDiceFaces(cube, targetValue) {
+            const faces = cube.querySelectorAll('.face');
+            
+            // Dot patterns for each number (1-6)
+            const dotPatterns = {
+                1: [4],                    // Center dot only
+                2: [0, 8],                 // Top-left and bottom-right
+                3: [0, 4, 8],              // Diagonal line
+                4: [0, 2, 6, 8],           // Four corners
+                5: [0, 2, 4, 6, 8],        // Four corners + center
+                6: [0, 2, 3, 5, 6, 8]      // Six dots (two columns)
+            };
+            
+            // Standard dice face arrangement
+            const faceValues = {
+                'front': 1,
+                'back': 6,
+                'right': 3,
+                'left': 4,
+                'top': 5,
+                'bottom': 2
+            };
+            
+            // Update all 6 faces
+            faces.forEach((face) => {
+                // Get which face this is (front, back, etc.)
+                const faceType = Array.from(face.classList).find(c => c !== 'face');
+                const faceValue = faceValues[faceType] || 1;
+                const pattern = dotPatterns[faceValue] || [];
+                
+                // Clear existing dots
+                face.innerHTML = '';
+                
+                // Create 9 dot positions (3x3 grid)
+                for (let i = 0; i < 9; i++) {
+                    if (pattern.includes(i)) {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        face.appendChild(dot);
+                    } else {
+                        // Empty space
+                        const empty = document.createElement('div');
+                        face.appendChild(empty);
+                    }
+                }
+            });
+        }
+        
+        // 🎲 Get rotation angles for dice face
+        function getDiceRotation(value) {
+            const rotations = {
+                1: { x: 0, y: 0 },       // Front face shows 1
+                2: { x: 90, y: 0 },      // Bottom face shows 2
+                3: { x: 0, y: -90 },     // Left face shows 3 (swapped)
+                4: { x: 0, y: 90 },      // Right face shows 4 (swapped)
+                5: { x: -90, y: 0 },     // Top face shows 5
+                6: { x: 0, y: 180 }      // Back face shows 6
+            };
+            return rotations[value] || { x: 0, y: 0 };
+        }
+        
+        // 🎲 Update Dice Result Display
+        function updateDiceDisplay(dice1, dice2) {
+            if (dice1El) dice1El.textContent = dice1;
+            if (dice2El) dice2El.textContent = dice2;
+        }
+
         function updateGameUI() {
+            const currentPlayer = gameData.players[gameData.currentPlayerIndex];
+            const isMyTurn = currentPlayer && currentPlayer.id === localPlayer.id;
+            
+            // 🎉 Sıra bize geldiğinde bildirim (sadece bir kez)
+            if (isMyTurn && !window.lastTurnNotified) {
+                notifyYourTurn();
+                window.lastTurnNotified = true;
+            } else if (!isMyTurn) {
+                window.lastTurnNotified = false;
+            }
+            
             updatePlayersInfo();
             updateBoardPiecesAndHouses();
             updateControls();
@@ -4298,6 +4545,10 @@
             // Update dice display if lastDiceRoll exists
             if (gameData.lastDiceRoll && gameData.lastDiceRoll.length === 2) {
                 updateDiceDisplay(gameData.lastDiceRoll[0], gameData.lastDiceRoll[1]);
+                // 🎲 Başkası zar attıysa animasyonu göster
+                if (!isMyTurn && gameData.turnState === 'rolled') {
+                    rollCSSDice(gameData.lastDiceRoll[0], gameData.lastDiceRoll[1]);
+                }
             }
             
             // ⏰ Handle turn timer for auto-end turn
@@ -5067,6 +5318,18 @@
             const canAct = isMyTurn && !currentPlayer.isBankrupt;
             rollDiceBtn.disabled = !canAct || gameData.turnState !== 'start';
             
+            // 🎯 Turn info mesajını her zaman göster
+            const turnInfo = document.getElementById('turn-info');
+            if (turnInfo) {
+                turnInfo.style.display = 'block';
+                if (isMyTurn) {
+                    turnInfo.innerHTML = `It's <span class="font-bold" style="color: #9333ea;">your</span> turn to roll.`;
+                } else {
+                    const playerColor = currentPlayer.color || '#9333ea';
+                    turnInfo.innerHTML = `It's <span class="font-bold" style="color: ${playerColor};">${currentPlayer.name}</span>'s turn.`;
+                }
+            }
+            
             // End turn butonu her zaman görünür ama sadece kendi turunda ve action_complete'de aktif
             endTurnBtn.classList.remove('hidden'); // Her zaman göster
             endTurnBtn.disabled = !canAct || gameData.turnState !== 'action_complete';
@@ -5246,20 +5509,29 @@
             // Animate dice rolling
             rollDiceBtn.disabled = true;
             
-            // 🎲 Gelişmiş zar atma sistemi kullan
+            // 🎲 Generate dice values
             const diceResult = rollDiceImproved(currentPlayer.position);
             const die1 = diceResult.die1;
             const die2 = diceResult.die2;
             const total = diceResult.total;
             
-            console.log('🎲 Rolled dice:', die1, '+', die2, '=', total);
+            console.log('🎲 Rolling dice:', die1, '+', die2, '=', total);
             
-            // 🎲 3D Zar animasyonu başlat
-            // Zarlar end turn'e kadar masada kalacak, burada gizlenmiyor
-            animate3DDiceRoll(die1, die2);
+            // 🎲 Animate CSS 3D Dice
+            await rollCSSDice(die1, die2);
             
-            // Eski animasyon (geriye dönük uyumluluk)
-            animateDiceRoll();
+            // Update result display
+            updateDiceDisplay(die1, die2);
+            
+            // Process roll
+            setTimeout(() => {
+                processRoll(die1, die2, total);
+            }, 300);
+        });
+        
+        // 🎲 Process dice roll logic
+        async function processRoll(die1, die2, total) {
+            const currentPlayer = gameData.players[gameData.currentPlayerIndex];
             
             // 🎵 Play dice roll sound
             playSound('dice');
@@ -5269,12 +5541,12 @@
 
             let logMessages = [];
 
-            // Update dice display after animation
+            // Update dice display after animation (with classList safety check)
             setTimeout(() => {
                 console.log('🎲 Updating dice display to:', die1, die2);
                 updateDiceDisplay(die1, die2);
-                dice1El.classList.remove('dice-rolling');
-                dice2El.classList.remove('dice-rolling');
+                if (dice1El && dice1El.classList) dice1El.classList.remove('dice-rolling');
+                if (dice2El && dice2El.classList) dice2El.classList.remove('dice-rolling');
             }, 2000);
             
             const oldPosition = currentPlayer.position;
@@ -5342,12 +5614,12 @@
             setTimeout(() => {
                 rollDiceBtn.disabled = false;
             }, 2500);
-        });
+        }
         
-        // 3D Dice Animation Function
+        // Old 3D Dice Animation Function (deprecated but kept for fallback)
         function animateDiceRoll() {
-            dice1El.classList.add('dice-rolling');
-            dice2El.classList.add('dice-rolling');
+            if (dice1El && dice1El.classList) dice1El.classList.add('dice-rolling');
+            if (dice2El && dice2El.classList) dice2El.classList.add('dice-rolling');
             
             let rolls = 0;
             const rollInterval = setInterval(() => {

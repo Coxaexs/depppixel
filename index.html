@@ -439,7 +439,19 @@
         /* Zar kenarlarında gap olmaması için */
         .dice-3d {
             transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        /* Zar yüzlerinin arkasını gizle - iç içe geçmeyi önler */
+        .dice-face {
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform-style: preserve-3d;
+        }
+        
+        /* Zar yüzlerinin çakışmasını önle - sadece ön yüz görünsün */
+        .dice-3d-container {
+            transform-style: preserve-3d;
         }
         
         @keyframes diceRoll {
@@ -5426,15 +5438,18 @@
                     6: 'back'
                 };
                 
-                // Eğer bu yüz final rotation'da gösterilecek yüzse, 'value' değerindeki noktaları göster
-                // Değilse, o yüzün standart değerindeki noktaları göster
-                // (front=1, right=2, top=3, bottom=4, left=5, back=6)
+                // Final rotation mapping'ine göre: value=1 → front, value=2 → right, etc.
+                // Her yüze, final rotation'da görünecekse 'value' değerindeki noktaları koy
+                // Değilse, o yüzün standart değerindeki noktaları koy (görsel efekt için)
                 let faceValue;
+                
+                // Final rotation'da hangi yüz görünecek?
+                // finalRotations mapping: 1=front, 2=right, 3=top, 4=bottom, 5=left, 6=back
                 if (valueToFace[value] === face) {
-                    // Bu yüz final rotation'da gösterilecek, doğru değeri kullan
+                    // Bu yüz final rotation'da görünecek - doğru değeri kullan
                     faceValue = value;
                 } else {
-                    // Bu yüz final rotation'da gösterilmeyecek, yüzün standart değerini kullan
+                    // Bu yüz final rotation'da görünmeyecek - standart değerini kullan
                     const faceToValue = {
                         'front': 1,
                         'right': 2,
@@ -5443,7 +5458,7 @@
                         'left': 5,
                         'back': 6
                     };
-                    faceValue = faceToValue[face] || value;
+                    faceValue = faceToValue[face] || 1;
                 }
                 
                 const dots = dotPositions[faceValue] || [];
@@ -5655,6 +5670,8 @@
                         } else {
                             // Final pozisyon - doğru değeri göster
                             const finalRot = finalRotations[finalValue] || { x: 0, y: 0, z: 0 };
+                            // DEBUG: Final rotation değerini logla
+                            console.log(`🎲 Final rotation for value ${finalValue}:`, finalRot);
                             diceEl.style.transform = `translateX(${finalX}px) translateY(${finalY}px) translateZ(0px) rotateX(${finalRot.x}deg) rotateY(${finalRot.y}deg) rotateZ(${finalRot.z}deg)`;
                             
                             clearInterval(interval);

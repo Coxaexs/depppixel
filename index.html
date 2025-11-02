@@ -312,16 +312,16 @@
         }
         
         .dice-3d-container {
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
             position: relative;
             transform-style: preserve-3d;
             perspective: 1000px;
         }
         
         .dice-3d {
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s linear;
@@ -329,8 +329,8 @@
         
         .dice-face {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
             background: #000000;
             border: 3px solid #FFD700;
             border-radius: 8px;
@@ -374,13 +374,13 @@
         }
         
         .dice-dot {
-            width: 10px;
-            height: 10px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             position: absolute;
             box-shadow: 
-                0 0 4px currentColor,
-                0 0 6px currentColor;
+                0 0 2px currentColor,
+                0 0 3px currentColor;
             z-index: 2;
             animation: rgbDot 3s infinite;
         }
@@ -417,24 +417,24 @@
         }
         
         /* Zar yüzleri pozisyonları (3D cube) - translateZ = zar boyutu / 2 */
-        /* Gap olmaması için exact 25px (zar boyutu / 2) kullanıyoruz */
+        /* Gap olmaması için exact 17.5px (zar boyutu / 2) kullanıyoruz */
         .dice-face.front { 
-            transform: rotateY(0deg) translateZ(25px);
+            transform: rotateY(0deg) translateZ(17.5px);
         }
         .dice-face.back { 
-            transform: rotateY(180deg) translateZ(25px);
+            transform: rotateY(180deg) translateZ(17.5px);
         }
         .dice-face.right { 
-            transform: rotateY(90deg) translateZ(25px);
+            transform: rotateY(90deg) translateZ(17.5px);
         }
         .dice-face.left { 
-            transform: rotateY(-90deg) translateZ(25px);
+            transform: rotateY(-90deg) translateZ(17.5px);
         }
         .dice-face.top { 
-            transform: rotateX(90deg) translateZ(25px);
+            transform: rotateX(90deg) translateZ(17.5px);
         }
         .dice-face.bottom { 
-            transform: rotateX(-90deg) translateZ(25px);
+            transform: rotateX(-90deg) translateZ(17.5px);
         }
         
         /* Zar kenarlarında gap olmaması için */
@@ -5400,20 +5400,20 @@
                 faceEl.className = `dice-face ${face}`;
                 
                 // Her yüze nokta yerleştirme (1-6 için) - Standart zar düzeni
-                // 50px zar için: merkez (25, 25), kenarlardan 8-10px içeride
+                // 35px zar için: merkez (17.5, 17.5), kenarlardan 5-7px içeride
                 const dotPositions = {
                     // 1 nokta: tam ortada
-                    1: [[25, 25]],
+                    1: [[17.5, 17.5]],
                     // 2 nokta: sol üst - sağ alt köşeler
-                    2: [[18, 18], [32, 32]],
+                    2: [[12, 12], [23, 23]],
                     // 3 nokta: sol üst, merkez, sağ alt
-                    3: [[18, 18], [25, 25], [32, 32]],
+                    3: [[12, 12], [17.5, 17.5], [23, 23]],
                     // 4 nokta: 4 köşe
-                    4: [[18, 18], [32, 18], [18, 32], [32, 32]],
+                    4: [[12, 12], [23, 12], [12, 23], [23, 23]],
                     // 5 nokta: 4 köşe + merkez
-                    5: [[18, 18], [32, 18], [25, 25], [18, 32], [32, 32]],
+                    5: [[12, 12], [23, 12], [17.5, 17.5], [12, 23], [23, 23]],
                     // 6 nokta: 2 sütun, 3 satır (standart zar düzeni)
-                    6: [[18, 18], [18, 25], [18, 32], [32, 18], [32, 25], [32, 32]]
+                    6: [[12, 12], [12, 17.5], [12, 23], [23, 12], [23, 17.5], [23, 23]]
                 };
                 
                 // Final rotation mapping'ine göre hangi yüz hangi değeri gösterecek:
@@ -5452,8 +5452,8 @@
                 dots.forEach(([x, y]) => {
                     const dot = document.createElement('div');
                     dot.className = 'dice-dot';
-                    dot.style.left = `${x - 5}px`;
-                    dot.style.top = `${y - 5}px`;
+                    dot.style.left = `${x - 3.5}px`;
+                    dot.style.top = `${y - 3.5}px`;
                     faceEl.appendChild(dot);
                 });
                 
@@ -5518,29 +5518,8 @@
                 start2 = { x: -boardWidth / 2 - 80, y: -boardHeight / 2 - 60 };  // Sol üst - elin altından
             }
             
-            // El animasyonu - eli göster ve zarı bırak
-            const hand1 = document.getElementById('dice-hand-1');
-            const hand2 = document.getElementById('dice-hand-2');
-            
-            if (hand1 && hand2) {
-                hand1.style.left = `${hand1Pos.x}px`;
-                hand1.style.top = `${hand1Pos.y}px`;
-                hand1.style.transform = 'translate(-50%, -50%) rotate(-20deg)';
-                hand1.classList.add('show');
-                
-                hand2.style.left = `${hand2Pos.x}px`;
-                hand2.style.top = `${hand2Pos.y}px`;
-                hand2.style.transform = 'translate(-50%, -50%) rotate(20deg)';
-                hand2.classList.add('show');
-                
-                // El zarı bırakıyor animasyonu
-                setTimeout(() => {
-                    hand1.style.transform = 'translate(-50%, -50%) rotate(-20deg) translateY(30px)';
-                    hand1.style.opacity = '0';
-                    hand2.style.transform = 'translate(-50%, -50%) rotate(20deg) translateY(30px)';
-                    hand2.style.opacity = '0';
-                }, 300);
-            }
+            // El animasyonu kaldırıldı - zarlar hemen başlıyor
+            // (El animasyonu gecikme yaratıyor, istenmiyor)
             
             // Çarpışma noktaları - zarlar birbirine çok yaklaşsa da çakışmasın
             // İki zar için farklı collision noktaları (biraz offset ile)
@@ -5610,18 +5589,12 @@
             
             const animateDice = (diceEl, startX, startY, collisionX, collisionY, finalX, finalY, rollX, rollY, rollZ, finalValue, isFirstDice) => {
                 return new Promise((resolve) => {
-                    // Başlangıçta görünmez (el tutuyor)
-                    diceEl.style.opacity = '0';
-                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY - 20}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
-                    
-                    // El zarı bıraktıktan sonra görünür ol
-                    setTimeout(() => {
-                        diceEl.style.opacity = '1';
-                        diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
-                    }, 300);
+                    // Başlangıçta görünür - gecikme yok
+                    diceEl.style.opacity = '1';
+                    diceEl.style.transform = `translateX(${startX}px) translateY(${startY}px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
                     
                     let step = 0;
-                    const delaySteps = Math.floor(steps * 0.1); // %10 gecikme (el zarı bırakıyor)
+                    const delaySteps = 0; // Gecikme yok - animasyon hemen başlıyor
                     const collisionSteps = delaySteps + Math.floor(steps * 0.55); // %55 çarpışma, %35 final pozisyon
                     
                     const interval = setInterval(() => {

@@ -5043,6 +5043,181 @@
             };
         }
         
+        // 🤖 Bot Mortgage/Sell Decision (when in financial trouble)
+        async function botDecideMortgageOrSell(playerIndex) {
+            const player = gameData.players[playerIndex];
+            if (!player.isBot) return false; // Sadece botlar için
+            
+            // Botun sahip olduğu mülkleri bul
+            const ownedProperties = gameData.properties
+                .map((prop, idx) => ({...prop, spaceIndex: idx}))
+                .filter(prop => {
+                    const space = gameData.settings.board[prop.spaceIndex];
+                    return (space.type === 'property' || space.type === 'railroad' || space.type === 'utility') &&
+                           (prop.ownerId === player.id || (prop.owners && prop.owners[player.id] > 0));
+                });
+            
+            if (ownedProperties.length === 0) {
+                // Hiç mülkü yok, iflas edecek
+                return false;
+            }
+            
+            // Ne kadar paraya ihtiyaç var?
+            const moneyNeeded = Math.abs(player.money) + 100; // Negatif paranın üstüne 100 ekstra güvenlik
+            
+            // Mevcut seçenekleri değerlendir
+            const options = [];
+            
+            ownedProperties.forEach(propData => {
+                const space = gameData.settings.board[propData.spaceIndex];
+                const share = propData.owners ? (propData.owners[player.id] || 0) : 100;
+                
+                if (space.type === 'property') {
+                    // Evleri satabilir
+                    if (propData.houses > 0 && !propData.mortgaged) {
+                        const sellValue = Math.floor((space.houseCost || 50) * 0.75 * propData.houses * (share / 100));
+                        options.push({
+                            type: 'sell_house',
+                            spaceIndex: propData.spaceIndex,
+                            value: sellValue,
+                            priority: 3, // Ev satmak daha düşük öncelik (önemli gelir kaynağı)
+                            spaceName: space.name
+                        });
+                    }
+                    
+                    // İpotekleyebilir (ev yoksa)
+                    if (propData.houses === 0 && !propData.mortgaged) {
+                        const mortgageValue = Math.floor(space.price * (share / 100));
+                        options.push({
+                            type: 'mortgage',
+                            spaceIndex: propData.spaceIndex,
+                            value: mortgageValue,
+                            priority: 2, // İpotek orta öncelik (mülkü koruyor ama gelir kaybediyor)
+                            spaceName: space.name
+                        });
+                    }
+                } else if (space.type === 'railroad' || space.type === 'utility') {
+                    // İpotekleyebilir
+                    if (!propData.mortgaged) {
+                        const mortgageValue = Math.floor(space.price * (share / 100));
+                        options.push({
+                            type: 'mortgage',
+                            spaceIndex: propData.spaceIndex,
+                            value: mortgageValue,
+                            priority: 1, // Railroad/Utility ipotekleme yüksek öncelik (daha az kritik)
+                            spaceName: space.name
+                        });
+                    }
+                }
+            });
+            
+            if (options.length === 0) return false;
+            
+            // Strateji: Önce az değerli olanları ipotekle/sat, sonra daha değerli olanlara geç
+            // Priority'ye göre sırala (düşük öncelik = daha az kritik)
+            options.sort((a, b) => {
+                if (a.priority !== b.priority) return a.priority - b.priority;
+                return a.value - b.value; // Aynı öncelikte küçük değerli olanları önce
+            });
+            
+            let totalRaised = 0;
+            const actions = [];
+            
+            for (const option of options) {
+                if (totalRaised >= moneyNeeded) break;
+                
+                if (option.type === 'mortgage') {
+                    actions.push(option);
+                    totalRaised += option.value;
+                } else if (option.type === 'sell_house') {
+                    actions.push(option);
+                    totalRaised += option.value;
+                }
+            }
+            
+            // Eğer yeterli para toplanamadıysa ve hala seçenekler varsa, daha fazlasını ekle
+            if (totalRaised < moneyNeeded) {
+                for (const option of options) {
+                    if (actions.includes(option)) continue;
+                    if (totalRaised >= moneyNeeded) break;
+                    
+                    if (option.type === 'mortgage') {
+                        actions.push(option);
+                        totalRaised += option.value;
+                    } else if (option.type === 'sell_house') {
+                        actions.push(option);
+                        totalRaised += option.value;
+                    }
+                }
+            }
+            
+            // Kararları uygula
+            for (const action of actions) {
+                if (action.type === 'mortgage') {
+                    // İpotekle
+                    await botMortgageProperty(playerIndex, action.spaceIndex);
+                    addLog(`🤖 ${player.name} mortgaged ${action.spaceName} to raise $${action.value}.`);
+                } else if (action.type === 'sell_house') {
+                    // Ev sat
+                    await botSellHouse(playerIndex, action.spaceIndex);
+                    addLog(`🤖 ${player.name} sold houses on ${action.spaceName} to raise $${action.value}.`);
+                }
+            }
+            
+            return actions.length > 0;
+        }
+        
+        // 🤖 Bot Mortgage Property Helper
+        async function botMortgageProperty(playerIndex, spaceIndex) {
+            const player = gameData.players[playerIndex];
+            const space = gameData.settings.board[spaceIndex];
+            const property = gameData.properties[spaceIndex];
+            
+            if (!property || property.mortgaged) return;
+            
+            // Ev kontrolü (property için)
+            if (space.type === 'property' && property.houses > 0) {
+                return; // Ev varsa ipoteklenemez
+            }
+            
+            const share = property.owners ? (property.owners[player.id] || 0) : 100;
+            const mortgageValue = Math.floor(space.price * (share / 100));
+            
+            const propertiesCopy = JSON.parse(JSON.stringify(gameData.properties));
+            const playersCopy = JSON.parse(JSON.stringify(gameData.players));
+            
+            propertiesCopy[spaceIndex].mortgaged = true;
+            playersCopy[playerIndex].money += mortgageValue;
+            
+            await updateGame({ properties: propertiesCopy, players: playersCopy });
+        }
+        
+        // 🤖 Bot Sell House Helper
+        async function botSellHouse(playerIndex, spaceIndex) {
+            const player = gameData.players[playerIndex];
+            const space = gameData.settings.board[spaceIndex];
+            const property = gameData.properties[spaceIndex];
+            
+            if (!property || property.houses === 0) return;
+            
+            const share = property.owners ? (property.owners[player.id] || 0) : 100;
+            const houseSellPrice = Math.floor((space.houseCost || 50) * 0.75 * (share / 100));
+            
+            const propertiesCopy = JSON.parse(JSON.stringify(gameData.properties));
+            const playersCopy = JSON.parse(JSON.stringify(gameData.players));
+            
+            // Bir ev sat (otel varsa önce otel sat)
+            if (property.houses === 5) {
+                propertiesCopy[spaceIndex].houses = 4; // Otel -> 4 ev
+            } else {
+                propertiesCopy[spaceIndex].houses -= 1;
+            }
+            
+            playersCopy[playerIndex].money += houseSellPrice;
+            
+            await updateGame({ properties: propertiesCopy, players: playersCopy });
+        }
+        
         // 🤖 Bot Property Purchase Decision
         async function botDecidePropertyPurchase(position) {
             const space = gameData.settings.board[position];
@@ -7634,32 +7809,78 @@
                 addLog(`⚠️ ${player.name} için son tur! Kredi: $${player.creditAmount}`);
             }
             
-            // Süre doldu - İflas et
+            // Süre doldu - Ödeme kontrolü yap
             if (player.creditTurnsLeft <= 0) {
-                addLog(`💥 ${player.name} krediyi ödeyemedi ve iflas etti!`);
+                // Güncel oyuncu bilgisini al (gameData'dan)
+                const currentPlayer = gameData.players[playerIndex];
+                const creditAmount = currentPlayer.creditAmount || 0;
+                const playerMoney = currentPlayer.money || 0;
                 
-                if (player.id === localPlayer.id) {
-                    showModal('💥 KREDİ ÖDENEMEDİ - İFLAS!', 
-                        `<div class="text-center">
-                            <p class="text-4xl mb-4">💸</p>
-                            <p class="text-xl font-bold text-red-600 mb-4">5 tur içinde krediyi ödeyemediniz!</p>
-                            <p class="mb-2">Ödenmemiş kredi: <strong>$${player.creditAmount}</strong></p>
-                            <p class="text-sm text-gray-600">Tüm mülkleriniz bankaya devredildi.</p>
-                        </div>`, 
-                        [{text: 'İflas Et', class: 'bg-red-600', action: () => {
-                            hideModal();
-                            sendMessage({
-                                type: 'declare_bankruptcy',
-                                playerId: localPlayer.id
-                            });
-                        }}]
-                    );
-                } else {
-                    // Bot veya diğer oyuncular için otomatik iflas
-                    sendMessage({
-                        type: 'declare_bankruptcy',
-                        playerId: player.id
+                // Kredi tutarı çıkarıldığında para durumu
+                const moneyAfterPayment = playerMoney - creditAmount;
+                
+                // Eğer yeterli para varsa, otomatik olarak öde
+                if (playerMoney >= creditAmount) {
+                    // Otomatik ödeme yap
+                    const paidPlayersCopy = JSON.parse(JSON.stringify(gameData.players));
+                    const paidPlayer = paidPlayersCopy[playerIndex];
+                    
+                    paidPlayer.money -= creditAmount;
+                    const paidAmount = paidPlayer.creditAmount;
+                    paidPlayer.creditAmount = 0;
+                    paidPlayer.creditTurnsLeft = 0;
+                    
+                    if (!paidPlayer.creditHistory) paidPlayer.creditHistory = [];
+                    paidPlayer.creditHistory.push({
+                        type: 'payment',
+                        amount: paidAmount,
+                        timestamp: Date.now()
                     });
+                    
+                    await updateGame({ players: paidPlayersCopy });
+                    addLog(`✅ ${paidPlayer.name} krediyi otomatik olarak ödedi: $${paidAmount}`);
+                    
+                    // Eğer local player ise bilgi ver
+                    if (paidPlayer.id === localPlayer.id) {
+                        showModal('✅ Kredi Otomatik Ödendi', 
+                            `<div class="text-center">
+                                <p class="text-4xl mb-4">💳</p>
+                                <p class="text-xl font-bold text-green-600 mb-4">Krediniz otomatik olarak ödendi!</p>
+                                <p class="mb-2">Ödenen tutar: <strong>$${paidAmount}</strong></p>
+                                <p class="text-sm text-gray-600">Kalan para: $${paidPlayer.money}</p>
+                            </div>`, 
+                            [{text: 'Tamam', class: 'bg-green-600', action: hideModal}]
+                        );
+                    }
+                } else {
+                    // Yeterli para yok - İflas et
+                    addLog(`💥 ${currentPlayer.name} krediyi ödeyemedi ve iflas etti! (Para: $${playerMoney}, Kredi: $${creditAmount})`);
+                    
+                    if (currentPlayer.id === localPlayer.id) {
+                        showModal('💥 KREDİ ÖDENEMEDİ - İFLAS!', 
+                            `<div class="text-center">
+                                <p class="text-4xl mb-4">💸</p>
+                                <p class="text-xl font-bold text-red-600 mb-4">Krediyi ödeyemediniz!</p>
+                                <p class="mb-2">Kredi tutarı: <strong>$${creditAmount}</strong></p>
+                                <p class="mb-2">Mevcut para: <strong>$${playerMoney}</strong></p>
+                                <p class="mb-2 text-red-600">Kredi çıkarıldığında para: <strong>$${moneyAfterPayment}</strong> (eksiye düşüyor!)</p>
+                                <p class="text-sm text-gray-600">Tüm mülkleriniz bankaya devredildi.</p>
+                            </div>`, 
+                            [{text: 'İflas Et', class: 'bg-red-600', action: () => {
+                                hideModal();
+                                sendMessage({
+                                    type: 'declare_bankruptcy',
+                                    playerId: localPlayer.id
+                                });
+                            }}]
+                        );
+                    } else {
+                        // Bot veya diğer oyuncular için otomatik iflas
+                        sendMessage({
+                            type: 'declare_bankruptcy',
+                            playerId: currentPlayer.id
+                        });
+                    }
                 }
             }
         }
@@ -7700,6 +7921,17 @@
                         }}]
                     );
                     return true;
+                }
+            }
+            
+            // 🤖 Bot için otomatik ipotek/satış kararı
+            if (player.isBot && player.money < 0 && totalWealth >= 0) {
+                // Botun para sıkıntısı var ama toplam serveti pozitif
+                const actionTaken = await botDecideMortgageOrSell(playerIndex);
+                if (actionTaken) {
+                    // Eğer işlem yapıldıysa, tekrar kontrol et
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Kısa bir bekleme
+                    return await checkBankruptcy(playerIndex); // Tekrar kontrol et
                 }
             }
             

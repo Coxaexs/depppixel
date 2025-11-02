@@ -379,7 +379,8 @@
             background: #ff0000;
             border-radius: 50%;
             animation: rgbDot 3s infinite;
-            box-shadow: 0 0 3px currentColor;
+            box-shadow: 0 0 1px currentColor;
+            opacity: 0.7;
         }
         
         @keyframes rgbDot {
@@ -392,28 +393,39 @@
             100% { background: #ff00ff; color: #ff00ff; }
         }
         
-        /* Nokta pozisyonları - 40px zar için ölçeklendirildi */
+        /* Nokta pozisyonları - 40px zar için klasik zar deseni */
+        /* 1: Merkez */
         .dice-face.front .dice-dot.dot1 { top: 17px; left: 17px; }
-        .dice-face.back .dice-dot.dot1 { top: 9px; left: 9px; }
-        .dice-face.back .dice-dot.dot2 { top: 25px; left: 25px; }
-        .dice-face.right .dice-dot.dot1 { top: 9px; left: 9px; }
+        
+        /* 2: Sol üst - Sağ alt köşeler */
+        .dice-face.back .dice-dot.dot1 { top: 11px; left: 11px; }
+        .dice-face.back .dice-dot.dot2 { top: 23px; left: 23px; }
+        
+        /* 3: Sol üst, Merkez, Sağ alt */
+        .dice-face.right .dice-dot.dot1 { top: 11px; left: 11px; }
         .dice-face.right .dice-dot.dot2 { top: 17px; left: 17px; }
-        .dice-face.right .dice-dot.dot3 { top: 25px; left: 25px; }
-        .dice-face.left .dice-dot.dot1 { top: 9px; left: 9px; }
-        .dice-face.left .dice-dot.dot2 { top: 9px; left: 25px; }
-        .dice-face.left .dice-dot.dot3 { top: 25px; left: 9px; }
-        .dice-face.left .dice-dot.dot4 { top: 25px; left: 25px; }
-        .dice-face.top .dice-dot.dot1 { top: 9px; left: 9px; }
-        .dice-face.top .dice-dot.dot2 { top: 9px; left: 25px; }
+        .dice-face.right .dice-dot.dot3 { top: 23px; left: 23px; }
+        
+        /* 4: 4 köşe */
+        .dice-face.left .dice-dot.dot1 { top: 11px; left: 11px; }
+        .dice-face.left .dice-dot.dot2 { top: 11px; left: 23px; }
+        .dice-face.left .dice-dot.dot3 { top: 23px; left: 11px; }
+        .dice-face.left .dice-dot.dot4 { top: 23px; left: 23px; }
+        
+        /* 5: 4 köşe + merkez */
+        .dice-face.top .dice-dot.dot1 { top: 11px; left: 11px; }
+        .dice-face.top .dice-dot.dot2 { top: 11px; left: 23px; }
         .dice-face.top .dice-dot.dot3 { top: 17px; left: 17px; }
-        .dice-face.top .dice-dot.dot4 { top: 25px; left: 9px; }
-        .dice-face.top .dice-dot.dot5 { top: 25px; left: 25px; }
-        .dice-face.bottom .dice-dot.dot1 { top: 9px; left: 9px; }
-        .dice-face.bottom .dice-dot.dot2 { top: 9px; left: 17px; }
-        .dice-face.bottom .dice-dot.dot3 { top: 9px; left: 25px; }
-        .dice-face.bottom .dice-dot.dot4 { top: 25px; left: 9px; }
-        .dice-face.bottom .dice-dot.dot5 { top: 25px; left: 17px; }
-        .dice-face.bottom .dice-dot.dot6 { top: 25px; left: 25px; }
+        .dice-face.top .dice-dot.dot4 { top: 23px; left: 11px; }
+        .dice-face.top .dice-dot.dot5 { top: 23px; left: 23px; }
+        
+        /* 6: 2 sütun, 3 satır - klasik 6 deseni */
+        .dice-face.bottom .dice-dot.dot1 { top: 11px; left: 11px; }
+        .dice-face.bottom .dice-dot.dot2 { top: 17px; left: 11px; }
+        .dice-face.bottom .dice-dot.dot3 { top: 23px; left: 11px; }
+        .dice-face.bottom .dice-dot.dot4 { top: 11px; left: 23px; }
+        .dice-face.bottom .dice-dot.dot5 { top: 17px; left: 23px; }
+        .dice-face.bottom .dice-dot.dot6 { top: 23px; left: 23px; }
         
         @keyframes diceRoll {
             0% {

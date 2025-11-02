@@ -2155,6 +2155,94 @@
                 connectWebSocket();
             }
         }
+        
+        // ⏰ Aktivite ping gönder (her aktivitede çağrılır)
+        function sendActivityPing() {
+            if (currentGameId && gameData && gameData.state === 'playing') {
+                sendMessage({
+                    type: 'activity_ping',
+                    gameId: currentGameId
+                });
+            }
+        }
+        
+        // ⏰ İnaktivite uyarısı handler (sadece host için)
+        let inactivityWarningTimer = null;
+        let inactivityWarningCountdown = null;
+        function handleInactivityWarning(timeLeft) {
+            if (gameData.hostId !== localPlayer.id) return; // Sadece host için
+            
+            // Countdown başlat
+            let secondsLeft = Math.floor(timeLeft / 1000);
+            
+            const modalHTML = `
+                <div class="text-center">
+                    <p class="text-6xl mb-4">⏰</p>
+                    <p class="text-2xl font-bold text-red-600 mb-4">OYUN İNAKTİF!</p>
+                    <p class="mb-4">300 saniye boyunca hiçbir aktivite olmadı.</p>
+                    <p class="mb-2 text-lg">Kalan süre:</p>
+                    <p id="inactivity-countdown" class="text-4xl font-bold text-red-600 mb-4">${secondsLeft}</p>
+                    <p class="text-sm text-gray-600">Devam etmek istiyor musunuz?</p>
+                </div>
+            `;
+            
+            // Countdown timer
+            inactivityWarningCountdown = setInterval(() => {
+                secondsLeft--;
+                const countdownEl = document.getElementById('inactivity-countdown');
+                if (countdownEl) {
+                    countdownEl.textContent = secondsLeft;
+                }
+                if (secondsLeft <= 0) {
+                    clearInterval(inactivityWarningCountdown);
+                }
+            }, 1000);
+            
+            showModal('⏰ Oyun İnaktif', modalHTML, [
+                {
+                    text: '✅ Devam Et',
+                    class: 'bg-green-600 hover:bg-green-700',
+                    action: () => {
+                        clearInterval(inactivityWarningCountdown);
+                        inactivityWarningTimer = null;
+                        sendMessage({
+                            type: 'inactivity_response',
+                            gameId: currentGameId,
+                            continueGame: true
+                        });
+                        hideModal();
+                    }
+                },
+                {
+                    text: '❌ Oyunu Bitir',
+                    class: 'bg-red-600 hover:bg-red-700',
+                    action: () => {
+                        clearInterval(inactivityWarningCountdown);
+                        inactivityWarningTimer = null;
+                        sendMessage({
+                            type: 'inactivity_response',
+                            gameId: currentGameId,
+                            continueGame: false
+                        });
+                        hideModal();
+                    }
+                }
+            ], true); // Persistent modal
+            
+            // 30 saniye sonra otomatik kapan (eğer yanıt verilmezse)
+            inactivityWarningTimer = setTimeout(() => {
+                if (inactivityWarningTimer) {
+                    clearInterval(inactivityWarningCountdown);
+                    sendMessage({
+                        type: 'inactivity_response',
+                        gameId: currentGameId,
+                        continueGame: false
+                    });
+                    hideModal();
+                    inactivityWarningTimer = null;
+                }
+            }, timeLeft);
+        }
 
         function handleServerMessage(message) {
             switch(message.type) {
@@ -2207,6 +2295,13 @@
                         lobbyError.textContent = '✅ Joined successfully!';
                         lobbyError.style.color = 'green';
                         showWaitingLobby();
+                    }
+                    break;
+                    
+                case 'inactivity_warning':
+                    // ⏰ İnaktivite uyarısı (sadece host için)
+                    if (gameData && gameData.hostId === localPlayer.id) {
+                        handleInactivityWarning(message.timeLeft);
                     }
                     break;
                     
@@ -2469,6 +2564,9 @@
         }
 
         async function updateGame(updates) {
+            // ⏰ Aktivite ping gönder
+            sendActivityPing();
+            
             sendMessage({
                 type: 'update_game',
                 gameId: currentGameId,
@@ -4838,6 +4936,9 @@
             
             // 🎵 Play dice roll sound
             playSound('dice');
+            
+            // ⏰ Aktivite ping gönder
+            sendActivityPing();
 
             let logMessages = [];
 
@@ -6777,6 +6878,9 @@
         }
         
         async function endTurn() {
+            // ⏰ Aktivite ping gönder
+            sendActivityPing();
+            
             const currentPlayer = gameData.players[gameData.currentPlayerIndex];
             const isDouble = gameData.lastDiceRoll && gameData.lastDiceRoll[0] === gameData.lastDiceRoll[1];
             const doublesCount = currentPlayer.doublesCount || 0;

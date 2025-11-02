@@ -6567,13 +6567,14 @@
              } else {
                 ownedProperties.forEach(prop => {
                     const space = gameData.settings.board[prop.spaceIndex];
-                    if (space.type === 'property' || space.type === 'railroad') {
+                    if (space.type === 'property' || space.type === 'railroad' || space.type === 'utility') {
                        const isProperty = space.type === 'property';
                        const isRailroad = space.type === 'railroad';
+                       const isUtility = space.type === 'utility';
                        const hasMonopoly = isProperty ? checkMonopoly(myPlayer.id, space.color) : false;
                        const canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
                        const canSellHouse = isProperty && prop.houses > 0;
-                       const canMortgage = !prop.mortgaged && (isRailroad || prop.houses === 0);
+                       const canMortgage = !prop.mortgaged && (isRailroad || isUtility || prop.houses === 0);
                        const canUnmortgage = prop.mortgaged && myPlayer.money >= space.price;
                        
                        const mortgageValue = space.price;
@@ -6582,9 +6583,10 @@
                        modalHTML += `
                          <div class="p-3 border-b ${hasMonopoly ? 'bg-green-50' : 'bg-gray-50'} ${prop.mortgaged ? 'opacity-60 bg-red-50' : ''}">
                             <div class="mb-2">
-                               <p class="font-bold" style="color:${space.color || '#000000'}">${space.name} ${prop.mortgaged ? '🔒 MORTGAGED' : ''} ${isRailroad ? '🚂' : ''}</p>
+                               <p class="font-bold" style="color:${space.color || '#000000'}">${space.name} ${prop.mortgaged ? '🔒 MORTGAGED' : ''} ${isRailroad ? '🚂' : ''} ${isUtility ? '⚡' : ''}</p>
                                <p class="text-sm">${isProperty ? 'Houses: ' + (prop.houses < 5 ? prop.houses : '🏨 Hotel') + ' | ' : ''}Value: $${space.price}</p>
                                ${!isProperty && isRailroad ? '<p class="text-xs text-blue-500">🚂 Railroad</p>' : ''}
+                               ${isUtility ? '<p class="text-xs text-purple-500">⚡ Utility</p>' : ''}
                                ${isProperty && !hasMonopoly ? '<p class="text-xs text-red-500">⚠️ Need all ' + space.color + ' properties</p>' : ''}
                             </div>
                             <div class="flex gap-2 flex-wrap">

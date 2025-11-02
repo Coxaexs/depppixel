@@ -331,16 +331,16 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            background: #000000;
+            background: #1a1a1a;
             border: 3px solid #FFD700;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 
-                0 0 8px rgba(255, 215, 0, 0.6),
-                0 0 15px rgba(255, 215, 0, 0.4),
-                inset 0 0 10px rgba(0, 0, 0, 0.5),
+                0 0 4px rgba(255, 215, 0, 0.3),
+                0 0 8px rgba(255, 215, 0, 0.2),
+                inset 0 0 12px rgba(0, 0, 0, 0.9),
                 0 4px 8px rgba(0, 0, 0, 0.7);
             position: relative;
             overflow: visible;
@@ -352,9 +352,8 @@
             border-radius: 50%;
             position: absolute;
             box-shadow: 
-                0 0 8px currentColor,
-                0 0 12px currentColor,
-                0 0 16px currentColor;
+                0 0 4px currentColor,
+                0 0 6px currentColor;
             z-index: 2;
             animation: rgbDot 3s infinite;
         }
@@ -5371,8 +5370,37 @@
                     6: [[16, 13], [34, 13], [16, 25], [34, 25], [16, 37], [34, 37]]
                 };
                 
-                // Her yüz için farklı değer (animasyon sırasında değişir)
-                const faceValue = face === 'front' ? value : secureRandomInt(1, 6);
+                // Final rotation mapping'ine göre hangi yüz hangi değeri gösterecek:
+                // value=1 → front, value=2 → right, value=3 → top, value=4 → bottom, value=5 → left, value=6 → back
+                const valueToFace = {
+                    1: 'front',
+                    2: 'right',
+                    3: 'top',
+                    4: 'bottom',
+                    5: 'left',
+                    6: 'back'
+                };
+                
+                // Eğer bu yüz final rotation'da gösterilecek yüzse, 'value' değerindeki noktaları göster
+                // Değilse, o yüzün standart değerindeki noktaları göster
+                // (front=1, right=2, top=3, bottom=4, left=5, back=6)
+                let faceValue;
+                if (valueToFace[value] === face) {
+                    // Bu yüz final rotation'da gösterilecek, doğru değeri kullan
+                    faceValue = value;
+                } else {
+                    // Bu yüz final rotation'da gösterilmeyecek, yüzün standart değerini kullan
+                    const faceToValue = {
+                        'front': 1,
+                        'right': 2,
+                        'top': 3,
+                        'bottom': 4,
+                        'left': 5,
+                        'back': 6
+                    };
+                    faceValue = faceToValue[face] || value;
+                }
+                
                 const dots = dotPositions[faceValue] || [];
                 
                 dots.forEach(([x, y]) => {

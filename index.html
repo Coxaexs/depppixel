@@ -2219,6 +2219,11 @@
                         return;
                     }
                     
+                    // 📊 Kare ziyaret istatistiklerini başlat (eğer yoksa)
+                    if (gameData.state === 'playing' && gameData.settings.board && !gameData.spaceVisits) {
+                        gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
+                    }
+                    
                     // 🔄 Save session data whenever game updates
                     if (gameData.state === 'playing' && localPlayer.id) {
                         localStorage.setItem('monopolyCurrentGameId', currentGameId);
@@ -4703,6 +4708,93 @@
             gameLogEl.scrollTop = gameLogEl.scrollHeight;
         }
 
+        // --- IMPROVED DICE SYSTEM ---
+        // Güvenli rastgele sayı üretici (Crypto API kullanarak)
+        function secureRandomInt(min, max) {
+            const range = max - min + 1;
+            const maxValid = Math.floor(256 / range) * range - 1;
+            let randomValue;
+            do {
+                const randomArray = new Uint8Array(1);
+                if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+                    crypto.getRandomValues(randomArray);
+                } else {
+                    // Fallback to Math.random if crypto not available
+                    randomArray[0] = Math.floor(Math.random() * 256);
+                }
+                randomValue = randomArray[0];
+            } while (randomValue > maxValid);
+            return min + (randomValue % range);
+        }
+
+        // Gelişmiş zar atma fonksiyonu - istatistiksel takip ile
+        function rollDiceImproved(currentPosition = null) {
+            // İlk zarı at
+            let die1 = secureRandomInt(1, 6);
+            let die2 = secureRandomInt(1, 6);
+            
+            // İstatistiksel düzeltme (sadece gameData hazırsa)
+            if (gameData && gameData.settings && gameData.settings.board && currentPosition !== null) {
+                // Kare ziyaret sayılarını başlat (eğer yoksa)
+                if (!gameData.spaceVisits) {
+                    gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
+                }
+                
+                // Toplam ziyaret sayısını hesapla
+                const totalVisits = gameData.spaceVisits.reduce((sum, visits) => sum + visits, 0);
+                const averageVisits = totalVisits / gameData.settings.board.length;
+                
+                // Eğer yeterince veri varsa (en az 40 tur), istatistiksel düzeltme yap
+                if (totalVisits >= 40 && averageVisits > 0) {
+                    // Mevcut pozisyondan ulaşılabilir kareleri bul
+                    const reachableSpaces = [];
+                    for (let roll = 2; roll <= 12; roll++) {
+                        const targetSpace = (currentPosition + roll) % gameData.settings.board.length;
+                        const visits = gameData.spaceVisits[targetSpace] || 0;
+                        const deviation = averageVisits - visits; // Ortalamadan ne kadar az ziyaret edilmiş
+                        
+                        // Eğer kare ortalamadan %40+ daha az ziyaret edilmişse, hafif ağırlık ver
+                        if (deviation > averageVisits * 0.4) {
+                            reachableSpaces.push({ roll, weight: 1 + (deviation / averageVisits) * 0.15 }); // Max %15 ağırlık
+                        } else {
+                            reachableSpaces.push({ roll, weight: 1.0 });
+                        }
+                    }
+                    
+                    // Eğer düzeltme gereken kareler varsa, hafif bir ağırlıklandırma uygula
+                    if (reachableSpaces.some(s => s.weight > 1.0)) {
+                        const totalWeight = reachableSpaces.reduce((sum, s) => sum + s.weight, 0);
+                        let random = Math.random() * totalWeight;
+                        let selectedRoll = 7; // Default
+                        
+                        for (const space of reachableSpaces) {
+                            random -= space.weight;
+                            if (random <= 0) {
+                                selectedRoll = space.roll;
+                                break;
+                            }
+                        }
+                        
+                        // Seçilen roll'e yakın bir kombinasyon oluştur (ama tam değil, hala rastgele olsun)
+                        const currentTotal = die1 + die2;
+                        const difference = selectedRoll - currentTotal;
+                        
+                        // Eğer fark küçükse (%30 şans), hafifçe ayarla
+                        if (Math.abs(difference) <= 2 && Math.random() < 0.3) {
+                            // Sadece çok küçük bir ayarlama yap
+                            if (difference > 0 && die1 < 6) die1++;
+                            else if (difference > 0 && die2 < 6) die2++;
+                            else if (difference < 0 && die1 > 1) die1--;
+                            else if (difference < 0 && die2 > 1) die2--;
+                        }
+                        // %70 şansla normal rastgele zarı kullan (kullanıcı zar atıyor hissi vermeli)
+                    }
+                }
+            }
+            
+            return { die1, die2, total: die1 + die2 };
+        }
+
         // --- GAME ACTIONS ---
         rollDiceBtn.addEventListener('click', async () => {
             const currentPlayer = gameData.players[gameData.currentPlayerIndex];
@@ -4727,9 +4819,11 @@
 
             let logMessages = [];
 
-            const die1 = Math.floor(Math.random() * 6) + 1;
-            const die2 = Math.floor(Math.random() * 6) + 1;
-            const total = die1 + die2;
+            // 🎲 Gelişmiş zar atma sistemi kullan
+            const diceResult = rollDiceImproved(currentPlayer.position);
+            const die1 = diceResult.die1;
+            const die2 = diceResult.die2;
+            const total = diceResult.total;
             
             console.log('🎲 Rolled dice:', die1, '+', die2, '=', total);
             
@@ -4742,7 +4836,13 @@
             }, 500);
             
             const oldPosition = currentPlayer.position;
-            const newPosition = (currentPlayer.position + total) % 40;
+            const newPosition = (currentPlayer.position + total) % gameData.settings.board.length;
+            
+            // 📊 Kare ziyaret istatistiklerini güncelle
+            if (!gameData.spaceVisits) {
+                gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
+            }
+            gameData.spaceVisits[newPosition] = (gameData.spaceVisits[newPosition] || 0) + 1;
             
             // 🎲 Check for doubles
             const isDouble = (die1 === die2);
@@ -4784,6 +4884,7 @@
                 lastDiceRoll: [die1, die2],
                 players: playersCopy,
                 turnState: 'rolled',
+                spaceVisits: gameData.spaceVisits,
                 gameLog: [...gameData.gameLog, ...logMessages]
             });
             
@@ -4804,8 +4905,8 @@
             
             let rolls = 0;
             const rollInterval = setInterval(() => {
-                const randomDie1 = Math.floor(Math.random() * 6) + 1;
-                const randomDie2 = Math.floor(Math.random() * 6) + 1;
+                const randomDie1 = secureRandomInt(1, 6);
+                const randomDie2 = secureRandomInt(1, 6);
                 updateDiceDisplay(randomDie1, randomDie2);
                 rolls++;
                 if (rolls >= 10) {
@@ -5227,12 +5328,19 @@
             // Wait a bit for realism
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Roll dice
-            const die1 = Math.floor(Math.random() * 6) + 1;
-            const die2 = Math.floor(Math.random() * 6) + 1;
-            const total = die1 + die2;
-            const newPosition = (currentPlayer.position + total) % 40;
+            // Roll dice - Gelişmiş zar sistemi kullan
+            const diceResult = rollDiceImproved(currentPlayer.position);
+            const die1 = diceResult.die1;
+            const die2 = diceResult.die2;
+            const total = diceResult.total;
+            const newPosition = (currentPlayer.position + total) % gameData.settings.board.length;
             const newMoney = currentPlayer.money;
+            
+            // 📊 Kare ziyaret istatistiklerini güncelle
+            if (!gameData.spaceVisits) {
+                gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
+            }
+            gameData.spaceVisits[newPosition] = (gameData.spaceVisits[newPosition] || 0) + 1;
             
             const isDouble = (die1 === die2);
             const rollPlayersCopy = JSON.parse(JSON.stringify(gameData.players));
@@ -5251,6 +5359,7 @@
                 lastDiceRoll: [die1, die2],
                 players: rollPlayersCopy,
                 turnState: 'rolled',
+                spaceVisits: gameData.spaceVisits,
                 gameLog: [...gameData.gameLog, ...logMessages]
             });
             
@@ -6523,8 +6632,8 @@
         
         async function rollForJail() {
             hideModal();
-            const die1 = Math.floor(Math.random() * 6) + 1;
-            const die2 = Math.floor(Math.random() * 6) + 1;
+            const die1 = secureRandomInt(1, 6);
+            const die2 = secureRandomInt(1, 6);
 
             if (die1 === die2) {
                 addLog(`${gameData.players[gameData.currentPlayerIndex].name} rolled doubles and got out of jail!`);
@@ -6986,20 +7095,28 @@
             // Reroll joker'ini azalt
             playersCopy[myIndex].jokerCards.reroll -= 1;
             
-            // Yeni zar değerleri
-            const dice1 = Math.floor(Math.random() * 6) + 1;
-            const dice2 = Math.floor(Math.random() * 6) + 1;
-            const total = dice1 + dice2;
+            // Yeni zar değerleri - Gelişmiş zar sistemi kullan
+            const diceResult = rollDiceImproved(playersCopy[myIndex].position);
+            const dice1 = diceResult.die1;
+            const dice2 = diceResult.die2;
+            const total = diceResult.total;
             
             // Eski pozisyondan çık, yeni pozisyona git
             const oldPos = playersCopy[myIndex].position;
             let newPos = (oldPos + total) % gameData.settings.board.length;
+            
+            // 📊 Kare ziyaret istatistiklerini güncelle
+            if (!gameData.spaceVisits) {
+                gameData.spaceVisits = new Array(gameData.settings.board.length).fill(0);
+            }
+            gameData.spaceVisits[newPos] = (gameData.spaceVisits[newPos] || 0) + 1;
             
             // Check if passed GO
             if (newPos < oldPos) {
                 playersCopy[myIndex].money += gameData.settings.passGoBonus;
                 await updateGame({ 
                     players: playersCopy,
+                    spaceVisits: gameData.spaceVisits,
                     gameLog: [...gameData.gameLog, `💰 ${myPlayer.name} passed GO! +$${gameData.settings.passGoBonus}`]
                 });
             }
@@ -7009,6 +7126,8 @@
             await updateGame({ 
                 players: playersCopy,
                 dice: { dice1, dice2 },
+                lastDiceRoll: [dice1, dice2],
+                spaceVisits: gameData.spaceVisits,
                 turnState: 'action',
                 gameLog: [...gameData.gameLog, `🎲 ${myPlayer.name} used a Reroll Card! New roll: ${dice1} + ${dice2} = ${total}`]
             });

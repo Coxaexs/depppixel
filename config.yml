@@ -1,0 +1,9 @@
+tunnel: 3ee959ed-fd3b-46d5-83cc-3e268a1428f8
+credentials-file: /etc/cloudflared/3ee959ed-fd3b-46d5-83cc-3e268a1428f8.json
+
+ingress:
+  - hostname: deeppixel.online
+    service: http://localhost:3000
+  - hostname: www.deeppixel.online
+    service: http://localhost:3000
+  - service: http_status:404

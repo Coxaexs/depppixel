@@ -203,17 +203,17 @@
 
         .board {
             display: grid;
-            grid-template-columns: 140px repeat(9, 1fr) 140px;
-            grid-template-rows: 140px repeat(9, 1fr) 140px;
-            gap: 2px;
-            width: 90vmin;
-            height: 90vmin;
-            max-width: 800px;
-            max-height: 800px;
+            grid-template-columns: 92px repeat(9, minmax(0, 1fr)) 92px;
+            grid-template-rows: 92px repeat(9, minmax(0, 1fr)) 92px;
+            gap: 1px;
+            width: min(94vmin, 920px);
+            height: min(94vmin, 920px);
+            max-width: 920px;
+            max-height: 920px;
             margin: auto;
-            border: 8px solid #374151;
-            background: #111827;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(167, 139, 250, 0.2);
+            border: 8px solid #1e2030;
+            background: #090b14;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72), inset 0 0 28px rgba(167, 139, 250, 0.08);
             border-radius: 12px;
             position: relative;
         }
@@ -231,31 +231,132 @@
         }
 
         .space {
-            border: 2px solid #374151;
+            border: 1px solid rgba(255,255,255,0.06);
             position: relative;
-            background: #1F2937;
+            background: #0b0d16;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
             font-size: 10px;
             text-align: center;
-            padding: 4px;
+            padding: 0;
             overflow: hidden;
             transition: all 0.2s ease;
             border-radius: 4px;
             color: #E5E7EB;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        }
+
+        .property-tile {
+            position: relative;
+            overflow: visible !important;
+            background: #070910 !important;
+            isolation: isolate;
+        }
+
+        .property-flag-bg-wrap {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .property-flag-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(25px) brightness(0.45) saturate(1.4);
+            transform: scale(1.18);
+            pointer-events: none;
+        }
+
+        .property-tile .space-inner {
+            position: relative;
+            z-index: 10;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 6px 8px;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+
+        .property-tile.edge-bottom .space-inner {
+            transform: rotate(0deg);
+        }
+
+        .property-tile.edge-top .space-inner {
+            transform: rotate(0deg);
+        }
+
+        .property-tile.edge-left .space-inner {
+            transform: rotate(90deg);
+        }
+
+        .property-tile.edge-right .space-inner {
+            transform: rotate(-90deg);
+        }
+
+        .property-tile .flag-icon {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+            filter: none;
+            opacity: 1;
+            z-index: 11;
+        }
+
+        .property-tile.edge-bottom .flag-icon {
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .property-tile.edge-top .flag-icon {
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .property-tile.edge-left .flag-icon {
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .property-tile.edge-right .flag-icon {
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .space:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(167, 139, 250, 0.4);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
             z-index: 5;
         }
 
         .corner {
             grid-column: span 1;
             grid-row: span 1;
+            transform: scale(0.84);
+            transform-origin: center;
+        }
+
+        .corner:hover {
+            transform: scale(0.88);
         }
 
         .top-row {
@@ -496,22 +597,8 @@
         .color-bar {
             width: 100%;
             height: 22%;
-            border-bottom: 2px solid #2d3748;
-            border-radius: 4px 4px 0 0;
+            border-bottom: 2px solid rgba(0,0,0,0.3);
         }
-
-        /* 💰 Kart fiyat etiketi (richup tarzı alt şerit) */
-        .space .price {
-            width: 100%;
-            font-size: 9px;
-            font-weight: 700;
-            color: #A7F3D0;
-            background: rgba(6, 78, 59, 0.45);
-            border-radius: 0 0 4px 4px;
-            padding: 1px 0;
-            letter-spacing: 0.5px;
-        }
-
         /* 📜 Game log satırları */
         #game-log>div {
             padding: 3px 6px;
@@ -2454,6 +2541,8 @@
             background: #12111d !important;
             border: 1px solid rgba(167, 139, 250, 0.08) !important;
             border-radius: 6px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
@@ -2476,6 +2565,92 @@
         .player-piece {
             font-size: 1.4rem !important;
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5)) !important;
+        }
+        .space-inner {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+        }
+        .space-name {
+            font-weight: 700;
+            font-size: 11px;
+            line-height: 1.05;
+            margin-bottom: 2px;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .rotate-90 { transform: rotate(90deg); }
+        .rotate-180 { transform: rotate(180deg); }
+        .rotate-minus-90 { transform: rotate(-90deg); }
+        .flag-icon {
+            display: block;
+            width: 24px;
+            height: 16px;
+            border-radius: 3px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            align-self: center;
+            margin-top: 3px;
+            filter: blur(0.4px) saturate(0.9);
+            opacity: 0.82;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+        .price-tag {
+            position: absolute;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            width: auto;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 3px 8px;
+            border-radius: 999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+            z-index: 3;
+            letter-spacing: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .property-tile .price-tag {
+            z-index: 11;
+        }
+
+        .property-tile.edge-top .price-tag {
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .property-tile.edge-bottom .price-tag {
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .property-tile.edge-left .price-tag {
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transform-origin: center;
+        }
+
+        .property-tile.edge-right .price-tag {
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transform-origin: center;
+        }
+        .player-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.8);
+            position: absolute;
+            z-index: 10;
         }
     </style>
 </head>
@@ -2792,11 +2967,11 @@
 
     <!-- Game Screen -->
     <!-- Game Screen -->
-    <div id="game-container" class="flex h-screen w-full p-4 gap-4"
+    <div id="game-container" class="flex h-screen w-full p-2 gap-2"
         style="display: none; background-color: #07050d; background-image: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.08) 0%, rgba(7, 5, 13, 0) 70%); background-attachment: fixed;">
 
         <!-- LEFT SIDEBAR: Share + Advertisement + Chat -->
-        <aside class="w-80 flex-shrink-0 flex flex-col gap-4">
+        <aside class="w-80 flex-shrink-0 flex flex-col gap-2">
             <!-- Share This Game -->
             <div class="glass-panel p-4 flex flex-col gap-3">
                 <h2 class="text-lg font-bold" style="color: #ffffff;">Share This Game</h2>
@@ -2855,7 +3030,7 @@
 
         <!-- CENTER: Board -->
         <main class="flex-grow flex items-center justify-center overflow-auto">
-            <div class="w-fit h-fit p-2 board-container-wrapper">
+            <div class="w-fit h-fit p-1 board-container-wrapper">
                 <div id="board" class="board">
                     <div class="center-board">
                         <div class="absolute top-0 left-0 right-0 h-1 shadow-glow"
@@ -4035,45 +4210,45 @@
         function getDefaultBoard() {
             return [
                 { name: "GO", type: "go" },
-                { name: "Mediterranean Ave", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], color: "#a55a40", houseCost: 50 },
-                { name: "Community Chest", type: "community_chest" },
-                { name: "Baltic Ave", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], color: "#a55a40", houseCost: 50 },
-                { name: "Income Tax", type: "tax", amount: 200 },
-                { name: "Reading Railroad", type: "railroad", price: 200 },
-                { name: "Oriental Ave", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], color: "#add8e6", houseCost: 50 },
-                { name: "Chance", type: "chance" },
-                { name: "Vermont Ave", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], color: "#add8e6", houseCost: 50 },
-                { name: "Connecticut Ave", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], color: "#add8e6", houseCost: 50 },
-                { name: "Jail / Just Visiting", type: "jail" },
-                { name: "St. Charles Place", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], color: "#d25298", houseCost: 100 },
-                { name: "Electric Company", type: "utility", price: 150 },
-                { name: "States Ave", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], color: "#d25298", houseCost: 100 },
-                { name: "Virginia Ave", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], color: "#d25298", houseCost: 100 },
-                { name: "Pennsylvania Railroad", type: "railroad", price: 200 },
-                { name: "St. James Place", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], color: "#f7941e", houseCost: 100 },
-                { name: "Community Chest", type: "community_chest" },
-                { name: "Tennessee Ave", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], color: "#f7941e", houseCost: 100 },
-                { name: "New York Ave", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], color: "#f7941e", houseCost: 100 },
-                { name: "Free Parking", type: "free_parking" },
-                { name: "Kentucky Ave", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], color: "#ed1c24", houseCost: 150 },
-                { name: "Chance", type: "chance" },
-                { name: "Indiana Ave", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], color: "#ed1c24", houseCost: 150 },
-                { name: "Illinois Ave", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], color: "#ed1c24", houseCost: 150 },
-                { name: "B. & O. Railroad", type: "railroad", price: 200 },
-                { name: "Atlantic Ave", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], color: "#ffeb3b", houseCost: 150 },
-                { name: "Ventnor Ave", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], color: "#ffeb3b", houseCost: 150 },
-                { name: "Water Works", type: "utility", price: 150 },
-                { name: "Marvin Gardens", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], color: "#ffeb3b", houseCost: 150 },
-                { name: "Secim kazandin, hapse gir.", type: "go_to_jail" },
-                { name: "Pacific Ave", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], color: "#4caf50", houseCost: 200 },
-                { name: "North Carolina Ave", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], color: "#4caf50", houseCost: 200 },
-                { name: "Community Chest", type: "community_chest" },
-                { name: "Pennsylvania Ave", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], color: "#4caf50", houseCost: 200 },
-                { name: "Short Line", type: "railroad", price: 200 },
-                { name: "Chance", type: "chance" },
-                { name: "Park Place", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], color: "#2196f3", houseCost: 200 },
-                { name: "Luxury Tax", type: "tax", amount: 100 },
-                { name: "Boardwalk", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], color: "#2196f3", houseCost: 200 }
+                { name: "Salvador", type: "property", countryCode: "br", price: 60, rent: [2, 10, 30, 90, 160, 250], color: "#a55a40", houseCost: 50 },
+                { name: "Treasure", type: "community_chest" },
+                { name: "Rio", type: "property", countryCode: "br", price: 60, rent: [4, 20, 60, 180, 320, 450], color: "#a55a40", houseCost: 50 },
+                { name: "Earnings Tax", type: "tax", amount: 200 },
+                { name: "TLV Airport", type: "railroad", price: 200 },
+                { name: "Tel Aviv", type: "property", countryCode: "il", price: 100, rent: [6, 30, 90, 270, 400, 550], color: "#add8e6", houseCost: 50 },
+                { name: "Surprise", type: "chance" },
+                { name: "Haifa", type: "property", countryCode: "il", price: 100, rent: [6, 30, 90, 270, 400, 550], color: "#add8e6", houseCost: 50 },
+                { name: "Jerusalem", type: "property", countryCode: "il", price: 120, rent: [8, 40, 100, 300, 450, 600], color: "#add8e6", houseCost: 50 },
+                { name: "In Prison / Just Visiting", type: "jail" },
+                { name: "Venice", type: "property", countryCode: "it", price: 140, rent: [10, 50, 150, 450, 625, 750], color: "#d25298", houseCost: 100 },
+                { name: "Power Company", type: "utility", price: 150 },
+                { name: "Milan", type: "property", countryCode: "it", price: 140, rent: [10, 50, 150, 450, 625, 750], color: "#d25298", houseCost: 100 },
+                { name: "Rome", type: "property", countryCode: "it", price: 160, rent: [12, 60, 180, 500, 700, 900], color: "#d25298", houseCost: 100 },
+                { name: "NUC Airport", type: "railroad", price: 200 },
+                { name: "Frankfurt", type: "property", countryCode: "de", price: 180, rent: [14, 70, 200, 550, 750, 950], color: "#f7941e", houseCost: 100 },
+                { name: "Treasure", type: "community_chest" },
+                { name: "Munich", type: "property", countryCode: "de", price: 180, rent: [14, 70, 200, 550, 750, 950], color: "#f7941e", houseCost: 100 },
+                { name: "Berlin", type: "property", countryCode: "de", price: 200, rent: [16, 80, 220, 600, 800, 1000], color: "#f7941e", houseCost: 100 },
+                { name: "Vacation", type: "free_parking" },
+                { name: "Shenzhen", type: "property", countryCode: "cn", price: 220, rent: [18, 90, 250, 700, 875, 1050], color: "#ed1c24", houseCost: 150 },
+                { name: "Surprise", type: "chance" },
+                { name: "Beijing", type: "property", countryCode: "cn", price: 220, rent: [18, 90, 250, 700, 875, 1050], color: "#ed1c24", houseCost: 150 },
+                { name: "Shanghai", type: "property", countryCode: "cn", price: 240, rent: [20, 100, 300, 750, 925, 1100], color: "#ed1c24", houseCost: 150 },
+                { name: "CDG Airport", type: "railroad", price: 200 },
+                { name: "Lyon", type: "property", countryCode: "fr", price: 260, rent: [22, 110, 330, 800, 975, 1150], color: "#ffeb3b", houseCost: 150 },
+                { name: "Toulouse", type: "property", countryCode: "fr", price: 260, rent: [22, 110, 330, 800, 975, 1150], color: "#ffeb3b", houseCost: 150 },
+                { name: "Water Company", type: "utility", price: 150 },
+                { name: "Paris", type: "property", countryCode: "fr", price: 280, rent: [24, 120, 360, 850, 1025, 1200], color: "#ffeb3b", houseCost: 150 },
+                { name: "Go to prison", type: "go_to_jail" },
+                { name: "Liverpool", type: "property", countryCode: "gb", price: 300, rent: [26, 130, 390, 900, 1100, 1275], color: "#4caf50", houseCost: 200 },
+                { name: "Manchester", type: "property", countryCode: "gb", price: 300, rent: [26, 130, 390, 900, 1100, 1275], color: "#4caf50", houseCost: 200 },
+                { name: "Treasure", type: "community_chest" },
+                { name: "London", type: "property", countryCode: "gb", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], color: "#4caf50", houseCost: 200 },
+                { name: "JFK Airport", type: "railroad", price: 200 },
+                { name: "Surprise", type: "chance" },
+                { name: "San Francisco", type: "property", countryCode: "us", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], color: "#2196f3", houseCost: 200 },
+                { name: "Premium Tax", type: "tax", amount: 100 },
+                { name: "New York", type: "property", countryCode: "us", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], color: "#2196f3", houseCost: 200 }
             ];
         }
 
@@ -4503,6 +4678,47 @@
             custom: getDefaultBoard()
         };
 
+        function inferCountryCodeForSpace(mapKey, spaceName) {
+            if (mapKey === 'classic') {
+                return 'us';
+            }
+
+            if (mapKey === 'world') {
+                if (spaceName.includes('New York')) return 'us';
+                if (spaceName.includes('London')) return 'gb';
+                if (spaceName.includes('Paris')) return 'fr';
+                if (spaceName.includes('Berlin')) return 'de';
+                if (spaceName.includes('Rome')) return 'it';
+                if (spaceName.includes('Hong Kong')) return 'cn';
+                if (spaceName.includes('Shanghai')) return 'cn';
+            }
+
+            return null;
+        }
+
+        function enrichBoardWithCountryCodes(board, mapKey) {
+            return board.map((space) => {
+                if (space.type !== 'property') {
+                    return space;
+                }
+
+                const countryCode = space.countryCode || inferCountryCodeForSpace(mapKey, space.name);
+                return countryCode ? { ...space, countryCode } : space;
+            });
+        }
+
+        function getBoardPlacement(index) {
+            if (index === 0) return { row: 1, col: 1, edgeClass: 'corner', cornerClass: 'corner-start' };
+            if (index > 0 && index < 10) return { row: 1, col: index + 1, edgeClass: 'edge-top' };
+            if (index === 10) return { row: 1, col: 11, edgeClass: 'corner', cornerClass: 'corner-prison' };
+            if (index > 10 && index < 20) return { row: index - 9, col: 11, edgeClass: 'edge-right' };
+            if (index === 20) return { row: 11, col: 11, edgeClass: 'corner', cornerClass: 'corner-vacation' };
+            if (index > 20 && index < 30) return { row: 11, col: 31 - index, edgeClass: 'edge-bottom' };
+            if (index === 30) return { row: 11, col: 1, edgeClass: 'corner', cornerClass: 'corner-jail' };
+            if (index > 30 && index < 40) return { row: 41 - index, col: 1, edgeClass: 'edge-left' };
+            return { row: 1, col: 1, edgeClass: 'corner', cornerClass: 'corner-start' };
+        }
+
         // Character selection
         const characterBtns = document.querySelectorAll('.character-btn');
 
@@ -4712,6 +4928,7 @@
                     console.log('📋 mapBoards[selectedMap] exists?', selectedMap in mapBoards);
                     console.log('📋 Board data:', mapBoards[selectedMap]);
                     console.log('📍 First 5 spaces:', mapBoards[selectedMap].slice(0, 5).map(s => s.name));
+                    const selectedBoard = enrichBoardWithCountryCodes(mapBoards[selectedMap] || mapBoards.classic, selectedMap);
 
                     addDebugLog('📤 Sending create_game...');
 
@@ -4729,7 +4946,7 @@
                             allowTrading: document.getElementById('allowTrading').checked,
                             gameMode: selectedGameMode,
                             noLuck: mode.noLuck,
-                            board: mapBoards[selectedMap],
+                            board: selectedBoard,
                             map: selectedMap,
                             chanceCards: mode.noLuck ? [] : defaultCards.chance,
                             communityChestCards: mode.noLuck ? [] : defaultCards.community_chest,
@@ -5223,71 +5440,86 @@
                 spaceEl.id = `space-${i}`;
                 spaceEl.className = 'space';
 
+                const placement = getBoardPlacement(i);
+                spaceEl.style.gridRow = String(placement.row);
+                spaceEl.style.gridColumn = String(placement.col);
+
                 // Add corner class for special spaces
                 if ([0, 10, 20, 30].includes(i)) {
                     spaceEl.classList.add('corner');
                 }
 
-                // Fiyat etiketi (richup tarzı, kartın altında ince şerit)
+                const edgeClass = placement.edgeClass;
+                if (placement.cornerClass) {
+                    spaceEl.classList.add(placement.cornerClass);
+                }
+
                 let priceLabel = '';
                 if ((spaceData.type === 'property' || spaceData.type === 'railroad' || spaceData.type === 'utility') && spaceData.price) {
-                    priceLabel = `<div class="price">$${spaceData.price}</div>`;
+                    priceLabel = `<div class="price-tag">${spaceData.price} $</div>`;
                 }
 
                 let content = '';
                 if (spaceData.type === 'property' || spaceData.type === 'railroad' || spaceData.type === 'utility') {
                     const property = gameData.properties[i];
-                    let ownersHTML = '';
+                    let ownerHTML = '';
                     if (property && property.owners) {
-                        ownersHTML = Object.entries(property.owners).map(([ownerId, percentage]) => {
-                            const owner = gameData.players.find(p => p.id === ownerId);
-                            if (!owner) return '';
-                            return `<span class="inline-block text-[8px] mr-1 px-1 py-0.5 rounded" style="background: #111827; color:${owner.color}">${owner.name} <span class="font-bold">${percentage}%</span></span>`;
-                        }).join(' ');
+                        const ownerIds = Object.keys(property.owners);
+                        if (ownerIds.length > 0) {
+                            const owner = gameData.players.find(p => p.id === ownerIds[0]);
+                            if (owner) {
+                                ownerHTML = `<div class="player-badge" style="background-color: ${owner.color}; top: 4px; right: 4px; box-shadow: 0 0 5px ${owner.color};"></div>`;
+                            }
+                        }
                     }
-                    const ownerColor = property && property.ownerId ? (gameData.players.find(p => p.id === property.ownerId)?.color || null) : null;
 
                     if (spaceData.type === 'property') {
-                        content = `
-                            <div class="houses-container"></div>
-                            <div class="color-bar" style="background: linear-gradient(135deg, ${spaceData.color} 0%, ${adjustColor(spaceData.color, -20)} 100%);"></div>
-                            <div class="p-1 flex-grow flex flex-col justify-center w-full" style="${ownerColor ? `background: linear-gradient(135deg, ${ownerColor}25 0%, ${ownerColor}45 100%); border: 2px solid ${ownerColor}; border-radius: 4px;` : ''}">
-                               <div class="font-bold text-[12px] uppercase leading-tight">${spaceData.name}</div>
-                               ${ownersHTML ? `<div class="text-[8px] mt-1" style="color: #9CA3AF;">${ownersHTML}</div>` : ''}
-                            </div>`;
+                        spaceEl.classList.add('property-tile', edgeClass);
+                        const flagBgHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="property-flag-bg" alt="" aria-hidden="true" loading="lazy" />` : '';
+                        const flagHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="flag-icon" alt="${spaceData.countryCode} flag" loading="lazy" />` : '';
+                        content = `${ownerHTML}<div class="space-name">${spaceData.name}</div>`;
+                        spaceEl.innerHTML = `<div class="property-flag-bg-wrap">${flagBgHTML}</div><div class="space-inner ${edgeClass}">${content}${priceLabel}${flagHTML}</div>`;
+                        spacesContainer.appendChild(spaceEl);
+
+                        // 🏠 Add click event to show property details
+                        spaceEl.style.cursor = 'pointer';
+                        spaceEl.addEventListener('click', () => {
+                            showPropertyDetails(i, spaceData);
+                        });
+                        return;
                     } else if (spaceData.type === 'railroad') {
                         content = `
-                            <div class="p-1 flex flex-col justify-center items-center w-full h-full" style="${ownerColor ? `background: linear-gradient(135deg, ${ownerColor}25 0%, ${ownerColor}45 100%); border: 2px solid ${ownerColor}; border-radius: 4px;` : ''}">
-                                <div class="text-2xl">🚂</div>
-                                <div class="font-bold text-[11px]">${spaceData.name}</div>
-                                ${ownersHTML ? `<div class="text-[8px] mt-1" style="color: #9CA3AF;">${ownersHTML}</div>` : ''}
-                            </div>`;
+                            ${ownerHTML}
+                            <div class="center-icon text-gray-300">✈️</div>
+                            <div class="space-name">${spaceData.name}</div>`;
                     } else if (spaceData.type === 'utility') {
-                        const icon = spaceData.name.includes('Electric') ? '⚡' : '💧';
+                        const icon = spaceData.name.includes('Power') ? '⚡' : '💧';
                         content = `
-                            <div class="p-1 flex flex-col justify-center items-center w-full h-full" style="${ownerColor ? `background: linear-gradient(135deg, ${ownerColor}25 0%, ${ownerColor}45 100%); border: 2px solid ${ownerColor}; border-radius: 4px;` : ''}">
-                                <div class="text-2xl">${icon}</div>
-                                <div class="font-bold text-[11px]">${spaceData.name}</div>
-                                ${ownersHTML ? `<div class="text-[8px] mt-1" style="color: #9CA3AF;">${ownersHTML}</div>` : ''}
-                            </div>`;
+                            ${ownerHTML}
+                            <div class="center-icon text-gray-300">${icon}</div>
+                            <div class="space-name">${spaceData.name}</div>`;
                     }
                 } else if (spaceData.type === 'tax') {
-                    content = `<div class="text-center p-2"><div class="text-2xl">💸</div><div class="font-bold text-[11px]">${spaceData.name}</div><div class="text-[10px]">Pay $${spaceData.amount}</div></div>`;
+                    content = `<div class="center-icon text-gray-300">💸</div><div class="space-name">${spaceData.name}</div>`;
                 } else if (spaceData.type === 'chance') {
-                    content = `<div class="text-center p-2"><div class="text-2xl">❓</div><div class="font-bold text-[11px]">${spaceData.name}</div></div>`;
+                    content = `<div class="center-icon text-pink-500 font-bold" style="text-shadow: 0 0 8px rgba(236,72,153,0.8);">?</div><div class="space-name text-pink-400" style="text-transform: none;">Surprise</div>`;
                 } else if (spaceData.type === 'community_chest') {
-                    content = `<div class="text-center p-2"><div class="text-2xl">🎁</div><div class="font-bold text-[11px]">${spaceData.name}</div></div>`;
+                    content = `<div class="center-icon">📦</div><div class="space-name text-yellow-500" style="text-transform: none;">Treasure</div>`;
                 } else if (spaceData.type === 'go') {
-                    content = `<div class="text-center p-2"><div class="text-3xl">➡️</div><div class="font-bold text-[13px]">GO</div><div class="text-[11px]">Collect $200</div></div>`;
+                    content = `<div class="center-icon text-green-400">➡️</div><div class="space-name text-white">START</div>`;
                 } else if (spaceData.type === 'jail') {
-                    content = `<div class="text-center p-2"><div class="text-3xl">🔒</div><div class="font-bold text-[11px]">Jail</div></div>`;
+                    content = `<div class="center-icon text-gray-400">||||||</div><div class="space-name text-gray-400">In Prison</div>`;
                 } else if (spaceData.type === 'free_parking') {
-                    content = `<div class="text-center p-2"><div class="text-3xl">🅿️</div><div class="font-bold text-[11px]">Free Parking</div></div>`;
+                    content = `<div class="center-icon">🌴</div><div class="space-name text-white">Vacation</div>`;
                 } else if (spaceData.type === 'go_to_jail') {
-                    content = `<div class="text-center p-2"><div class="text-3xl">👮</div><div class="font-bold text-[11px]">Go To Jail</div></div>`;
+                    content = `<div class="center-icon text-red-500">☠️</div><div class="space-name text-red-100">Go to prison</div>`;
                 }
 
-                spaceEl.innerHTML = content + priceLabel;
+                if (edgeClass !== 'corner') {
+                    spaceEl.innerHTML = `<div class="space-inner ${edgeClass}">${content}${priceLabel}</div>`;
+                } else {
+                    spaceEl.innerHTML = `<div class="space-inner" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">${content.replace('center-icon', 'text-4xl mb-2').replace('space-name', 'font-bold text-[14px]')}</div>`;
+                }
                 spacesContainer.appendChild(spaceEl);
 
                 // 🏠 Add click event to show property details
@@ -11081,7 +11313,6 @@
         function showPropertyBuyPanel(position) {
             const space = gameData.settings.board[position];
             const currentPlayer = gameData.players[gameData.currentPlayerIndex];
-
             // 🤖 Bot kontrolü - Bot ise panel gösterme!
             if (currentPlayer.isBot) {
                 console.warn('⚠️ Bot cannot show property buy panel! Bot should use botDecidePropertyPurchase instead.');

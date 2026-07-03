@@ -9,8 +9,22 @@ const crypto = require('crypto');
 const server = http.createServer((req, res) => {
     // Parse URL to get path without query string
     const parsedUrl = url.parse(req.url);
-    let filePath = '.' + parsedUrl.pathname;
-    if (filePath === './') filePath = './index.html';
+    let pathname = parsedUrl.pathname;
+    
+    // Redirect /game to /game/ to handle relative paths correctly
+    if (pathname === '/game') {
+        res.writeHead(301, { 'Location': '/game/' });
+        res.end();
+        return;
+    }
+    
+    // Strip /game prefix if present so that we resolve static files from root
+    if (pathname.startsWith('/game/')) {
+        pathname = pathname.substring(5); // Keep the leading slash
+    }
+    
+    let filePath = '.' + pathname;
+    if (filePath === './' || filePath === '.') filePath = './index.html';
     
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {
@@ -21,6 +35,7 @@ const server = http.createServer((req, res) => {
         '.png': 'image/png',
         '.jpg': 'image/jpg',
         '.ico': 'image/x-icon',
+        '.svg': 'image/svg+xml',
     };
     
     const contentType = mimeTypes[extname] || 'application/octet-stream';
@@ -779,7 +794,16 @@ function handleRollDice(ws, message) {
     const die1 = secureRandomInt(1, 6);
     const die2 = secureRandomInt(1, 6);
     const total = die1 + die2;
+    const oldPosition = player.position;
     player.position = (player.position + total) % game.settings.board.length;
+
+    // GO'dan geçtiyse bonus ver
+    if (player.position < oldPosition) {
+        const passGoBonus = game.settings.passGoAmount || game.settings.passGoBonus || 200;
+        player.money += passGoBonus;
+        game.gameLog = game.gameLog || [];
+        game.gameLog.push(`💰 ${player.name} passed GO! +$${passGoBonus}`);
+    }
     
     // Kare ziyaret istatistiklerini güncelle
     if (!game.spaceVisits) {
@@ -816,23 +840,42 @@ function handleRollDice(ws, message) {
     }
     
     // Tax kontrolü (Income Tax, Luxury Tax)
+    // NOT: tax kareleri "amount" alanı kullanır, "price" değil (price → NaN bug'ı)
     if (landedSpace.type === 'tax') {
-        const taxAmount = landedSpace.price;
+        const taxAmount = landedSpace.amount || 0;
         player.money -= taxAmount;
         game.gameLog.push(`💰 ${player.name} paid $${taxAmount} in ${landedSpace.name}`);
         console.log(`💰 ${player.name} paid tax: $${taxAmount}`);
     }
-    
+
+    // Go to Jail karesi
+    if (landedSpace.type === 'go_to_jail') {
+        const jailIndex = game.settings.board.findIndex(s => s.type === 'jail');
+        player.position = jailIndex >= 0 ? jailIndex : 10;
+        player.inJail = true;
+        player.jailTurns = 0;
+        game.gameLog.push(`🔒 ${player.name} was sent to jail!`);
+    }
+
     // Kira kontrolü - başka oyuncunun mülküne geldiyse
-    if (landedSpace.type === 'property') {
+    if (landedSpace.type === 'property' || landedSpace.type === 'railroad' || landedSpace.type === 'utility') {
         const prop = game.properties[player.position];
-        if (prop && prop.ownerId && prop.ownerId !== player.id) {
+        if (prop && prop.ownerId && prop.ownerId !== player.id && !prop.mortgaged) {
             const owner = game.players.find(p => p.id === prop.ownerId);
             if (owner && !owner.isBankrupt) {
-                // rent is an array: [base, 1 house, 2 houses, 3 houses, 4 houses, hotel]
-                const houses = prop.houses || 0;
-                const rent = landedSpace.rent ? landedSpace.rent[houses] : landedSpace.price * 0.1;
-                
+                let rent = 0;
+                if (landedSpace.type === 'property') {
+                    // rent is an array: [base, 1 house, 2 houses, 3 houses, 4 houses, hotel]
+                    const houses = prop.houses || 0;
+                    rent = landedSpace.rent ? landedSpace.rent[houses] : Math.floor((landedSpace.price || 0) * 0.1);
+                } else if (landedSpace.type === 'railroad') {
+                    const railCount = game.properties.filter((p, i) => p.ownerId === owner.id && game.settings.board[i].type === 'railroad').length;
+                    rent = 25 * Math.pow(2, Math.max(0, railCount - 1));
+                } else { // utility
+                    const utilCount = game.properties.filter((p, i) => p.ownerId === owner.id && game.settings.board[i].type === 'utility').length;
+                    rent = total * (utilCount >= 2 ? 10 : 4);
+                }
+
                 player.money -= rent;
                 owner.money += rent;
                 game.gameLog.push(`💵 ${player.name} paid $${rent} rent to ${owner.name} for ${landedSpace.name}`);
@@ -927,6 +970,11 @@ function handleEndTurn(ws, message) {
     }
     
     console.log(`⏭️ ${currentPlayer.name} ending turn...`);
+    // Herkes iflas ettiyse sonsuz döngüye girme
+    if (!game.players.some(p => !p.isBankrupt)) {
+        console.log('⚠️ handleEndTurn: All players bankrupt, cannot advance turn');
+        return;
+    }
     // Sıradaki oyuncuya geç
     let nextPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
     // Bankrupt olanları atla
@@ -971,7 +1019,7 @@ function handleVoiceJoin(ws, message) {
         type: 'voice_join',
         playerId: message.playerId,
         playerName: message.playerName
-    }, ws);
+    }, ws.clientId);
 }
 
 function handleVoiceLeave(ws, message) {
@@ -994,7 +1042,7 @@ function handleVoiceLeave(ws, message) {
     broadcastToGame(gameId, {
         type: 'voice_leave',
         playerId: message.playerId
-    }, ws);
+    }, ws.clientId);
 }
 
 function handleVoiceSignal(ws, message) {

@@ -270,6 +270,21 @@ wss.on('connection', (ws, req) => {
     
     ws.on('close', () => {
         console.log(`❌ Client disconnected: ${ws.clientId}`);
+        // Clean up voice chat
+        if (ws.gameId && ws.playerId) {
+            const game = games.get(ws.gameId);
+            if (game && game.voiceChat) {
+                const oldLength = game.voiceChat.length;
+                game.voiceChat = game.voiceChat.filter(id => id !== ws.playerId);
+                if (game.voiceChat.length < oldLength) {
+                    console.log(`🔇 Player ${ws.playerId} removed from voice chat of game ${ws.gameId} due to disconnect`);
+                    broadcastToGame(ws.gameId, {
+                        type: 'voice_leave',
+                        playerId: ws.playerId
+                    }, ws.clientId);
+                }
+            }
+        }
     });
 });
 

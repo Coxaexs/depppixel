@@ -61,6 +61,11 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.global = window;
+        window.process = window.process || { env: {} };
+        window.Buffer = window.Buffer || [];
+    </script>
     <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
@@ -3490,6 +3495,9 @@
                         }, 100);
                     } else if (gameData.state === 'playing') {
                         updateGameUI();
+                    } else if (gameData.state === 'finished') {
+                        // Bitmiş bir oyuna yeniden bağlanıldı — sonuç ekranını göster
+                        showGameOverScreen();
                     }
                     break;
 
@@ -3584,34 +3592,44 @@
                                 JSON.stringify(oldGameData.auction) !== JSON.stringify(gameData.auction);
 
                             // Start timer if auction just started
-                            if (auctionChanged && !auctionTimerInterval) {
+                            // ⚠️ Sadece HOST timer'ı çalıştırır — yoksa her client saniyede
+                            // bir azaltıp timer'ı N kat hızlı bitiriyordu
+                            if (auctionChanged && !auctionTimerInterval && localPlayer.id === gameData.hostId) {
                                 auctionTimerInterval = setInterval(updateAuctionTimer, 1000);
                             }
 
-                            // Bot auction bidding logic - Botlar kendi adlarına bid veriyor
-                            if (auctionChanged && gameData.players[gameData.currentPlayerIndex].isBot &&
-                                gameData.auction.playersInAuction.includes(gameData.players[gameData.currentPlayerIndex].id)) {
-                                // Bot should bid if current bid is less than property price
-                                const space = gameData.settings.board[gameData.auction.position];
-                                const currentBid = gameData.auction.currentBid;
-                                const botPlayer = gameData.players[gameData.currentPlayerIndex];
+                            // 🤖 Bot auction bidding — sadece HOST botları oynatır.
+                            // Eski kod sadece sırası gelen bot için çalışıyordu; açık artırma
+                            // genelde bir İNSANIN turunda başladığı için botlar hiç bid vermiyordu.
+                            if (auctionChanged && localPlayer.id === gameData.hostId) {
+                                gameData.players.forEach(bot => {
+                                    if (!bot.isBot || bot.isBankrupt) return;
+                                    if (!gameData.auction.playersInAuction.includes(bot.id)) return;
+                                    if (gameData.auction.lastBidder === bot.id) return;
 
-                                // Bot kendi ID'si ile bid vermeli
-                                const botId = botPlayer.id;
+                                    const delay = 800 + Math.random() * 1500;
+                                    setTimeout(() => {
+                                        // Timer ateşlendiğinde durum değişmiş olabilir — tekrar doğrula
+                                        if (!gameData.auction || !gameData.auction.active) return;
+                                        if (gameData.auction.lastBidder === bot.id) return;
+                                        if (!gameData.auction.playersInAuction.includes(bot.id)) return;
+                                        const freshBot = gameData.players.find(p => p.id === bot.id);
+                                        if (!freshBot || freshBot.isBankrupt) return;
 
-                                // Can bid if not the last bidder
-                                if (gameData.auction.lastBidder !== botId &&
-                                    currentBid < space.price &&
-                                    botPlayer.money > currentBid + 10) {
-                                    // Bot bids up to the original price
-                                    const bidAmount = Math.min(currentBid + Math.floor(Math.random() * 20) + 10, space.price, botPlayer.money - 1);
-                                    if (bidAmount > currentBid) {
-                                        setTimeout(() => {
-                                            // Bot kendi ID'si ile bid veriyor
-                                            placeBid(bidAmount, botId);
-                                        }, 1000 + Math.random() * 1000); // Random delay 1-2 seconds
-                                    }
-                                }
+                                        const maxBid = botAuctionCap(freshBot, gameData.auction.position);
+                                        const currentBid = gameData.auction.currentBid;
+                                        const increment = 10 + Math.floor(Math.random() * 3) * 10; // +10/20/30
+                                        const nextBid = currentBid + increment;
+
+                                        if (nextBid <= maxBid && Math.random() < 0.85) {
+                                            placeBid(nextBid, bot.id);
+                                        } else if (currentBid + 10 > maxBid) {
+                                            // Üst sınırı geçti — açık artırmadan çekil
+                                            passAuction(bot.id);
+                                        }
+                                        // (arada kalan durumda bu turda bekler, sonraki değişiklikte tekrar değerlendirir)
+                                    }, delay);
+                                });
                             }
 
                             if (auctionChanged && gameData.auction.playersInAuction.includes(localPlayer.id)) {
@@ -3640,6 +3658,24 @@
                                 showTradeOfferModal();
                             }
                         }
+                    }
+
+                    // 🏁 Oyun sonu tespiti (host): tek aktif oyuncu kaldıysa oyunu bitir
+                    if (gameData.state === 'playing' && localPlayer.id === gameData.hostId && gameData.players.length > 1) {
+                        const activePlayers = gameData.players.filter(p => !p.isBankrupt);
+                        if (activePlayers.length === 1 && !window.gameEndSent) {
+                            window.gameEndSent = true;
+                            updateGame({
+                                state: 'finished',
+                                winner: activePlayers[0],
+                                gameLog: [...gameData.gameLog, `🏆 ${activePlayers[0].name} wins the game!`]
+                            });
+                        }
+                    }
+
+                    // 🏁 Oyun bittiyse herkes için oyun sonu ekranını göster (bir kez)
+                    if (gameData.state === 'finished' && (!oldGameData || oldGameData.state !== 'finished')) {
+                        showGameOverScreen();
                     }
 
                     // 🤖 Bot AI - if current player is a bot, make it move automatically
@@ -3696,8 +3732,6 @@
                     if (message.playerId !== localPlayer.id && isInVoice) {
                         console.log(`🎤 ${message.playerName} joined voice chat`);
                         addChatMessage('SYSTEM', `🎤 ${message.playerName} joined voice chat`, false);
-                        // Create peer connection as initiator
-                        createPeerConnection(message.playerId, true);
                     }
                     break;
 
@@ -3973,6 +4007,12 @@
         let localPlayer = { id: '', name: '' };
         let currentGameId = null;
         let gameData = null;
+
+        // --- VOICE CHAT STATE ---
+        let isInVoice = false;
+        let isMicMuted = false;
+        let localStream = null;
+        let peers = {}; // Store peer connections by player ID
         // Her oyuncu için çok belirgin ve farklı renkler - 8 oyuncuya kadar benzersiz
         const playerColors = [
             '#EF4444',  // Parlak Kırmızı
@@ -4053,6 +4093,7 @@
                 { text: "Take a trip to Reading Railroad.", action: "move_to", space: 5 },
                 { text: "Advance to Boardwalk.", action: "move_to", space: 39 },
                 { text: "Make general repairs on all properties. $25 per house, $100 per hotel.", action: "repair", house: 25, hotel: 100 },
+                { text: "🃏 You found a mysterious Joker Card!", action: "joker" },
             ],
             community_chest: [
                 { text: "Advance to Go (Collect $200).", action: "move_to", space: 0, collect: true },
@@ -4069,6 +4110,7 @@
                 { text: "You have won second prize in a beauty contest. Collect $10.", action: "add_money", amount: 10 },
                 { text: "Receive $25 consultancy fee.", action: "add_money", amount: 25 },
                 { text: "Street repairs. $40 per house, $115 per hotel.", action: "repair", house: 40, hotel: 115 },
+                { text: "🃏 The community gifts you a Joker Card!", action: "joker" },
             ]
         };
 
@@ -6921,6 +6963,9 @@
                 logMessages.push(`🎲 ${currentPlayer.name} rolled ${die1} + ${die2} = ${total}`);
             }
 
+            // 📊 İstatistik: oynanan tur sayısı
+            playersCopy[gameData.currentPlayerIndex].turnsPlayed = (currentPlayer.turnsPlayed || 0) + 1;
+
             // 🎬 Karakter animasyonu - kare kare ilerleme
             await animatePlayerMovement(currentPlayer.id, oldPosition, newPosition, total);
 
@@ -7074,37 +7119,45 @@
                 yellow: gameData.players.filter(p => p.team === 'yellow')
             };
 
+            const teamAccents = {
+                red: '#EF4444',
+                blue: '#3B82F6',
+                green: '#10B981',
+                yellow: '#F59E0B'
+            };
+
             let body = `
-                <div class="text-left space-y-4">
-                    <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                        <h4 class="font-bold text-blue-800 mb-2">Your Current Status:</h4>
-                        <p>${myTeam ? `You are in <strong>${myTeam.toUpperCase()} TEAM</strong>` : 'You are playing SOLO (no team)'}</p>
+                <div class="text-left space-y-4" style="color: #E5E7EB;">
+                    <div class="p-4 rounded-lg" style="background: rgba(147, 51, 234, 0.12); border-left: 4px solid #9333ea;">
+                        <h4 class="font-bold mb-2" style="color: #C4B5FD;">Your Current Status:</h4>
+                        <p>${myTeam ? `You are in <strong style="color: ${teamAccents[myTeam] || '#E5E7EB'};">${myTeam.toUpperCase()} TEAM</strong>` : 'You are playing SOLO (no team)'}</p>
                     </div>
-                    
+
                     <div class="space-y-2">
-                        <h4 class="font-bold">Available Teams:</h4>
+                        <h4 class="font-bold" style="color: #ffffff;">Available Teams:</h4>
                         ${['red', 'blue', 'green', 'yellow'].map(team => {
                 const badge = { 'red': '🔴', 'blue': '🔵', 'green': '🟢', 'yellow': '🟡' }[team];
                 const players = teamPlayers[team];
                 const isMemberOfThisTeam = myTeam === team;
+                const accent = teamAccents[team];
 
                 return `
-                                <div class="border-2 border-gray-300 rounded-lg p-3 ${isMemberOfThisTeam ? 'bg-green-50 border-green-500' : ''}">
+                                <div class="rounded-lg p-3" style="background: ${isMemberOfThisTeam ? `${accent}1f` : 'rgba(31, 41, 55, 0.7)'}; border: 1px solid ${isMemberOfThisTeam ? accent : '#374151'}; border-left: 4px solid ${accent};">
                                     <div class="flex justify-between items-center mb-2">
-                                        <span class="font-bold">${badge} ${team.toUpperCase()} Team (${players.length} members)</span>
+                                        <span class="font-bold" style="color: #F3F4F6;">${badge} ${team.toUpperCase()} Team (${players.length} members)</span>
                                         ${!isMemberOfThisTeam ?
-                        `<button onclick="window.joinTeam('${team}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">Join</button>` :
-                        `<button onclick="window.leaveTeam()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Leave</button>`
+                        `<button onclick="window.joinTeam('${team}')" class="neon-btn-cyan px-3 py-1 text-sm">Join</button>` :
+                        `<button onclick="window.leaveTeam()" class="neon-btn-purple px-3 py-1 text-sm">Leave</button>`
                     }
                                     </div>
-                                    ${players.length > 0 ? `<div class="text-sm text-gray-600">Members: ${players.map(p => p.name).join(', ')}</div>` : ''}
+                                    ${players.length > 0 ? `<div class="text-sm" style="color: #9CA3AF;">Members: ${players.map(p => p.name).join(', ')}</div>` : ''}
                                 </div>
                             `;
             }).join('')}
                     </div>
-                    
-                    <div class="bg-yellow-50 p-3 rounded-lg text-sm">
-                        <strong>💡 Team Benefits:</strong>
+
+                    <div class="p-3 rounded-lg text-sm" style="background: rgba(0, 245, 212, 0.08); border: 1px solid rgba(0, 245, 212, 0.25); color: #9CA3AF;">
+                        <strong style="color: #00F5D4;">💡 Team Benefits:</strong>
                         <ul class="list-disc ml-5 mt-1">
                             <li>Shared money pool - all team members share funds</li>
                             <li>Shared properties - all properties owned by team</li>
@@ -7474,6 +7527,9 @@
 
             const playersCopy = JSON.parse(JSON.stringify(gameData.players));
 
+            // 🃏 Tur ilerliyor — joker kullanım haklarını sıfırla (tur başına 1 joker)
+            playersCopy.forEach(p => { p.usedJokerThisTurn = false; });
+
             // Check for extra turn from doubles (only if doubles rule is enabled)
             if (gameData.settings.allowDoubles && gameData.players[gameData.currentPlayerIndex].doublesCount > 0) {
                 nextPlayerIndex = gameData.currentPlayerIndex;
@@ -7674,6 +7730,9 @@
             let logMessages = [...jailLogMessages];
             logMessages.push(`🎲 ${currentPlayer.name} rolled ${die1} + ${die2} = ${total}`);
 
+            // 📊 İstatistik: oynanan tur sayısı
+            rollPlayersCopy[gameData.currentPlayerIndex].turnsPlayed = (currentPlayer.turnsPlayed || 0) + 1;
+
             if (isDouble) {
                 rollPlayersCopy[gameData.currentPlayerIndex].doublesCount = (currentPlayer.doublesCount || 0) + 1;
                 logMessages.push(`🎲 ${currentPlayer.name} rolled DOUBLES!`);
@@ -7721,6 +7780,9 @@
             let nextPlayerIndex = (gameData.currentPlayerIndex + 1) % gameData.players.length;
 
             const botPlayersCopy = JSON.parse(JSON.stringify(gameData.players));
+
+            // 🃏 Tur ilerliyor — joker kullanım haklarını sıfırla (tur başına 1 joker)
+            botPlayersCopy.forEach(p => { p.usedJokerThisTurn = false; });
 
             // Check for extra turn from doubles (only if doubles rule is enabled)
             if (gameData.settings.allowDoubles && gameData.players[gameData.currentPlayerIndex].doublesCount > 0) {
@@ -8500,6 +8562,42 @@
             );
         }
 
+        // 🤖 Bot için maksimum bid sınırı hesapla
+        // - Aynı renk grubundan kartı varsa daha istekli (set tamamlanınca ev dikebilir)
+        // - Asla tüm parasını yatırmaz: max %60'ı ve $100 rezerv bırakır
+        function botAuctionCap(bot, position) {
+            const space = gameData.settings.board[position];
+            if (!space || !space.price) return 0;
+
+            let cap = space.price * 0.9; // varsayılan: piyasa değerinin biraz altı
+
+            if (space.type === 'property' && space.color) {
+                const groupIndexes = gameData.settings.board
+                    .map((s, i) => ({ s, i }))
+                    .filter(x => x.s.type === 'property' && x.s.color === space.color && x.i !== position);
+                const ownedInGroup = groupIndexes.filter(x => gameData.properties[x.i] && gameData.properties[x.i].ownerId === bot.id).length;
+                const groupSize = groupIndexes.length; // bu kart hariç gruptaki kart sayısı
+
+                if (ownedInGroup > 0 && ownedInGroup >= groupSize) {
+                    // Bu kart seti TAMAMLIYOR → çok istekli
+                    cap = space.price * 1.5;
+                } else if (ownedInGroup > 0) {
+                    // Setten kartı var → normalden istekli
+                    cap = space.price * 1.15;
+                }
+            } else if (space.type === 'railroad') {
+                const ownedRails = gameData.properties.filter((p, i) => p.ownerId === bot.id && gameData.settings.board[i].type === 'railroad').length;
+                cap = space.price * (0.9 + ownedRails * 0.15);
+            } else if (space.type === 'utility') {
+                const ownedUtils = gameData.properties.filter((p, i) => p.ownerId === bot.id && gameData.settings.board[i].type === 'utility').length;
+                cap = space.price * (0.8 + ownedUtils * 0.3);
+            }
+
+            // Para güvenliği: max paranın %60'ı ve $100 rezerv
+            cap = Math.min(cap, bot.money * 0.6, bot.money - 100);
+            return Math.floor(Math.max(0, cap));
+        }
+
         function placeBid(amount, playerId = null) {
             // Eğer playerId verilmediyse localPlayer.id kullan (oyuncu bid veriyor)
             // Eğer playerId verildiyse o ID'yi kullan (bot bid veriyor)
@@ -8548,19 +8646,22 @@
             });
         }
 
-        function passAuction() {
-            if (!gameData.auction.playersInAuction.includes(localPlayer.id)) {
-                alert('You already passed!');
+        function passAuction(playerId = null) {
+            // playerId verilirse bot adına pas geçiliyor; verilmezse local oyuncu
+            const passerId = playerId || localPlayer.id;
+
+            if (!gameData.auction.playersInAuction.includes(passerId)) {
+                if (!playerId) alert('You already passed!');
                 return;
             }
 
-            hideModal();
+            if (!playerId) hideModal();
 
-            const currentPlayer = gameData.players.find(p => p.id === localPlayer.id);
+            const currentPlayer = gameData.players.find(p => p.id === passerId);
             const auctionCopy = JSON.parse(JSON.stringify(gameData.auction));
 
             // Remove current player from auction
-            auctionCopy.playersInAuction = auctionCopy.playersInAuction.filter(id => id !== localPlayer.id);
+            auctionCopy.playersInAuction = auctionCopy.playersInAuction.filter(id => id !== passerId);
 
             // Check if this player was the only one left
             if (auctionCopy.playersInAuction.length === 0) {
@@ -8733,6 +8834,7 @@
 
                 // Kiradan payını çıkar
                 playersCopy[currentPlayerIndex].money -= rentToPay;
+                playersCopy[currentPlayerIndex].rentPaid = (playersCopy[currentPlayerIndex].rentPaid || 0) + rentToPay;
 
                 // Kira hisse sahiplerine dağıtılır (kendisi hariç)
                 for (const [ownerId, sharePercentage] of Object.entries(owners)) {
@@ -8742,6 +8844,7 @@
                     const ownerIndex = playersCopy.findIndex(p => p.id === ownerId);
                     if (ownerIndex !== -1) {
                         playersCopy[ownerIndex].money += ownerShare;
+                        playersCopy[ownerIndex].rentCollected = (playersCopy[ownerIndex].rentCollected || 0) + ownerShare;
                         const ownerName = playersCopy[ownerIndex].name;
                         addLog(`🤖 ${currentPlayer.name} paid $${ownerShare} (${sharePercentage}% of $${baseRent}) to ${ownerName}.`);
                     }
@@ -8768,6 +8871,7 @@
 
                         // Kiradan payını çıkar
                         playersCopy[currentPlayerIndex].money -= rentToPay;
+                        playersCopy[currentPlayerIndex].rentPaid = (playersCopy[currentPlayerIndex].rentPaid || 0) + rentToPay;
 
                         // Kira hisse sahiplerine dağıtılır (kendisi hariç)
                         for (const [ownerId, sharePercentage] of Object.entries(owners)) {
@@ -8777,6 +8881,7 @@
                             const ownerIndex = playersCopy.findIndex(p => p.id === ownerId);
                             if (ownerIndex !== -1) {
                                 playersCopy[ownerIndex].money += ownerShare;
+                                playersCopy[ownerIndex].rentCollected = (playersCopy[ownerIndex].rentCollected || 0) + ownerShare;
                                 const ownerName = playersCopy[ownerIndex].name;
                                 addLog(`${currentPlayer.name} paid $${ownerShare} (${sharePercentage}% of $${baseRent}) to ${ownerName}.`);
                             }
@@ -8893,6 +8998,22 @@
                 case 'get_out_of_jail':
                     playersCopy[currentPlayerIndex].getOutOfJailCards++;
                     await updateGame({ players: playersCopy });
+                    autoClose = true;
+                    break;
+                case 'joker':
+                    // 🃏 Şanstan rastgele bir joker kartı kazan
+                    const jokerTypes = ['steal', 'skip', 'reroll'];
+                    const jokerNames = { steal: '💎 Steal Property', skip: "⏭️ Skip Player's Turn", reroll: '🎲 Reroll Dice' };
+                    const wonJoker = jokerTypes[Math.floor(Math.random() * jokerTypes.length)];
+                    if (!playersCopy[currentPlayerIndex].jokerCards) {
+                        playersCopy[currentPlayerIndex].jokerCards = { steal: 0, skip: 0, reroll: 0 };
+                    }
+                    playersCopy[currentPlayerIndex].jokerCards[wonJoker] = (playersCopy[currentPlayerIndex].jokerCards[wonJoker] || 0) + 1;
+                    actionText += `<br><br><strong style="color:#A78BFA;">You won: ${jokerNames[wonJoker]}!</strong>`;
+                    await updateGame({
+                        players: playersCopy,
+                        gameLog: [...gameData.gameLog, `🃏 ${playersCopy[currentPlayerIndex].name} won a ${jokerNames[wonJoker]} joker card!`]
+                    });
                     autoClose = true;
                     break;
                 case 'repair':
@@ -9470,6 +9591,24 @@
         }
 
         // --- JOKER CARD FUNCTIONS ---
+        // 🃏 Ortak kural kontrolü: joker sadece kendi turunda ve tur başına 1 kez
+        function canUseJoker(myPlayer) {
+            const currentTurnPlayer = gameData.players[gameData.currentPlayerIndex];
+            if (!currentTurnPlayer || currentTurnPlayer.id !== localPlayer.id) {
+                showModal('🃏 Not Your Turn', '<p style="color:#9CA3AF;">You can only use joker cards on your own turn.</p>', [
+                    { text: 'OK', class: 'bg-gray-500', action: hideModal }
+                ]);
+                return false;
+            }
+            if (myPlayer.usedJokerThisTurn) {
+                showModal('🃏 Joker Limit', '<p style="color:#9CA3AF;">You can use only 1 joker card per turn. You already used one!</p>', [
+                    { text: 'OK', class: 'bg-gray-500', action: hideModal }
+                ]);
+                return false;
+            }
+            return true;
+        }
+
         // 💎 Kart Çalma Joker'i
         window.useJokerSteal = () => {
             const myPlayer = gameData.players.find(p => p.id === localPlayer.id);
@@ -9477,34 +9616,41 @@
                 alert('You don\'t have any steal cards left!');
                 return;
             }
+            if (!canUseJoker(myPlayer)) return;
             // Instead of closing the modal, re-render the joker modal after use
             // Diğer oyuncuların sahip olduğu kartları göster
             const otherPlayers = gameData.players.filter(p => p.id !== localPlayer.id && !p.bankrupt);
             let modalHTML = `
-                <div class="text-left space-y-3 max-h-96 overflow-y-auto">
-                    <p class="text-sm text-gray-600 mb-3">Select a player and then select a property to steal. You'll pay 3x its price to that player.</p>
+                <div class="text-left space-y-3 max-h-96 overflow-y-auto" style="color: #E5E7EB;">
+                    <p class="text-sm mb-3" style="color: #9CA3AF;">Select a player and then select a property to steal. You'll pay 3x its price to that player.</p>
             `;
+            let anyProperties = false;
             otherPlayers.forEach(player => {
                 const playerProperties = gameData.properties.filter(p => p.ownerId === player.id && !p.mortgaged);
                 if (playerProperties.length > 0) {
-                    modalHTML += `<div class="border rounded-lg p-3 bg-gray-50">
-                        <h4 class="font-bold mb-2">${player.name}'s Properties:</h4>`;
+                    anyProperties = true;
+                    modalHTML += `<div class="rounded-lg p-3" style="background: rgba(31, 41, 55, 0.7); border: 1px solid #374151;">
+                        <h4 class="font-bold mb-2" style="color: #F3F4F6;">${player.name}'s Properties:</h4>`;
                     playerProperties.forEach(prop => {
                         const space = gameData.settings.board[prop.spaceIndex];
                         const stealCost = space.price * 3;
                         const canAfford = myPlayer.money >= stealCost;
                         modalHTML += `
-                            <button onclick=\"window.executeJokerSteal('${player.id}', ${prop.spaceIndex}, ${stealCost})\" 
+                            <button onclick=\"window.executeJokerSteal('${player.id}', ${prop.spaceIndex}, ${stealCost})\"
                                 ${canAfford ? '' : 'disabled'}
-                                class=\"w-full text-left px-3 py-2 mb-2 rounded ${canAfford ? 'bg-purple-100 hover:bg-purple-200' : 'bg-gray-200'} border border-purple-300\">
-                                <div class=\"font-semibold\">${space.name}</div>
-                                <div class=\"text-xs text-gray-600\">Cost: $${stealCost} ${!canAfford ? '(Can\'t afford)' : ''}</div>
+                                class=\"w-full text-left px-3 py-2 mb-2 rounded\"
+                                style=\"background: ${canAfford ? 'rgba(147, 51, 234, 0.15)' : '#1F2937'}; border: 1px solid ${canAfford ? '#9333ea' : '#374151'}; border-left: 4px solid ${space.color || '#9333ea'}; ${canAfford ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.5;'}\">
+                                <div class=\"font-semibold\" style=\"color: #F3F4F6;\">${space.name}</div>
+                                <div class=\"text-xs\" style=\"color: #9CA3AF;\">Cost: $${stealCost} ${!canAfford ? '(Can\'t afford)' : ''}</div>
                             </button>
                         `;
                     });
                     modalHTML += `</div>`;
                 }
             });
+            if (!anyProperties) {
+                modalHTML += `<p class="text-sm" style="color: #9CA3AF;">Nobody owns a stealable property yet.</p>`;
+            }
             modalHTML += `</div>`;
             showModal('💎 Steal Property', modalHTML, [
                 { text: 'Back to Jokers', class: 'bg-gray-500', action: showJokerModal },
@@ -9529,6 +9675,7 @@
 
             // Kart çalma joker'ini azalt
             playersCopy[myIndex].jokerCards.steal -= 1;
+            playersCopy[myIndex].usedJokerThisTurn = true;
 
             // Mülkiyet transferi - HEM ownerId HEM de owners'ı güncelle
             propertiesCopy[spaceIndex].ownerId = localPlayer.id;
@@ -9561,19 +9708,21 @@
                 alert('You don\'t have any skip cards left!');
                 return;
             }
+            if (!canUseJoker(myPlayer)) return;
 
             // Diğer oyuncuları göster
             const otherPlayers = gameData.players.filter(p => p.id !== localPlayer.id && !p.bankrupt);
             let modalHTML = `
-                <div class="text-left space-y-2">
-                    <p class="text-sm text-gray-600 mb-3">Select a player to skip their next turn:</p>
+                <div class="text-left space-y-2" style="color: #E5E7EB;">
+                    <p class="text-sm mb-3" style="color: #9CA3AF;">Select a player to skip their next turn:</p>
             `;
             otherPlayers.forEach(player => {
                 modalHTML += `
-                    <button onclick=\"window.executeJokerSkip('${player.id}')\" 
-                        class=\"w-full text-left px-4 py-3 rounded bg-red-100 hover:bg-red-200 border border-red-300\">
-                        <div class=\"font-semibold\">${player.name}</div>
-                        <div class=\"text-xs text-gray-600\">They will miss their next turn</div>
+                    <button onclick=\"window.executeJokerSkip('${player.id}')\"
+                        class=\"w-full text-left px-4 py-3 rounded\"
+                        style=\"background: rgba(248, 113, 113, 0.12); border: 1px solid rgba(248, 113, 113, 0.4); border-left: 4px solid ${player.color || '#F87171'}; cursor: pointer;\">
+                        <div class=\"font-semibold\" style=\"color: #F3F4F6;\">${player.name}</div>
+                        <div class=\"text-xs\" style=\"color: #9CA3AF;\">They will miss their next turn</div>
                     </button>
                 `;
             });
@@ -9594,6 +9743,7 @@
 
             // Skip joker'ini azalt
             playersCopy[myIndex].jokerCards.skip -= 1;
+            playersCopy[myIndex].usedJokerThisTurn = true;
 
             // Hedef oyuncuya "skip" flag'i ekle
             playersCopy[targetIndex].skipNextTurn = true;
@@ -9616,9 +9766,12 @@
                 alert('You don\'t have any reroll cards left!');
                 return;
             }
+            if (!canUseJoker(myPlayer)) return;
 
             // Zar henüz atılmadıysa uyar
-            if (gameData.turnState !== 'action' && gameData.turnState !== 'action_complete') {
+            // NOT: zar atıldıktan sonra turnState 'rolled' olur ('action' değil) —
+            // eski kontrol yüzünden bu kart hiç kullanılamıyordu
+            if (gameData.turnState !== 'rolled' && gameData.turnState !== 'action' && gameData.turnState !== 'action_complete') {
                 alert('You can only use this card after rolling the dice!');
                 return;
             }
@@ -9628,6 +9781,7 @@
 
             // Reroll joker'ini azalt
             playersCopy[myIndex].jokerCards.reroll -= 1;
+            playersCopy[myIndex].usedJokerThisTurn = true;
 
             // Yeni zar değerleri - Gelişmiş zar sistemi kullan
             const diceResult = rollDiceImproved(playersCopy[myIndex].position);
@@ -9645,15 +9799,17 @@
             }
             gameData.spaceVisits[newPos] = (gameData.spaceVisits[newPos] || 0) + 1;
 
+            let rerollLogs = [`🃏 ${myPlayer.name} used a Reroll Card! New roll: ${dice1} + ${dice2} = ${total}`];
+
             // Check if passed GO
-            if (newPos < oldPos) {
-                playersCopy[myIndex].money += gameData.settings.passGoBonus;
-                await updateGame({
-                    players: playersCopy,
-                    spaceVisits: gameData.spaceVisits,
-                    gameLog: [...gameData.gameLog, `💰 ${myPlayer.name} passed GO! +$${gameData.settings.passGoBonus}`]
-                });
+            // NOT: ayarlar passGoAmount olarak tutuluyor (passGoBonus undefined → NaN bug'ı)
+            if (newPos < oldPos || newPos === 0) {
+                const goAmount = gameData.settings.passGoAmount || gameData.settings.passGoBonus || 200;
+                playersCopy[myIndex].money += goAmount;
+                rerollLogs.push(`💰 ${myPlayer.name} passed GO! +$${goAmount}`);
             }
+
+            hideModal();
 
             // 🎬 Joker reroll için karakter animasyonu
             await animatePlayerMovement(myPlayer.id, oldPos, newPos, total);
@@ -9663,15 +9819,14 @@
 
             await updateGame({
                 players: playersCopy,
-                dice: { dice1, dice2 },
                 lastDiceRoll: [dice1, dice2],
+                rollId: `${localPlayer.id}-reroll-${Date.now()}`,
                 spaceVisits: gameData.spaceVisits,
-                turnState: 'action',
-                gameLog: [...gameData.gameLog, `🎲 ${myPlayer.name} used a Reroll Card! New roll: ${dice1} + ${dice2} = ${total}`]
+                turnState: 'rolled',
+                gameLog: [...gameData.gameLog, ...rerollLogs]
             });
 
             playSound('dice');
-            hideModal();
 
             // Handle landing on new position
             setTimeout(() => {
@@ -9689,45 +9844,41 @@
                 return;
             }
             const jokers = myPlayer.jokerCards;
+            const isMyTurnNow = gameData.players[gameData.currentPlayerIndex] && gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
+            const jokerAlreadyUsed = !!myPlayer.usedJokerThisTurn;
+            const jokerCard = (accent, title, count, desc, onclick, enabled, btnLabel) => `
+                    <div class="rounded-lg p-4" style="background: rgba(31, 41, 55, 0.7); border: 1px solid ${accent}55; border-left: 4px solid ${accent};">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-lg" style="color: #F3F4F6;">${title}</span>
+                            <span class="text-xs px-2 py-1 rounded font-bold" style="background: ${accent}25; color: ${accent}; border: 1px solid ${accent}55;">${count} left</span>
+                        </div>
+                        <p class="text-sm mb-2" style="color: #9CA3AF;">${desc}</p>
+                        <button onclick="${onclick}" ${enabled ? '' : 'disabled'}
+                            class="w-full px-4 py-2 rounded font-bold ${enabled ? 'neon-btn-purple' : ''}"
+                            style="${enabled ? '' : 'background: #374151; color: #6B7280; cursor: not-allowed;'}">
+                            ${btnLabel}
+                        </button>
+                    </div>`;
             let modalHTML = `
-                <div class="text-left space-y-4">
-                    <p class="text-sm text-gray-600 mb-4">Use your joker cards strategically to gain an advantage!</p>
-                    <!-- Kart Çalma Joker'i -->
-                    <div class="border border-purple-300 rounded-lg p-4 bg-purple-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">💎 Steal Property</span>
-                            <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded">${jokers.steal || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Pay 3x the property's price to steal it from another player. The money goes to them.</p>
-                        <button onclick=\"window.useJokerSteal()\" ${jokers.steal > 0 ? '' : 'disabled'} 
-                            class=\"w-full px-4 py-2 rounded ${jokers.steal > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'} text-white font-bold\">
-                            ${jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left'}
-                        </button>
-                    </div>
-                    <!-- Tur Atlama Joker'i -->
-                    <div class="border border-red-300 rounded-lg p-4 bg-red-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">⏭️ Skip Player's Turn</span>
-                            <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">${jokers.skip || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Make another player skip their next turn.</p>
-                        <button onclick=\"window.useJokerSkip()\" ${jokers.skip > 0 ? '' : 'disabled'} 
-                            class=\"w-full px-4 py-2 rounded ${jokers.skip > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white font-bold\">
-                            ${jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left'}
-                        </button>
-                    </div>
-                    <!-- Zar Tekrar Atma Joker'i -->
-                    <div class="border border-blue-300 rounded-lg p-4 bg-blue-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">🎲 Reroll Dice</span>
-                            <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${jokers.reroll || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Reroll your dice if you don't like the result. Use immediately after rolling.</p>
-                        <button onclick=\"window.useJokerReroll()\" ${jokers.reroll > 0 ? '' : 'disabled'} 
-                            class=\"w-full px-4 py-2 rounded ${jokers.reroll > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'} text-white font-bold\">
-                            ${jokers.reroll > 0 ? 'Use Reroll Card' : 'No Cards Left'}
-                        </button>
-                    </div>
+                <div class="text-left space-y-4" style="color: #E5E7EB;">
+                    <p class="text-sm mb-2" style="color: #9CA3AF;">Use your joker cards strategically to gain an advantage!</p>
+                    <p class="text-xs mb-2 p-2 rounded" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #FCD34D;">
+                        ⚠️ You can use only <strong>1 joker per turn</strong>, and only on <strong>your own turn</strong>.
+                        ${jokerAlreadyUsed ? '<br>❌ You already used a joker this turn!' : ''}
+                        ${!isMyTurnNow ? '<br>⏳ It is not your turn right now.' : ''}
+                    </p>
+                    ${jokerCard('#A78BFA', '💎 Steal Property', jokers.steal || 0,
+                        "Pay 3x the property's price to steal it from another player. The money goes to them.",
+                        'window.useJokerSteal()', jokers.steal > 0 && isMyTurnNow && !jokerAlreadyUsed,
+                        jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left')}
+                    ${jokerCard('#F87171', "⏭️ Skip Player's Turn", jokers.skip || 0,
+                        'Make another player skip their next turn.',
+                        'window.useJokerSkip()', jokers.skip > 0 && isMyTurnNow && !jokerAlreadyUsed,
+                        jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left')}
+                    ${jokerCard('#22D3EE', '🎲 Reroll Dice', jokers.reroll || 0,
+                        "Reroll your dice if you don't like the result. Use immediately after rolling.",
+                        'window.useJokerReroll()', jokers.reroll > 0 && isMyTurnNow && !jokerAlreadyUsed,
+                        jokers.reroll > 0 ? 'Use Reroll Card' : 'No Cards Left')}
                 </div>
             `;
             showModal('🃏 Your Joker Cards', modalHTML, [
@@ -9900,6 +10051,136 @@
             });
 
             return player.money + totalPropertyValue;
+        }
+
+        // 🏁 --- OYUN SONU EKRANI ---
+        function showGameOverScreen() {
+            // Zaten gösteriliyorsa tekrar oluşturma
+            if (document.getElementById('game-over-screen')) return;
+
+            // Aktif modalları / panelleri kapat
+            hideModal();
+            if (typeof hidePropertyBuyPanel === 'function') hidePropertyBuyPanel();
+
+            // Sıralama için toplam servet hesapla (ownerId VEYA owners payı üzerinden)
+            const playerWealth = (player) => {
+                let wealth = player.money || 0;
+                gameData.properties.forEach((prop, idx) => {
+                    const space = gameData.settings.board[idx];
+                    if (!space || !space.price) return;
+                    let share = 0;
+                    if (prop.owners && prop.owners[player.id] > 0) {
+                        share = prop.owners[player.id] / 100;
+                    } else if (prop.ownerId === player.id) {
+                        share = 1;
+                    }
+                    if (share > 0) {
+                        wealth += space.price * share;
+                        wealth += (prop.houses || 0) * (space.houseCost || 50) * share;
+                    }
+                });
+                return Math.floor(wealth);
+            };
+
+            const propertyCount = (player) => gameData.properties.filter(p =>
+                p.ownerId === player.id || (p.owners && p.owners[player.id] > 0)).length;
+
+            const ranked = [...gameData.players]
+                .map(p => ({
+                    ...p,
+                    wealth: playerWealth(p),
+                    propCount: propertyCount(p)
+                }))
+                .sort((a, b) => {
+                    // İflas etmeyenler önce, sonra servete göre
+                    if (!!a.isBankrupt !== !!b.isBankrupt) return a.isBankrupt ? 1 : -1;
+                    return b.wealth - a.wealth;
+                });
+
+            const winner = gameData.winner || ranked[0];
+            const medals = ['🥇', '🥈', '🥉'];
+
+            const rowsHTML = ranked.map((p, i) => `
+                <tr style="background: ${i === 0 ? 'rgba(245, 158, 11, 0.1)' : (i % 2 ? 'rgba(31, 41, 55, 0.5)' : 'transparent')}; ${p.isBankrupt ? 'opacity: 0.5;' : ''}">
+                    <td style="padding: 8px 10px; text-align: center;">${medals[i] || (i + 1)}</td>
+                    <td style="padding: 8px 10px;">
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${p.color}; margin-right: 6px;"></span>
+                        <span style="color: #F3F4F6; font-weight: 600;">${p.name}</span>
+                        ${p.isBot ? ' 🤖' : ''}
+                        ${p.isBankrupt ? ' <span style="color:#F87171; font-size: 11px;">(BANKRUPT)</span>' : ''}
+                    </td>
+                    <td style="padding: 8px 10px; text-align: right; color: #4ADE80; font-weight: 700;">$${p.wealth}</td>
+                    <td style="padding: 8px 10px; text-align: right; color: #E5E7EB;">$${p.money || 0}</td>
+                    <td style="padding: 8px 10px; text-align: center; color: #E5E7EB;">${p.propCount}</td>
+                    <td style="padding: 8px 10px; text-align: center; color: #E5E7EB;">${p.turnsPlayed || 0}</td>
+                    <td style="padding: 8px 10px; text-align: right; color: #34D399;">$${p.rentCollected || 0}</td>
+                    <td style="padding: 8px 10px; text-align: right; color: #F87171;">$${p.rentPaid || 0}</td>
+                </tr>
+            `).join('');
+
+            const overlay = document.createElement('div');
+            overlay.id = 'game-over-screen';
+            overlay.style.cssText = `
+                position: fixed; inset: 0; z-index: 100000;
+                background: rgba(13, 12, 20, 0.96);
+                backdrop-filter: blur(10px);
+                display: flex; align-items: center; justify-content: center;
+                padding: 20px; overflow-y: auto;
+            `;
+            overlay.innerHTML = `
+                <div style="max-width: 720px; width: 100%; background: linear-gradient(160deg, #161523 0%, #0D0C14 100%); border: 1px solid #2A283E; border-top: 3px solid #9333ea; border-radius: 16px; padding: 32px; box-shadow: 0 0 60px rgba(147, 51, 234, 0.35); text-align: center; max-height: 92vh; overflow-y: auto;">
+                    <div style="font-size: 64px; line-height: 1;">🏆</div>
+                    <h1 style="font-size: 32px; font-weight: 800; letter-spacing: 2px; color: #ffffff; margin: 12px 0 4px; text-shadow: 0 0 16px rgba(167, 139, 250, 0.8);">GAME OVER</h1>
+                    <p style="font-size: 20px; color: #9CA3AF; margin-bottom: 6px;">Winner:</p>
+                    <p style="font-size: 28px; font-weight: 800; color: ${winner?.color || '#F59E0B'}; text-shadow: 0 0 12px ${winner?.color || '#F59E0B'}66; margin-bottom: 24px;">
+                        ${winner?.name || '???'} ${winner?.isBot ? '🤖' : ''}
+                    </p>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #9333ea; color: #C4B5FD; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                                    <th style="padding: 8px 10px; text-align: center;">#</th>
+                                    <th style="padding: 8px 10px;">Player</th>
+                                    <th style="padding: 8px 10px; text-align: right;">Net Worth</th>
+                                    <th style="padding: 8px 10px; text-align: right;">Cash</th>
+                                    <th style="padding: 8px 10px; text-align: center;">Props</th>
+                                    <th style="padding: 8px 10px; text-align: center;">Turns</th>
+                                    <th style="padding: 8px 10px; text-align: right;">Rent +</th>
+                                    <th style="padding: 8px 10px; text-align: right;">Rent −</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHTML}</tbody>
+                        </table>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 28px;">
+                        <button id="game-over-lobby-btn" class="neon-btn-purple" style="padding: 12px 32px; font-size: 16px; font-weight: 700;">
+                            🏠 Back to Lobby
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('game-over-lobby-btn').addEventListener('click', () => {
+                // Oturumu temizle ve ana menüye dön
+                localStorage.removeItem('monopolyCurrentGameId');
+                localStorage.removeItem('monopolyPlayerId');
+                localStorage.removeItem('monopolyPlayerMoney');
+                localStorage.removeItem('monopolyPlayerPosition');
+                window.location.href = window.location.origin + window.location.pathname;
+            });
+
+            // 🎉 Kazanan sensen konfeti + ses
+            if (winner && winner.id === localPlayer.id) {
+                playSound('win');
+                if (typeof createConfetti === 'function') {
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => createConfetti(window.innerWidth / 2, window.innerHeight / 3), i * 400);
+                    }
+                }
+            }
         }
 
         // � KREDİ SİSTEMİ FONKSİYONLARI
@@ -11282,10 +11563,7 @@
             const joinVoiceBtn = document.getElementById('join-voice-btn');
             const leaveVoiceBtn = document.getElementById('leave-voice-btn');
             const toggleMicBtn = document.getElementById('toggle-mic-btn');
-            let isInVoice = false;
-            let isMicMuted = false;
-            let localStream = null;
-            let peers = {}; // Store peer connections by player ID
+            // Voice Chat state variables are declared globally in the outer scope
 
             // WebRTC Voice Chat Implementation
             async function startVoiceChat() {

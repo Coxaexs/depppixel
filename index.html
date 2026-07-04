@@ -231,7 +231,7 @@
         }
 
         .space {
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             position: relative;
             background: #0b0d16;
             display: flex;
@@ -245,7 +245,7 @@
             transition: all 0.2s ease;
             border-radius: 4px;
             color: #E5E7EB;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
         }
 
         .property-tile {
@@ -289,19 +289,19 @@
             text-align: center;
         }
 
-        .property-tile.edge-bottom .space-inner {
+        .edge-bottom .space-inner {
             transform: rotate(0deg);
         }
 
-        .property-tile.edge-top .space-inner {
+        .edge-top .space-inner {
             transform: rotate(0deg);
         }
 
-        .property-tile.edge-left .space-inner {
+        .edge-left .space-inner {
             transform: rotate(90deg);
         }
 
-        .property-tile.edge-right .space-inner {
+        .edge-right .space-inner {
             transform: rotate(-90deg);
         }
 
@@ -597,8 +597,9 @@
         .color-bar {
             width: 100%;
             height: 22%;
-            border-bottom: 2px solid rgba(0,0,0,0.3);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
         }
+
         /* 📜 Game log satırları */
         #game-log>div {
             padding: 3px 6px;
@@ -626,19 +627,27 @@
 
         .dice-animation-overlay {
             position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            /* Centered over board area only — no full-screen blackout */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            min-width: 280px;
+            height: auto;
+            background-color: rgba(13, 10, 28, 0.88);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             display: none;
             /* Hidden by default, shown by JS */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            border-radius: 20px;
+            border: 1px solid rgba(167, 139, 250, 0.25);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(147,51,234,0.2);
+            padding: 12px 20px;
+            pointer-events: none;
         }
 
         .dice-animation-overlay .dice-3d-scene {
@@ -837,13 +846,23 @@
             overflow: hidden;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
         .dice-2d-card.pop-bounce {
             animation: popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+
         @keyframes popBounce {
-            0% { transform: scale(0.85); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0.85);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .dice-animation-container {
@@ -1053,6 +1072,353 @@
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+        }
+
+        /* ─── Side-tile ownership dot fix ─── */
+        /* On left/right board columns the tile geometry is transposed,
+           so reposition the dot to the actual inner-corner of the tile */
+        .edge-left .owner-indicator {
+            top: 3px;
+            left: 3px;
+            bottom: auto;
+            right: auto;
+        }
+        .edge-right .owner-indicator {
+            bottom: 3px;
+            left: 3px;
+            right: auto;
+        }
+
+        /* Ensure space-inner background-color fills the full tile on side columns */
+        .edge-left .space-inner,
+        .edge-right .space-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit !important;
+        }
+
+        /* Fix property-flag-bg-wrap overflow on side tiles */
+        .edge-left .property-flag-bg-wrap,
+        .edge-right .property-flag-bg-wrap {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+        }
+        /* On side tiles the tile is taller-than-wide (portrait), so cover it properly.
+           The color-bar runs along the short (horizontal) axis of the tile, not vertical. */
+        .edge-left .property-flag-bg,
+        .edge-right .property-flag-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Counter-rotate the blurred flag so it fills the portrait tile correctly */
+            transform: rotate(90deg) scale(1.6);
+        }
+        /* Ownership indicator: left column inner-corner */
+        .edge-left .owner-indicator {
+            top: auto;
+            bottom: 3px;
+            right: 3px;
+            left: auto;
+        }
+        /* Color-bar on side tiles should run along the inner vertical edge */
+        .edge-left .color-bar {
+            width: 22% !important;
+            height: 100% !important;
+            border-bottom: none !important;
+            border-right: 2px solid rgba(0,0,0,0.3);
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .edge-right .color-bar {
+            width: 22% !important;
+            height: 100% !important;
+            border-bottom: none !important;
+            border-left: 2px solid rgba(0,0,0,0.3);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* ─── Premium Auction Overlay ─── */
+        #auction-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9990;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 5, 18, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: opacity 0.3s ease;
+        }
+        #auction-overlay.hidden {
+            display: none;
+        }
+        #auction-card {
+            display: flex;
+            width: min(920px, 96vw);
+            height: min(540px, 94vh);
+            background: linear-gradient(145deg, #12111f 0%, #1a1830 60%, #16122a 100%);
+            border-radius: 22px;
+            border: 1px solid rgba(139, 92, 246, 0.28);
+            box-shadow:
+                0 40px 120px rgba(0, 0, 0, 0.9),
+                0 0 0 1px rgba(255,255,255,0.04) inset,
+                0 0 80px rgba(139, 92, 246, 0.08);
+            overflow: hidden;
+            animation: auctionCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes auctionCardIn {
+            from { opacity: 0; transform: scale(0.88) translateY(24px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        #auction-left-panel {
+            flex: 1.15;
+            padding: 2rem 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            min-width: 0;
+        }
+        #auction-right-panel {
+            flex: 0.85;
+            padding: 1.75rem 1.75rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.018);
+            min-width: 0;
+        }
+        #auction-prop-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        #auction-prop-icon {
+            font-size: 2rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 10px rgba(167,139,250,0.4));
+        }
+        #auction-prop-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #e2d9ff;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+        #auction-prop-subtitle {
+            font-size: 0.72rem;
+            color: rgba(167,139,250,0.7);
+            font-weight: 500;
+            margin-top: 1px;
+        }
+        #auction-bid-area {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+        #auction-bid-display {
+            font-size: 3.2rem;
+            font-weight: 900;
+            color: #a78bfa;
+            text-shadow: 0 0 30px rgba(167, 139, 250, 0.5), 0 0 60px rgba(139, 92, 246, 0.2);
+            line-height: 1;
+            letter-spacing: -0.03em;
+            transition: all 0.2s ease;
+        }
+        #auction-bidder-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 6px 12px 6px 8px;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 20px;
+            margin-bottom: 6px;
+        }
+        #auction-bidder-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.6);
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+        }
+        #auction-bidder-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #d4bbff;
+        }
+        #auction-countdown-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        #auction-countdown-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.4);
+        }
+        #auction-countdown-text {
+            font-weight: 700;
+            color: #a78bfa;
+            font-size: 0.82rem;
+        }
+        #auction-countdown-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        #auction-countdown-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            border-radius: 3px;
+            /* Sync transition exactly to the 1s tick interval to prevent visual lag */
+            transition: width 1s linear, background 0.3s ease;
+        }
+        #auction-countdown-bar.urgent {
+            background: linear-gradient(90deg, #dc2626, #f87171);
+        }
+        #auction-players-remaining {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+        }
+        #auction-bid-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .auction-quick-bid {
+            flex: 1;
+            min-width: 0;
+            padding: 0.7rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            border: 1px solid rgba(255,255,255,0.06);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            line-height: 1.2;
+        }
+        .auction-quick-bid:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.15); }
+        .auction-quick-bid:active:not(:disabled) { transform: translateY(0); }
+        .auction-quick-bid:disabled { opacity: 0.3; cursor: not-allowed; }
+        .auction-quick-bid .bid-increment { font-size: 0.95rem; }
+        .auction-quick-bid .bid-total { font-size: 0.65rem; opacity: 0.75; font-weight: 600; }
+        #auction-bid-2  { background: rgba(52, 211, 153, 0.12); color: #6ee7b7; border-color: rgba(52,211,153,0.25); }
+        #auction-bid-10 { background: rgba(139, 92, 246, 0.16); color: #c4b5fd; border-color: rgba(139,92,246,0.35); }
+        #auction-bid-100 { background: rgba(245, 158, 11, 0.12); color: #fcd34d; border-color: rgba(245,158,11,0.28); }
+        #auction-pass-btn {
+            flex: 0 0 auto;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.25);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        #auction-pass-btn:hover:not(:disabled) { background: rgba(239,68,68,0.22); }
+        #auction-pass-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        #auction-status-msg {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            text-align: center;
+        }
+        #auction-status-msg.waiting { color: #fbbf24; }
+        #auction-status-msg.can-bid { color: #34d399; }
+        #auction-status-msg.passed  { color: #f87171; }
+        /* ─── Right panel: Deed card ─── */
+        #auction-deed-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            overflow: hidden;
+            flex: 0 0 auto;
+        }
+        #auction-deed-color-band {
+            height: 26px;
+            width: 100%;
+        }
+        #auction-deed-body {
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        #auction-deed-prop-name {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #e2d9ff;
+            text-align: center;
+        }
+        #auction-deed-prop-type {
+            font-size: 0.65rem;
+            color: rgba(167,139,250,0.6);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        #auction-rent-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+        }
+        #auction-rent-table tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+        #auction-rent-table tr:last-child { border-bottom: none; }
+        #auction-rent-table td { padding: 5px 6px; color: #9ca3af; }
+        #auction-rent-table td:last-child { text-align: right; color: #a78bfa; font-weight: 700; }
+        #auction-rent-table tr.highlight-row td { color: #c4b5fd; background: rgba(139,92,246,0.08); }
+        #auction-deed-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(139,92,246,0.1);
+            border-radius: 8px;
+            margin-top: auto;
+        }
+        #auction-deed-price-label {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 600;
+        }
+        #auction-deed-price-value {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: #a78bfa;
+        }
+        #auction-my-money {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.35);
+            text-align: center;
+        }
+        /* Responsive auction card */
+        @media (max-width: 640px) {
+            #auction-card { flex-direction: column; height: auto; max-height: 95vh; overflow-y: auto; }
+            #auction-left-panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+            #auction-right-panel { flex: none; }
         }
 
         /* 💬 Chat Panel Styling */
@@ -1107,6 +1473,7 @@
         .modal {
             transition: opacity 0.25s ease;
             backdrop-filter: blur(8px);
+            z-index: 9999 !important;
         }
 
         .modal-content {
@@ -1409,31 +1776,64 @@
 
         .houses-container {
             position: absolute;
-            top: 0;
+            top: 2px;
             left: 0;
+            right: 0;
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 2px;
-            padding: 2px;
+            align-items: center;
+            gap: 1px;
+            padding: 1px;
+            z-index: 15;
+            pointer-events: none;
+            flex-wrap: nowrap;
+        }
+
+        /* Side tiles: place buildings along the inner edge */
+        .edge-left .houses-container {
+            top: 0;
+            bottom: 0;
+            left: auto;
+            right: 2px;
+            width: auto;
+            height: 100%;
+            flex-direction: column;
+        }
+        .edge-right .houses-container {
+            top: 0;
+            bottom: 0;
+            left: 2px;
+            right: auto;
+            width: auto;
+            height: 100%;
+            flex-direction: column;
         }
 
         .house {
-            width: 14px;
-            height: 14px;
+            width: 11px;
+            height: 11px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border: 2px solid #065f46;
+            border: 1.5px solid rgba(255,255,255,0.6);
             border-radius: 2px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 4px rgba(16,185,129,0.6);
+            flex-shrink: 0;
         }
 
         .hotel {
-            width: 24px;
-            height: 14px;
+            width: 18px;
+            height: 11px;
             background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            border: 2px solid #9f1239;
+            border: 1.5px solid rgba(255,255,255,0.6);
             border-radius: 2px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px rgba(244,63,94,0.6);
+            flex-shrink: 0;
+        }
+
+        /* Smaller on mobile */
+        @media (max-width: 768px) {
+            .house { width: 7px; height: 7px; }
+            .hotel { width: 11px; height: 7px; }
         }
 
         /* 📱 Mobile Optimizations */
@@ -2566,6 +2966,7 @@
             font-size: 1.4rem !important;
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5)) !important;
         }
+
         .space-inner {
             width: 100%;
             height: 100%;
@@ -2574,6 +2975,7 @@
             justify-content: flex-start;
             position: relative;
         }
+
         .space-name {
             font-weight: 700;
             font-size: 11px;
@@ -2582,9 +2984,19 @@
             color: #fff;
             font-family: Arial, Helvetica, sans-serif;
         }
-        .rotate-90 { transform: rotate(90deg); }
-        .rotate-180 { transform: rotate(180deg); }
-        .rotate-minus-90 { transform: rotate(-90deg); }
+
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
+
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        .rotate-minus-90 {
+            transform: rotate(-90deg);
+        }
+
         .flag-icon {
             display: block;
             width: 24px;
@@ -2596,9 +3008,10 @@
             margin-top: 3px;
             filter: blur(0.4px) saturate(0.9);
             opacity: 0.82;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1;
         }
+
         .price-tag {
             position: absolute;
             color: #fff;
@@ -2615,42 +3028,331 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .property-tile .price-tag {
+        .space .price-tag {
             z-index: 11;
         }
 
-        .property-tile.edge-top .price-tag {
+        .edge-top .price-tag {
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
         }
 
-        .property-tile.edge-bottom .price-tag {
+        .edge-bottom .price-tag {
             bottom: -12px;
             left: 50%;
             transform: translateX(-50%);
         }
 
-        .property-tile.edge-left .price-tag {
+        .edge-left .price-tag {
             bottom: -12px;
             left: 50%;
             transform: translateX(-50%);
             transform-origin: center;
         }
 
-        .property-tile.edge-right .price-tag {
+        .edge-right .price-tag {
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
             transform-origin: center;
         }
+
+        .space.edge-top,
+        .space.edge-bottom,
+        .space.edge-left,
+        .space.edge-right {
+            overflow: visible !important;
+        }
+
         .player-badge {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.8);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             position: absolute;
             z-index: 10;
+        }
+
+        /* --- NEW LOBBY DASHBOARD STYLING --- */
+        #new-lobby {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: #0e0b16;
+            color: #E5E7EB;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+        }
+
+        #new-lobby * {
+            box-sizing: border-box;
+        }
+
+        #new-lobby .panel-left,
+        #new-lobby .panel-right {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(14, 11, 22, 0.95);
+            border-color: rgba(167, 139, 250, 0.08);
+            z-index: 10;
+        }
+
+        #new-lobby .panel-left {
+            border-right: 1px solid rgba(167, 139, 250, 0.08);
+        }
+
+        #new-lobby .panel-right {
+            border-left: 1px solid rgba(167, 139, 250, 0.08);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(167, 139, 250, 0.2) transparent;
+        }
+
+        #new-lobby .panel-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #06040a;
+            overflow: hidden;
+        }
+
+        /* Lobby board preview */
+        #lobby-board-preview {
+            display: grid;
+            grid-template-columns: 50px repeat(9, 1fr) 50px;
+            grid-template-rows: 50px repeat(9, 1fr) 50px;
+            width: 550px;
+            height: 550px;
+            border: 4px solid #1f2033;
+            border-radius: 12px;
+            background: #0d0c14;
+            transform: scale(1.1);
+            filter: blur(8px) brightness(0.3) saturate(0.8);
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.45;
+            transition: all 0.5s ease;
+        }
+
+        #lobby-board-preview .mini-space {
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.3);
+            background: #12111d;
+        }
+
+        #lobby-board-preview .mini-space.corner {
+            background: #1a1926;
+        }
+
+        #lobby-board-preview .mini-space.property-color {
+            position: relative;
+        }
+
+        #lobby-board-preview .mini-space.property-color::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: var(--prop-color, #777);
+        }
+
+        /* Glass Panel overrides for Dashboard */
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #a78bfa;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        /* Color Circle grid */
+        .color-token-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .color-token-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: var(--token-color);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .color-token-btn:hover:not(:disabled) {
+            transform: scale(1.12);
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px var(--token-color);
+        }
+
+        .color-token-btn.selected {
+            border-color: #ffffff;
+            transform: scale(1.15);
+            box-shadow: 0 0 20px var(--token-color), 0 0 0 2px #ffffff;
+        }
+
+        .color-token-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .color-token-btn:disabled::after {
+            content: '✕';
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Pill Toggles */
+        .pill-toggle-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .pill-toggle-label:hover {
+            border-color: rgba(167, 139, 250, 0.2);
+            background: rgba(167, 139, 250, 0.02);
+        }
+
+        .pill-switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .pill-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pill-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #1f2937;
+            transition: .3s;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pill-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #9ca3af;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.pill-slider {
+            background-color: #8b5cf6;
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+
+        input:checked+.pill-slider:before {
+            transform: translateX(18px);
+            background-color: #ffffff;
+        }
+
+        /* Player avatar list */
+        .joined-player-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .joined-player-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 8px var(--player-color);
+            background: var(--player-color);
+        }
+
+        /* Responsive styling for lobby */
+        @media (max-width: 1024px) {
+            #new-lobby {
+                flex-direction: column;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            #new-lobby .panel-left,
+            #new-lobby .panel-right {
+                width: 100%;
+                flex-shrink: initial;
+                height: auto;
+            }
+
+            #new-lobby .panel-center {
+                min-height: 500px;
+                padding: 32px 16px;
+            }
         }
     </style>
 </head>
@@ -2666,304 +3368,393 @@
         <button id="mobile-end-turn-btn">✅ End</button>
     </div>
 
-    <!-- Lobby Screen -->
-    <div id="lobby" class="w-full max-w-lg p-8 text-center glass-panel glass-panel-hover relative overflow-visible z-10"
-        style="color: #E5E7EB;">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold uppercase tracking-wider glow-text">DEEPPIXEL</h1>
-            <p class="mt-2 text-gray-400">Yeni bir oyun başlat veya arkadaşlarınla oyna</p>
+    <!-- Combined New Lobby/Game Settings Screen -->
+    <div id="new-lobby" class="w-full h-screen">
+        <!-- LEFT PANEL (Social & Chat) -->
+        <div class="panel-left">
+            <!-- Share Card -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-title">Share Game</div>
+                <div class="space-y-2">
+                    <div class="text-[10px] text-gray-400">Game ID: <span id="displayGameId"
+                            class="font-mono font-bold text-white text-xs">------</span> <button id="copyGameIdBtn"
+                            class="text-purple-400 hover:text-purple-300 ml-1 font-bold">Copy</button></div>
+                    <input id="gameLinkInput" type="text" readonly
+                        class="w-full text-xs p-2 bg-black/40 border border-white/10 rounded-md text-gray-300 font-mono focus:outline-none"
+                        value="" onclick="this.select()" placeholder="Link will appear here">
+                    <div class="flex gap-2">
+                        <button id="copyLinkBtn"
+                            class="flex-grow neon-btn-purple text-xs py-2 px-3 flex items-center justify-center gap-1 font-bold">
+                            Copy Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Card -->
+            <div class="dashboard-card flex-1 min-h-[300px]">
+                <div class="dashboard-card-title">Lobby Chat</div>
+                <div id="lobby-chat-messages"
+                    class="flex-grow space-y-2 text-xs overflow-y-auto p-2 bg-black/20 rounded-md border border-white/5"
+                    style="color: #9CA3AF; height: 180px;">
+                    <p><span class="font-bold text-purple-400">SYSTEM:</span> Welcome to the DeepPixel lobby! Configure
+                        settings on the right and pick your color in the center.</p>
+                </div>
+                <div class="flex items-center gap-1 mt-2">
+                    <input id="lobby-chat-input"
+                        class="flex-grow text-xs p-2 neon-input rounded-md bg-black/40 border border-white/10"
+                        placeholder="Say something..." type="text" />
+                    <button id="lobby-send-chat-btn"
+                        class="neon-btn-purple p-2 rounded-md flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm">send</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- Continue Game Button (shown only when there's a saved session) -->
-        <div id="continue-game-section" class="mb-6 hidden">
-            <button id="continueGameBtn" class="w-full neon-btn-purple py-4 px-4">
-                🔄 Oyuna Devam Et
-            </button>
-            <p class="text-sm mt-2 text-gray-400">Önceki oyununuza kaldığınız yerden devam edin</p>
-            <button id="clearSessionBtn" class="text-sm text-red-500 hover:text-red-400 mt-2 underline">Oturumu
-                Temizle</button>
-        </div>
+        <!-- CENTER PANEL (Interactive Board Preview & Appearance Picker) -->
+        <div class="panel-center">
+            <!-- Dimmed Blurred Live Map Preview Background -->
+            <div id="lobby-board-preview-container" class="absolute inset-0 z-0 flex items-center justify-center">
+                <div id="lobby-board-preview">
+                    <!-- Mini board spaces dynamically loaded -->
+                </div>
+            </div>
 
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1.5 text-left text-gray-300">Player Name</label>
-                <div class="relative">
-                    <span
-                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">person</span>
+            <!-- Pre-Join Screen (Name/Appearance Selection + Join/Create Options) -->
+            <div id="appearance-modal"
+                class="relative z-10 glass-panel p-6 rounded-2xl w-full max-w-sm border border-white/[0.12] shadow-2xl flex flex-col gap-4 text-center"
+                style="background: rgba(11, 9, 20, 0.93);">
+                <div class="text-center">
+                    <h1 class="text-2xl font-bold uppercase tracking-wider glow-text">DEEPPIXEL</h1>
+                    <p class="text-xs text-gray-400 mt-1">Select player appearance to join the game</p>
+                </div>
+
+                <!-- Continue Game Section -->
+                <div id="continue-game-section"
+                    class="mb-2 hidden bg-purple-950/20 border border-purple-900/40 p-3 rounded-lg text-center">
+                    <button id="continueGameBtn" class="w-full neon-btn-purple text-xs py-2 px-3 font-bold">
+                        🔄 Resume Saved Game
+                    </button>
+                    <button id="clearSessionBtn"
+                        class="text-[10px] text-red-400 hover:text-red-300 mt-1.5 underline block mx-auto">Clear
+                        Session</button>
+                </div>
+
+                <!-- Player Name Input -->
+                <div class="space-y-1.5 text-left">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Player
+                        Name</label>
                     <input id="playerNameInput" type="text" placeholder="Enter your name"
-                        class="w-full pl-10 pr-4 py-2.5 neon-input">
+                        class="w-full px-3 py-2 neon-input text-xs rounded-md bg-black/40 border border-white/10 text-white font-semibold">
                 </div>
-            </div>
 
-            <!-- Character Selection in Main Menu -->
-            <div>
-                <label class="block text-sm font-medium mb-2 text-left text-gray-300">Select Your Character</label>
-                <div id="main-character-select" class="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="car">
-                        <span class="material-symbols-outlined text-3xl">directions_car</span>
+                <!-- Color circle picker circles -->
+                <div class="space-y-1.5 text-left">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Select Token
+                        Color</label>
+                    <div id="token-color-grid" class="color-token-grid">
+                        <!-- Dynamically filled with color tokens -->
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button id="createGameBtn"
+                        class="w-full neon-btn-purple py-2.5 px-3 font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-1">
+                        Create Game
                     </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="hat">
-                        <span class="material-symbols-outlined text-3xl">theater_comedy</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="dog">
-                        <span class="material-symbols-outlined text-3xl">pets</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="shoe">
-                        <span class="material-symbols-outlined text-3xl">directions_boat</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="iron">
-                        <span class="material-symbols-outlined text-3xl">nest_cam_magnet_mount</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="ship">
-                        <span class="material-symbols-outlined text-3xl">rocket_launch</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="cat">
-                        <span class="material-symbols-outlined text-3xl">cruelty_free</span>
-                    </button>
-                    <button type="button" class="character-btn character-select-btn aspect-square" data-char="money">
-                        <span class="material-symbols-outlined text-3xl">monetization_on</span>
+                    <button id="joinGameBtn"
+                        class="w-full neon-btn-dark py-2.5 px-3 font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-1">
+                        Join Lobby
                     </button>
                 </div>
-            </div>
 
-            <!-- Map Selection in Main Menu -->
-            <div>
-                <label class="block text-sm font-medium mb-2 text-left text-gray-300">Select Map <span
-                        id="main-map-preview" class="text-xs font-semibold ml-2 text-purple-400"></span></label>
-                <div id="main-map-select" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="classic">
-                        <span class="material-symbols-outlined text-xl text-gray-400">castle</span> <span
-                            class="text-gray-200">Classic</span>
-                    </button>
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="turkey">
-                        <span class="font-normal text-gray-400">TR</span> <span class="text-gray-200">Turkey</span>
-                    </button>
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="world">
-                        <span class="material-symbols-outlined text-xl text-gray-400">public</span> <span
-                            class="text-gray-200">World</span>
-                    </button>
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="holland">
-                        <span class="font-normal text-gray-400">NL</span> <span class="text-gray-200">Holland</span>
-                    </button>
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="megarich">
-                        <span class="material-symbols-outlined text-xl text-gray-400">diamond</span> <span
-                            class="text-gray-200">Mega Rich</span>
-                    </button>
-                    <button type="button"
-                        class="map-btn map-select-btn text-left font-medium p-3 flex items-center gap-2"
-                        data-map="custom">
-                        <span class="material-symbols-outlined text-xl text-gray-400">tune</span> <span
-                            class="text-gray-200">Custom</span>
-                    </button>
+                <!-- Or Join by ID -->
+                <div class="border-t border-white/5 pt-3 mt-1 text-left space-y-2">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Join via Room
+                        ID</label>
+                    <div class="flex gap-2">
+                        <input id="gameIdInput" type="text" placeholder="Room ID (e.g. A3BC92)"
+                            class="flex-1 px-3 py-1.5 neon-input text-xs rounded-md bg-black/40 border border-white/10">
+                        <button id="joinGameBtn2" class="neon-btn-cyan text-xs py-1.5 px-3 font-bold">Join</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-2">
-                <input id="privateGameCheckbox" type="checkbox"
-                    class="w-4 h-4 rounded text-purple-600 bg-gray-900 border-gray-700">
-                <label for="privateGameCheckbox" class="text-sm font-medium text-gray-300">Private Game (won't appear in
-                    public games list)</label>
-            </div>
-
-            <div class="grid sm:grid-cols-2 gap-4 pt-4">
-                <button id="createGameBtn"
-                    class="w-full neon-btn-purple py-3 px-4 flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">add</span> Create New Game
-                </button>
-                <button id="joinGameBtn" class="w-full neon-btn-dark py-3 px-4 flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">group</span> Join Game
-                </button>
-            </div>
-        </div>
-
-        <div class="my-6 flex items-center">
-            <hr class="flex-grow border-t border-gray-800">
-            <span class="px-4 text-gray-500 font-bold">OR</span>
-            <hr class="flex-grow border-t border-gray-800">
-        </div>
-
-        <!-- Public Games List -->
-        <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-200">Public Games</h3>
-            <div id="public-games-list" class="space-y-2 max-h-48 overflow-y-auto">
-                <p class="text-sm text-gray-500">Loading games...</p>
-            </div>
-            <button id="refreshGamesBtn" class="w-full neon-btn-dark py-2 px-4 text-sm">🔄 Refresh List</button>
-        </div>
-
-        <div class="my-6 flex items-center">
-            <hr class="flex-grow border-t border-gray-800">
-            <span class="px-4 text-gray-500 font-bold">OR</span>
-            <hr class="flex-grow border-t border-gray-800">
-        </div>
-
-        <div class="space-y-4">
-            <input id="gameIdInput" type="text" placeholder="Enter Game ID" class="w-full px-4 py-3 neon-input">
-            <button id="joinGameBtn2" class="w-full neon-btn-cyan py-3 px-4">Join Game</button>
-        </div>
-        <p id="lobby-error" class="text-red-500 mt-4 h-4"></p>
-    </div>
-
-    <!-- Game Settings Screen (Host Only) -->
-    <div id="game-settings" class="hidden w-full max-w-4xl p-8 rounded-xl shadow-2xl overflow-y-auto border"
-        style="max-height: 90vh; background: #161523; border-color: #2A283E; color: #E5E7EB;">
-        <h2 class="text-3xl font-bold mb-2 uppercase tracking-wider"
-            style="color: #A78BFA; text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);">Game Settings</h2>
-        <div class="mb-6">
-            <p style="color: #9CA3AF;">Share this Game ID with your friends:</p>
-            <div class="flex items-center gap-2 mt-2">
-                <p id="displayGameId" class="text-2xl font-mono p-3 rounded-lg"
-                    style="background: #0D0C14; border: 1px solid #2A283E; color: #ffffff;"></p>
-                <button id="copyGameIdBtn" class="p-3 rounded-lg transition"
-                    style="background: #1F2937; color: #E5E7EB;">
-                    <span class="material-symbols-outlined">content_copy</span>
-                </button>
-            </div>
-            <div class="mt-3">
-                <p class="text-sm" style="color: #9CA3AF;">Or share this direct link:</p>
-                <div class="flex items-center gap-2 mt-1">
-                    <input id="gameLinkInput" type="text" readonly class="flex-1 text-sm font-mono p-2 rounded border"
-                        onclick="this.select()" style="background: #0D0C14; border-color: #2A283E; color: #9CA3AF;">
-                    <button id="copyLinkBtn" class="text-white px-3 py-2 rounded text-sm transition"
-                        style="background-color: #9333ea; box-shadow: 0 0 10px 0 rgba(167, 139, 250, 0.5);">
-                        Copy Link
-                    </button>
+                <!-- Public Games List -->
+                <div class="border-t border-white/5 pt-3 mt-1 text-left space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Public
+                            Rooms</label>
+                        <button id="refreshGamesBtn"
+                            class="text-[10px] text-purple-300 font-bold hover:text-purple-200">Refresh 🔄</button>
+                    </div>
+                    <div id="public-games-list"
+                        class="space-y-1 bg-black/30 p-2 rounded-lg border border-white/5 max-h-24 overflow-y-auto text-xs text-gray-400">
+                        Loading games...
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="mb-6">
-            <label class="block text-sm font-medium mb-2" style="color: #C4B5FD;">Game Mode</label>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="classic"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">🎲 Classic</div>
-                    <div class="text-xs" style="color: #9CA3AF;">Traditional rules</div>
-                </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="fast"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">⚡ Fast Money</div>
-                    <div class="text-xs" style="color: #9CA3AF;">2x money, 2x GO</div>
-                </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="hard"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">🔥 Hard Mode</div>
-                    <div class="text-xs" style="color: #9CA3AF;">Less money, more tax</div>
-                </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="noluck"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">🚫 No Luck</div>
-                    <div class="text-xs" style="color: #9CA3AF;">No chance/chest cards</div>
-                </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="mega"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">💎 Mega Rich</div>
-                    <div class="text-xs" style="color: #9CA3AF;">5x starting money</div>
-                </button>
-                <button type="button" class="game-mode-btn px-4 py-3 border-2 rounded-lg transition" data-mode="speed"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">
-                    <div class="font-bold">🏃 Speed Game</div>
-                    <div class="text-xs" style="color: #9CA3AF;">Half properties</div>
-                </button>
+                <p id="lobby-error" class="text-red-500 text-xs mt-2 h-4 text-center"></p>
             </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-                <label for="startingMoney" class="block text-sm font-medium" style="color: #9CA3AF;">Starting
-                    Money</label>
-                <input type="number" id="startingMoney" value="1500"
-                    class="mt-1 block w-full px-3 py-2 border rounded-md"
-                    style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
-            </div>
-            <div>
-                <label for="passGoAmount" class="block text-sm font-medium" style="color: #9CA3AF;">Pass "GO"
-                    Amount</label>
-                <input type="number" id="passGoAmount" value="200" class="mt-1 block w-full px-3 py-2 border rounded-md"
-                    style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
-            </div>
-        </div>
-        <div class="mb-6">
-            <label class="flex items-center">
-                <input type="checkbox" id="allowTrading" checked class="mr-2">
-                <span class="text-sm font-medium" style="color: #ffffff;">Allow Player Trading</span>
-            </label>
-        </div>
-        <div class="mb-6">
-            <label class="flex items-center">
-                <input type="checkbox" id="allowDoubles" class="mr-2">
-                <span class="text-sm font-medium" style="color: #ffffff;">Allow Doubles Rule (Extra turn on
-                    doubles)</span>
-            </label>
-        </div>
-        <div class="mb-6">
-            <label class="block text-sm font-medium mb-2" style="color: #C4B5FD;">Map <span id="map-preview"
-                    class="text-xs font-semibold ml-2" style="color: #A78BFA;"></span></label>
-            <div id="map-select" class="flex gap-2 flex-wrap">
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="classic"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">🏛️ Classic</button>
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="turkey"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">🇹🇷 Türkiye</button>
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="world"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">🌍 World</button>
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="holland"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">🇳🇱 Holland</button>
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="megarich"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">💎 Mega Rich</button>
-                <button type="button" class="map-btn px-4 py-2 border-2 rounded-lg transition" data-map="custom"
-                    style="background: #0D0C14; border-color: #2A283E; color: #E5E7EB;">⚙️ Custom</button>
-            </div>
-        </div>
-        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label for="playerCount" class="block text-sm font-medium" style="color: #9CA3AF;">Max Players</label>
-                <input type="number" id="playerCount" value="4" min="2" max="8"
-                    class="mt-1 block w-full px-3 py-2 border rounded-md"
-                    style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
-            </div>
-            <div id="auction-timer-container">
-                <label for="auctionTimer" class="block text-sm font-medium" style="color: #9CA3AF;">Auction Bid Timer
-                    (seconds)</label>
-                <input type="number" id="auctionTimer" value="10" min="5" max="30"
-                    class="mt-1 block w-full px-3 py-2 border rounded-md"
-                    style="background: #0D0C14; border-color: #2A283E; color: #ffffff;">
-            </div>
-            <div id="allow-trading-container" class="hidden"></div>
-        </div>
-
-        <h3 id="customize-board-title" class="text-xl font-bold mb-4" style="color: #C4B5FD;">Customize Board</h3>
-        <div id="properties-editor" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto"
-            style="max-height: 400px;">
-            <!-- Property editors will be dynamically inserted here -->
-        </div>
-
-        <div id="lobby-controls" class="mt-8">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h3 class="text-xl font-bold" style="color: #C4B5FD;">Players in Lobby:</h3>
-                    <div id="lobby-players-list" class="flex flex-wrap gap-2 mt-2"></div>
+            <!-- Waiting Room Screen (Shown after joining) -->
+            <div id="lobby-waiting-room"
+                class="hidden relative z-10 glass-panel p-6 rounded-2xl w-full max-w-sm border border-white/[0.12] shadow-2xl flex flex-col gap-4"
+                style="background: rgba(11, 9, 20, 0.93);">
+                <div class="text-center">
+                    <h2 class="text-xl font-bold uppercase tracking-wider text-purple-200 glow-text">Lobby Waiting Room
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1 font-semibold">Invite your friends to start the match</p>
                 </div>
-                <div class="flex gap-2">
+
+                <div class="space-y-2 text-left">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400">Players in
+                        Room</label>
+                    <div id="lobby-players-list"
+                        class="flex flex-col gap-2 p-2 bg-black/20 rounded-lg border border-white/5 max-h-[220px] overflow-y-auto">
+                        <!-- Dynamically generated list of joined players -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
                     <button id="addBotBtn"
-                        class="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition duration-300">🤖
-                        Add Bot</button>
+                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 text-xs uppercase tracking-wider rounded-lg transition duration-200 flex items-center justify-center gap-1">
+                        🤖 Add Bot
+                    </button>
                     <button id="startGameBtn"
-                        class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-300 text-lg disabled:bg-gray-400">Start
-                        Game</button>
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 text-xs uppercase tracking-wider rounded-lg transition duration-200 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                        🚀 Start Game
+                    </button>
+                </div>
+                <div id="lobby-waiting-status" class="text-[10px] text-center text-gray-400 italic">Waiting for host to
+                    start...</div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL (Game Controls & Settings) -->
+        <div class="panel-right">
+            <div class="dashboard-card">
+                <h2
+                    class="text-sm font-bold text-purple-300 flex items-center gap-1.5 uppercase tracking-wider border-b border-white/5 pb-2">
+                    <span class="material-symbols-outlined text-base">tune</span> Control Tower
+                </h2>
+
+                <!-- Room Configuration -->
+                <div class="space-y-3">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Room Configuration</h3>
+
+                    <!-- Max Players -->
+                    <div class="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
+                        <span class="text-xs text-gray-300">Max Players</span>
+                        <input type="number" id="playerCount" value="4" min="2" max="8"
+                            class="w-16 text-center text-xs p-1 bg-black/40 border border-white/10 rounded-md text-white font-bold">
+                    </div>
+
+                    <!-- Private Room Toggle -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Private Room</span>
+                            <span class="text-[9px] text-gray-500">Access via ID only</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="privateGameCheckbox">
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Allow Bots Toggle -->
+                    <div class="pill-toggle-label">
+                        <span class="text-xs text-gray-300">Allow Bots</span>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-allowBots" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Only Logged In Toggle -->
+                    <div class="pill-toggle-label">
+                        <span class="text-xs text-gray-300">Only Logged-in Users</span>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-onlyLoggedIn">
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Board Map Selector -->
+                    <div class="flex flex-col bg-black/20 p-2.5 rounded-lg border border-white/5 gap-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-300">Active Board Map</span>
+                            <span id="lobby-active-map"
+                                class="text-xs text-purple-300 font-bold capitalize">classic</span>
+                        </div>
+                        <div id="map-select" class="hidden">
+                            <button data-map="classic"></button>
+                            <button data-map="turkey"></button>
+                            <button data-map="world"></button>
+                            <button data-map="holland"></button>
+                            <button data-map="megarich"></button>
+                            <button data-map="custom"></button>
+                        </div>
+                        <button id="browse-maps-btn"
+                            class="w-full text-center text-xs py-1.5 bg-purple-950/20 hover:bg-purple-950/40 text-purple-300 font-semibold border border-purple-800/30 rounded-md transition duration-200">
+                            Browse Maps &gt;
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gameplay Rules -->
+                <div class="space-y-3 pt-2 border-t border-white/5">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gameplay Rules</h3>
+
+                    <!-- Allow Trading (Original) -->
+                    <div class="pill-toggle-label">
+                        <span class="text-xs text-gray-300">Allow Player Trading</span>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="allowTrading" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+                    <div id="allow-trading-container" class="hidden"></div>
+
+                    <!-- Allow Doubles Rule (Original) -->
+                    <div class="pill-toggle-label">
+                        <span class="text-xs text-gray-300">Allow Doubles Rule</span>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="allowDoubles" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- x2 Rent on Full-Set Properties -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Double Set Rent</span>
+                            <span class="text-[9px] text-gray-500">2x rent on unimproved full sets</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-doubleRent" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Vacation Cash -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Vacation Cash Pool</span>
+                            <span class="text-[9px] text-gray-500">Collect tax pool on Vacation</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-vacationCash">
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Enable Buying Shares -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Enable Buying Shares</span>
+                            <span class="text-[9px] text-gray-500">Allow partial property ownership</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-allowShares" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- No Rent in Prison -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">No Rent in Prison</span>
+                            <span class="text-[9px] text-gray-500">Don't collect rent while jailed</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-noRentInPrison">
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Auction -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Auction System</span>
+                            <span class="text-[9px] text-gray-500">Bid when property declined</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-allowAuction" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+                    <div id="auction-timer-container" class="hidden">
+                        <input type="number" id="auctionTimer" value="10">
+                    </div>
+
+                    <!-- Even Build -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Even Building</span>
+                            <span class="text-[9px] text-gray-500">Build houses uniformly</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-evenBuild" checked>
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Randomize Player Order -->
+                    <div class="pill-toggle-label">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-300">Randomize Order</span>
+                            <span class="text-[9px] text-gray-500">Shuffle turns at game launch</span>
+                        </div>
+                        <label class="pill-switch">
+                            <input type="checkbox" id="rule-randomizeOrder">
+                            <span class="pill-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Economic Tuning -->
+                <div class="space-y-3 pt-2 border-t border-white/5">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Economic Tuning</h3>
+
+                    <!-- Starting Cash -->
+                    <div class="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
+                        <span class="text-xs text-gray-300">Starting Cash</span>
+                        <div class="flex items-center gap-1 bg-black/40 border border-white/10 rounded-md px-2 py-0.5">
+                            <span class="text-xs text-gray-400 font-bold">$</span>
+                            <input type="number" id="startingMoney" value="1500"
+                                class="w-16 text-center text-xs bg-transparent border-none text-white font-bold focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Pass GO Amount -->
+                    <div class="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
+                        <span class="text-xs text-gray-300">Pass GO Bonus</span>
+                        <div class="flex items-center gap-1 bg-black/40 border border-white/10 rounded-md px-2 py-0.5">
+                            <span class="text-xs text-gray-400 font-bold">$</span>
+                            <input type="number" id="passGoAmount" value="200"
+                                class="w-16 text-center text-xs bg-transparent border-none text-white font-bold focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-white/5">
+                    <h3 id="customize-board-title"
+                        class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2" style="display: none;">
+                        Customize Board</h3>
+                    <div id="properties-editor" class="grid grid-cols-1 gap-2 overflow-y-auto"
+                        style="max-height: 200px; display: none;">
+                        <!-- Custom properties editor if custom map -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Dummy empty div to keep original JS references from breaking -->
+    <div id="game-settings" class="hidden"></div>
+    <div id="lobby" class="hidden"></div>
 
     <!-- Game Screen -->
     <!-- Game Screen -->
@@ -3084,11 +3875,21 @@
 
         <!-- RIGHT SIDEBAR: Players + Game Controls -->
         <aside class="w-80 flex-shrink-0 flex flex-col gap-4">
-            <!-- Players List -->
-            <div class="glass-panel p-4 flex flex-col gap-3">
-                <h2 class="text-lg font-bold" style="color: #ffffff;">Players (<span id="player-count">1</span>/4)</h2>
-                <div id="players-info" class="space-y-3">
-                    <!-- Player cards will be dynamically added here -->
+            <!-- Players List + Trades Panel -->
+            <div class="glass-panel p-3 flex flex-col gap-2">
+                <h2 class="text-sm font-bold uppercase tracking-wider flex items-center justify-between" style="color: #a78bfa;">
+                    <span>Players (<span id="player-count">1</span>/4)</span>
+                </h2>
+                <div id="players-info" class="flex flex-col gap-1">
+                    <!-- Compact player cards dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Trades Panel -->
+            <div class="glass-panel p-3 flex flex-col gap-2" id="trades-panel-widget">
+                <h2 class="text-sm font-bold uppercase tracking-wider" style="color: #a78bfa;">🤝 Trades</h2>
+                <div id="trades-incoming-list" class="flex flex-col gap-1">
+                    <p class="text-xs text-gray-500 italic">No pending trades.</p>
                 </div>
             </div>
 
@@ -3131,29 +3932,36 @@
             <!-- My Properties & Game Log -->
             <div class="rounded-lg p-4 flex flex-col gap-3 shadow-lg flex-grow overflow-hidden"
                 style="background: #111827; border: 1px solid #374151;">
-                
+
                 <!-- My Properties Section -->
                 <div class="flex flex-col gap-2 flex-grow overflow-hidden">
                     <h2 class="text-lg font-bold flex items-center justify-between" style="color: #ffffff;">
                         <span>My Properties</span>
-                        <span id="my-properties-count" class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-900/50 text-purple-300">0</span>
+                        <span id="my-properties-count"
+                            class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-900/50 text-purple-300">0</span>
                     </h2>
-                    <div id="my-properties-list" class="overflow-y-auto flex-grow space-y-1.5 pr-1" style="max-height: 300px; min-height: 120px;">
-                        <p class="text-xs text-gray-500 italic p-2 text-center">No properties owned yet. Buy some spaces!</p>
+                    <div id="my-properties-list" class="overflow-y-auto flex-grow space-y-1.5 pr-1"
+                        style="max-height: 300px; min-height: 120px;">
+                        <p class="text-xs text-gray-500 italic p-2 text-center">No properties owned yet. Buy some
+                            spaces!</p>
                     </div>
                 </div>
 
                 <!-- Collapsible Game Log Dropdown -->
                 <div class="border-t border-gray-800/80 pt-3 flex flex-col gap-2">
-                    <button id="toggle-log-btn" class="w-full flex items-center justify-between text-sm font-semibold text-gray-400 hover:text-white transition-colors" onclick="window.toggleGameLog()">
+                    <button id="toggle-log-btn"
+                        class="w-full flex items-center justify-between text-sm font-semibold text-gray-400 hover:text-white transition-colors"
+                        onclick="window.toggleGameLog()">
                         <span class="flex items-center gap-1.5">
                             <span class="material-icons-outlined text-base">receipt_long</span>
                             <span>Game Log</span>
                         </span>
-                        <span id="log-toggle-icon" class="material-icons-outlined text-base transition-transform duration-200">keyboard_arrow_down</span>
+                        <span id="log-toggle-icon"
+                            class="material-icons-outlined text-base transition-transform duration-200">keyboard_arrow_down</span>
                     </button>
                     <div id="game-log-container" class="hidden transition-all duration-300">
-                        <div id="game-log" class="overflow-y-auto text-sm space-y-1" style="max-height: 180px; color: #9CA3AF;">
+                        <div id="game-log" class="overflow-y-auto text-sm space-y-1"
+                            style="max-height: 180px; color: #9CA3AF;">
                             <!-- Game log entries will be added here -->
                         </div>
                     </div>
@@ -3206,13 +4014,88 @@
 
     <!-- Generic Modal -->
     <div id="modal"
-        class="modal hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300">
+        class="modal hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] opacity-0 pointer-events-none transition-all duration-300">
         <div id="modal-content"
             class="modal-content glass-panel p-6 w-full max-w-md text-center transform scale-95 transition-all duration-300">
             <h3 id="modal-title" class="text-2xl font-bold mb-4 glow-text text-white">Modal Title</h3>
             <div id="modal-body" class="text-gray-300 mb-6 text-sm">Modal body text goes here.</div>
             <div id="modal-buttons" class="flex justify-center gap-4 flex-wrap">
                 <!-- Buttons will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Premium Auction Overlay ── -->
+    <div id="auction-overlay" class="hidden">
+        <div id="auction-card">
+            <!-- LEFT PANEL: Bidding Arena -->
+            <div id="auction-left-panel">
+                <!-- Property header -->
+                <div id="auction-prop-header">
+                    <div id="auction-prop-icon">🔨</div>
+                    <div>
+                        <div id="auction-prop-name">Property Name</div>
+                        <div id="auction-prop-subtitle">Live Auction</div>
+                    </div>
+                </div>
+                <!-- Current bid + bidder -->
+                <div id="auction-bid-area">
+                    <div id="auction-bid-display">$10</div>
+                    <div id="auction-bidder-badge">
+                        <div id="auction-bidder-dot" style="background:#7c3aed;"></div>
+                        <span id="auction-bidder-name">No bidder yet</span>
+                    </div>
+                </div>
+                <!-- Countdown timer bar -->
+                <div id="auction-countdown-wrap">
+                    <div id="auction-countdown-label">
+                        <span>Time remaining</span>
+                        <span id="auction-countdown-text">10s</span>
+                    </div>
+                    <div id="auction-countdown-track">
+                        <div id="auction-countdown-bar" style="width:100%;"></div>
+                    </div>
+                </div>
+                <!-- Quick bid buttons -->
+                <div id="auction-bid-buttons">
+                    <button id="auction-bid-2" class="auction-quick-bid">
+                        <span class="bid-increment">+$2</span>
+                        <span class="bid-total" id="auction-bid-2-total">Total: $12</span>
+                    </button>
+                    <button id="auction-bid-10" class="auction-quick-bid">
+                        <span class="bid-increment">+$10</span>
+                        <span class="bid-total" id="auction-bid-10-total">Total: $20</span>
+                    </button>
+                    <button id="auction-bid-100" class="auction-quick-bid">
+                        <span class="bid-increment">+$100</span>
+                        <span class="bid-total" id="auction-bid-100-total">Total: $110</span>
+                    </button>
+                    <button id="auction-pass-btn">Pass</button>
+                </div>
+                <!-- Status message -->
+                <div id="auction-status-msg">Connecting to auction...</div>
+                <div id="auction-players-remaining"></div>
+            </div>
+
+            <!-- RIGHT PANEL: Property Deed -->
+            <div id="auction-right-panel">
+                <div id="auction-deed-card">
+                    <div id="auction-deed-color-band" style="background:#7c3aed;"></div>
+                    <div id="auction-deed-body">
+                        <div id="auction-deed-prop-name">Property</div>
+                        <div id="auction-deed-prop-type">Property</div>
+                    </div>
+                </div>
+                <table id="auction-rent-table">
+                    <tbody id="auction-rent-tbody">
+                        <tr><td>Rent</td><td>$-</td></tr>
+                    </tbody>
+                </table>
+                <div id="auction-deed-price-row">
+                    <span id="auction-deed-price-label">List Price</span>
+                    <span id="auction-deed-price-value">$-</span>
+                </div>
+                <div id="auction-my-money">Your balance: $-</div>
             </div>
         </div>
     </div>
@@ -3466,7 +4349,7 @@
                 const time = new Date().toLocaleTimeString();
                 debugLog.innerHTML += `<div>${time}: ${message}</div>`;
                 debugLog.scrollTop = debugLog.scrollHeight;
-                
+
                 const lines = debugLog.querySelectorAll('div');
                 if (lines.length > 20) {
                     lines[0].remove();
@@ -3744,6 +4627,30 @@
                             }, 100);
                         } else {
                             updateGameUI();
+                            // 🔧 Bankruptcy Turn-Lock Fix: if the current player just went bankrupt
+                            // and it's not our own bankruptcy, auto-advance the turn
+                            const cp = gameData.players[gameData.currentPlayerIndex];
+                            if (cp && cp.isBankrupt && localPlayer.id === gameData.hostId) {
+                                const activePlayers = gameData.players.filter(p => !p.isBankrupt);
+                                if (activePlayers.length > 0) {
+                                    let nextIdx = (gameData.currentPlayerIndex + 1) % gameData.players.length;
+                                    let guard = 0;
+                                    while (gameData.players[nextIdx].isBankrupt && guard < gameData.players.length) {
+                                        nextIdx = (nextIdx + 1) % gameData.players.length;
+                                        guard++;
+                                    }
+                                    if (!gameData.players[nextIdx].isBankrupt) {
+                                        setTimeout(() => {
+                                            updateGame({
+                                                currentPlayerIndex: nextIdx,
+                                                turnState: 'start',
+                                                lastDiceRoll: [0, 0],
+                                                gameLog: [...gameData.gameLog, `💥 Bankrupt player skipped. Now ${gameData.players[nextIdx].name}'s turn.`]
+                                            });
+                                        }, 800);
+                                    }
+                                }
+                            }
                         }
 
                         // 🤝 Check for pending trades
@@ -3766,11 +4673,16 @@
                             const auctionChanged = !oldGameData || !oldGameData.auction ||
                                 JSON.stringify(oldGameData.auction) !== JSON.stringify(gameData.auction);
 
-                            // Start timer if auction just started
-                            // ⚠️ Sadece HOST timer'ı çalıştırır — yoksa her client saniyede
-                            // bir azaltıp timer'ı N kat hızlı bitiriyordu
-                            if (auctionChanged && !auctionTimerInterval && localPlayer.id === gameData.hostId) {
-                                auctionTimerInterval = setInterval(updateAuctionTimer, 1000);
+                            // ── New fast local timer: runs on EVERY participant, no server writes ──
+                            // When auction state changes (bid placed / pass / new auction),
+                            // reset the local countdown from the authoritative server value.
+                            if (auctionChanged && gameData.auction.playersInAuction.includes(localPlayer.id)) {
+                                auctionLocalTimeRemaining = gameData.auction.timeRemaining;
+                                startLocalAuctionTimer(auctionLocalTimeRemaining);
+                                renderAuctionModal();
+                            } else if (auctionChanged) {
+                                // Spectating (already passed) — still render so they can watch
+                                renderAuctionModal();
                             }
 
                             // 🤖 Bot auction bidding — sadece HOST botları oynatır.
@@ -3796,7 +4708,7 @@
                                         const increment = 10 + Math.floor(Math.random() * 3) * 10; // +10/20/30
                                         const nextBid = currentBid + increment;
 
-                                        if (nextBid <= maxBid && Math.random() < 0.85) {
+                                        if (nextBid <= maxBid && Math.random() < 0.75) {
                                             placeBid(nextBid, bot.id);
                                         } else if (currentBid + 10 > maxBid) {
                                             // Üst sınırı geçti — açık artırmadan çekil
@@ -3806,17 +4718,14 @@
                                     }, delay);
                                 });
                             }
-
-                            if (auctionChanged && gameData.auction.playersInAuction.includes(localPlayer.id)) {
-                                showAuctionModal();
-                            }
                         } else {
-                            // Auction ended - close modal for everyone
+                            // Auction ended - close overlay for everyone
                             if (oldGameData && oldGameData.auction && oldGameData.auction.active) {
+                                hideAuctionOverlay();
                                 hideModal();
                             }
 
-                            // Clear timer if auction ended
+                            // Clear local timer if auction ended externally
                             if (auctionTimerInterval) {
                                 clearInterval(auctionTimerInterval);
                                 auctionTimerInterval = null;
@@ -3963,13 +4872,13 @@
                     // Sadece önemli hataları göster, "Unknown message type" gibi tekrarlayan hataları gösterme
                     if (message.message && !message.message.includes('Unknown message type')) {
                         console.error('❌ Server error:', message.message);
-                        
+
                         // Eğer oyun bulunamadıysa stale session'ı temizle ve lobby'ye dön
                         if (message.message.includes('Game not found')) {
                             localStorage.removeItem('monopolyCurrentGameId');
                             localStorage.removeItem('monopolyPlayerId');
                             currentGameId = null;
-                            
+
                             // UI'ı lobby ekranına döndür
                             if (lobby) {
                                 lobby.classList.remove('hidden');
@@ -3984,7 +4893,7 @@
                                 gameContainer.style.cssText = 'display: none !important;';
                             }
                             document.body.classList.remove('in-game');
-                            
+
                             showModal('Game Ended', 'This game session has ended or does not exist anymore.', [{ text: 'OK', class: 'bg-blue-500', action: hideModal }]);
                             return;
                         }
@@ -4489,6 +5398,19 @@
             }
             indicator.style.backgroundColor = ownerColor;
 
+            // Hemen background rengi ekle (40% opacity)
+            const spaceInner = spaceEl.querySelector('.space-inner');
+            if (spaceInner) {
+                const opacityColor = ownerColor.startsWith('#') ? (ownerColor + '66') : ownerColor;
+                spaceInner.style.setProperty('background-color', opacityColor, 'important');
+                spaceInner.style.borderRadius = 'inherit';
+                // On side columns the tile geometry is transposed — fill the full area
+                if (spaceEl.classList.contains('edge-left') || spaceEl.classList.contains('edge-right')) {
+                    spaceInner.style.width = '100%';
+                    spaceInner.style.height = '100%';
+                }
+            }
+
             // Animate the space card
             spaceEl.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
             spaceEl.style.transform = 'scale(1.2)';
@@ -4719,105 +5641,265 @@
             return { row: 1, col: 1, edgeClass: 'corner', cornerClass: 'corner-start' };
         }
 
-        // Character selection
-        const characterBtns = document.querySelectorAll('.character-btn');
+        // Color tokens system
+        const tokenColors = [
+            '#EF4444',  // Red
+            '#3B82F6',  // Blue
+            '#10B981',  // Green
+            '#F59E0B',  // Orange
+            '#8B5CF6',  // Purple
+            '#EC4899',  // Pink
+            '#06B6D4',  // Cyan
+            '#F97316'   // Orange-Red
+        ];
 
-        // Function to update character button availability
-        function updateCharacterAvailability() {
-            if (!gameData || !gameData.players) return;
+        const colorToCharacterMap = {
+            '#EF4444': 'car',
+            '#3B82F6': 'ship',
+            '#10B981': 'dog',
+            '#F59E0B': 'hat',
+            '#8B5CF6': 'iron',
+            '#EC4899': 'cat',
+            '#06B6D4': 'shoe',
+            '#F97316': 'money'
+        };
 
-            // Get list of taken characters (excluding local player)
-            const takenCharacters = gameData.players
+        let selectedColor = '#EF4444'; // default selected color
+
+        function renderColorTokens() {
+            const grid = document.getElementById('token-color-grid');
+            if (!grid) return;
+            grid.innerHTML = tokenColors.map(color => `
+                <button type="button" class="color-token-btn ${color === selectedColor ? 'selected' : ''}" style="--token-color: ${color};" data-color="${color}"></button>
+            `).join('');
+
+            // Add click event listeners
+            grid.querySelectorAll('.color-token-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    grid.querySelectorAll('.color-token-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedColor = btn.dataset.color;
+                    selectedCharacter = colorToCharacterMap[selectedColor] || 'money';
+                    console.log('🎨 Chosen token color:', selectedColor, 'character:', selectedCharacter);
+                });
+            });
+        }
+
+        function updateColorTokenAvailability() {
+            const grid = document.getElementById('token-color-grid');
+            if (!grid || !gameData || !gameData.players) return;
+
+            const takenColors = gameData.players
                 .filter(p => p.id !== localPlayer.id)
-                .map(p => p.character);
+                .map(p => p.color);
 
-            characterBtns.forEach(btn => {
-                const char = btn.dataset.char;
-                const isTaken = takenCharacters.includes(char);
+            grid.querySelectorAll('.color-token-btn').forEach(btn => {
+                const color = btn.dataset.color;
+                const isTaken = takenColors.includes(color);
+                btn.disabled = isTaken;
 
-                if (isTaken) {
-                    // Disable taken characters
-                    btn.disabled = true;
-                    btn.style.opacity = '0.3';
-                    btn.style.cursor = 'not-allowed';
-                    btn.style.filter = 'grayscale(100%)';
-                    btn.title = 'Bu karakter başka bir oyuncu tarafından seçildi';
-                } else {
-                    // Enable available characters
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                    btn.style.cursor = 'pointer';
-                    btn.style.filter = 'none';
-                    btn.title = '';
+                if (isTaken && color === selectedColor) {
+                    btn.classList.remove('selected');
+                    const firstAvailableBtn = grid.querySelector('.color-token-btn:not(:disabled)');
+                    if (firstAvailableBtn) {
+                        firstAvailableBtn.click();
+                    }
                 }
             });
         }
 
-        characterBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                // Check if character is taken
-                if (this.disabled) {
-                    alert('Bu karakter başka bir oyuncu tarafından seçildi. Lütfen başka bir karakter seçin.');
-                    return;
+        // Bridge function so original lobby UI updates call our new token picker updates
+        function updateCharacterAvailability() {
+            updateColorTokenAvailability();
+        }
+
+        // Mini board preview generator
+        function renderLobbyBoardPreview(mapName) {
+            const previewContainer = document.getElementById('lobby-board-preview');
+            if (!previewContainer) return;
+
+            const boardData = mapBoards[mapName] || mapBoards.classic;
+            previewContainer.innerHTML = '';
+
+            boardData.forEach((spaceData, i) => {
+                const spaceEl = document.createElement('div');
+                spaceEl.className = 'mini-space';
+
+                const placement = getBoardPlacement(i);
+                spaceEl.style.gridRow = String(placement.row);
+                spaceEl.style.gridColumn = String(placement.col);
+
+                if ([0, 10, 20, 30].includes(i)) {
+                    spaceEl.classList.add('corner');
                 }
 
-                // Remove selection from all
-                characterBtns.forEach(b => {
-                    b.classList.remove('border-blue-500', 'bg-blue-50', 'border-4');
-                    b.style.boxShadow = '';
-                    b.style.transform = '';
+                if (spaceData.type === 'property' && spaceData.color) {
+                    spaceEl.classList.add('property-color');
+                    spaceEl.style.setProperty('--prop-color', spaceData.color);
+                }
+
+                let symbol = '';
+                if (spaceData.type === 'go') symbol = '➡️';
+                else if (spaceData.type === 'jail') symbol = '🔒';
+                else if (spaceData.type === 'free_parking') symbol = '🌴';
+                else if (spaceData.type === 'go_to_jail') symbol = '☠️';
+                else if (spaceData.type === 'railroad') symbol = '✈️';
+                else if (spaceData.type === 'utility') symbol = '⚡';
+                else if (spaceData.type === 'chance') symbol = '?';
+                else if (spaceData.type === 'community_chest') symbol = '📦';
+                else if (spaceData.type === 'tax') symbol = '💸';
+
+                spaceEl.textContent = symbol;
+                previewContainer.appendChild(spaceEl);
+            });
+        }
+
+        // Map Browser Modal
+        function openMapBrowserModal() {
+            const mapChoicesHTML = `
+                <div class="grid grid-cols-2 gap-3 p-2">
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="classic">
+                        <div class="font-bold text-sm">🏛️ Classic</div>
+                        <div class="text-[10px] text-gray-400">Traditional layout</div>
+                    </button>
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="turkey">
+                        <div class="font-bold text-sm">🇹🇷 Türkiye</div>
+                        <div class="text-[10px] text-gray-400">Istanbul, Ankara, Izmir</div>
+                    </button>
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="world">
+                        <div class="font-bold text-sm">🌍 World</div>
+                        <div class="text-[10px] text-gray-400">Global landmarks</div>
+                    </button>
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="holland">
+                        <div class="font-bold text-sm">🇳🇱 Holland</div>
+                        <div class="text-[10px] text-gray-400">Netherlands cities</div>
+                    </button>
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="megarich">
+                        <div class="font-bold text-sm">💎 Mega Rich</div>
+                        <div class="text-[10px] text-gray-400">High starting cash & luxury</div>
+                    </button>
+                    <button type="button" class="map-choice-btn p-3 border-2 border-white/10 rounded-lg text-left hover:border-purple-500 hover:bg-purple-950/20 transition" data-map="custom">
+                        <div class="font-bold text-sm">⚙️ Custom</div>
+                        <div class="text-[10px] text-gray-400">Edit properties manually</div>
+                    </button>
+                </div>
+            `;
+
+            showModal('🗺️ Select Board Map', mapChoicesHTML, [
+                { text: 'Cancel', class: 'bg-gray-500', action: hideModal }
+            ]);
+
+            document.querySelectorAll('.map-choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const mapName = btn.dataset.map;
+                    selectedMap = mapName;
+
+                    const label = document.getElementById('lobby-active-map');
+                    if (label) label.textContent = mapName;
+
+                    renderLobbyBoardPreview(mapName);
+
+                    const customizeTitle = document.getElementById('customize-board-title');
+                    const propertiesEditor = document.getElementById('properties-editor');
+                    if (mapName === 'custom') {
+                        if (customizeTitle) customizeTitle.style.display = 'block';
+                        if (propertiesEditor) propertiesEditor.style.display = 'grid';
+                        populateSettingsEditor(mapBoards.custom || mapBoards.classic);
+                    } else {
+                        if (customizeTitle) customizeTitle.style.display = 'none';
+                        if (propertiesEditor) propertiesEditor.style.display = 'none';
+                    }
+
+                    broadcastLobbySettings();
+                    hideModal();
+                    console.log('🗺️ Map changed to:', mapName);
                 });
-
-                // Add strong visual selection
-                this.classList.add('border-blue-500', 'bg-blue-50', 'border-4');
-                this.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.8)';
-                this.style.transform = 'scale(1.1)';
-
-                selectedCharacter = this.dataset.char;
-                console.log(`✅ Character selected: ${selectedCharacter}`);
-
-                // Visual feedback for mobile
-                const emoji = this.textContent;
-                lobbyError.textContent = `Selected: ${emoji}`;
-                lobbyError.style.color = '#3b82f6';
-                setTimeout(() => {
-                    lobbyError.textContent = '';
-                    lobbyError.style.color = '';
-                }, 2000);
             });
-        });
-        // Don't auto-select first character - let user choose
-        // characterBtns[0].click();
+        }
 
-        // Map selection
-        const mapBtns = document.querySelectorAll('.map-btn');
-        const mapPreview = document.getElementById('map-preview');
-        const mapNames = {
-            classic: '🏛️ Classic',
-            turkey: '🇹🇷 Türkiye',
-            world: '🌍 World',
-            holland: '🇳🇱 Holland',
-            megarich: '💎 Mega Rich',
-            custom: '⚙️ Custom'
-        };
-        mapBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                mapBtns.forEach(b => b.classList.remove('border-blue-500', 'bg-blue-50'));
-                this.classList.add('border-blue-500', 'bg-blue-50');
-                selectedMap = this.dataset.map;
+        // Host settings real-time broadcaster
+        function broadcastLobbySettings() {
+            if (!currentGameId || !gameData || localPlayer.id !== gameData.hostId) return;
 
-                // Update both preview elements (main menu and lobby)
-                const mainMapPreview = document.getElementById('main-map-preview');
-                if (mapPreview) {
-                    mapPreview.textContent = `(${mapNames[selectedMap]} selected)`;
-                }
-                if (mainMapPreview) {
-                    mainMapPreview.textContent = `(${mapNames[selectedMap]} selected)`;
-                }
+            const settings = {
+                startingMoney: parseInt(document.getElementById('startingMoney').value) || 1500,
+                passGoAmount: parseInt(document.getElementById('passGoAmount').value) || 200,
+                maxPlayers: parseInt(document.getElementById('playerCount').value) || 4,
+                allowTrading: document.getElementById('allowTrading').checked,
+                allowDoubles: document.getElementById('allowDoubles').checked,
+                board: gameData.settings ? gameData.settings.board : mapBoards[selectedMap],
+                map: selectedMap,
+                allowBots: document.getElementById('rule-allowBots').checked,
+                onlyLoggedIn: document.getElementById('rule-onlyLoggedIn').checked,
+                doubleRentFullSet: document.getElementById('rule-doubleRent').checked,
+                vacationCash: document.getElementById('rule-vacationCash').checked,
+                noRentInPrison: document.getElementById('rule-noRentInPrison').checked,
+                allowAuction: document.getElementById('rule-allowAuction').checked,
+                evenBuild: document.getElementById('rule-evenBuild').checked,
+                randomizeOrder: document.getElementById('rule-randomizeOrder').checked,
+                allowShares: document.getElementById('rule-allowShares').checked
+            };
 
-                console.log('✅ Selected map:', selectedMap);
+            sendMessage({
+                type: 'update_lobby_settings',
+                gameId: currentGameId,
+                settings: settings
             });
-        });
+        }
+
+        function bindLobbySettingsListeners() {
+            const inputs = ['playerCount', 'privateGameCheckbox', 'rule-allowBots', 'rule-onlyLoggedIn', 'allowTrading', 'allowDoubles', 'rule-doubleRent', 'rule-vacationCash', 'rule-noRentInPrison', 'rule-allowAuction', 'rule-evenBuild', 'rule-randomizeOrder', 'startingMoney', 'passGoAmount', 'rule-allowShares'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', broadcastLobbySettings);
+                    el.addEventListener('input', broadcastLobbySettings);
+                }
+            });
+        }
+
+        // Guest settings sync
+        function syncLobbySettingsUI() {
+            if (!gameData || !gameData.settings) return;
+
+            const isHost = localPlayer.id === gameData.hostId;
+
+            document.getElementById('playerCount').value = gameData.settings.maxPlayers || 4;
+            document.getElementById('privateGameCheckbox').checked = !!gameData.settings.private;
+            document.getElementById('startingMoney').value = gameData.settings.startingMoney || 1500;
+            document.getElementById('passGoAmount').value = gameData.settings.passGoAmount || 200;
+            document.getElementById('allowTrading').checked = gameData.settings.allowTrading !== false;
+
+            const mapLabel = document.getElementById('lobby-active-map');
+            if (mapLabel) mapLabel.textContent = gameData.settings.map || 'classic';
+
+            document.getElementById('rule-allowBots').checked = gameData.settings.allowBots !== false;
+            document.getElementById('rule-onlyLoggedIn').checked = !!gameData.settings.onlyLoggedIn;
+            document.getElementById('rule-doubleRent').checked = gameData.settings.doubleRentFullSet !== false;
+            document.getElementById('rule-vacationCash').checked = !!gameData.settings.vacationCash;
+            document.getElementById('rule-noRentInPrison').checked = !!gameData.settings.noRentInPrison;
+            document.getElementById('rule-allowAuction').checked = gameData.settings.allowAuction !== false;
+            document.getElementById('rule-evenBuild').checked = gameData.settings.evenBuild !== false;
+            document.getElementById('rule-randomizeOrder').checked = !!gameData.settings.randomizeOrder;
+            document.getElementById('rule-allowShares').checked = gameData.settings.allowShares !== false;
+
+            const inputs = ['playerCount', 'privateGameCheckbox', 'rule-allowBots', 'rule-onlyLoggedIn', 'allowTrading', 'allowDoubles', 'rule-doubleRent', 'rule-vacationCash', 'rule-noRentInPrison', 'rule-allowAuction', 'rule-evenBuild', 'rule-randomizeOrder', 'startingMoney', 'passGoAmount', 'rule-allowShares'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !isHost;
+            });
+
+            const browseBtn = document.getElementById('browse-maps-btn');
+            if (browseBtn) browseBtn.disabled = !isHost;
+
+            if (gameData.settings.map && gameData.settings.map !== selectedMap) {
+                selectedMap = gameData.settings.map;
+                renderLobbyBoardPreview(selectedMap);
+            }
+        }
+
+        // Map browser button listener
+        document.getElementById('browse-maps-btn').addEventListener('click', openMapBrowserModal);
         // Otomatik map seçimi kaldırıldı. Kullanıcı bir map seçmeli.
 
         // Game mode selection
@@ -4911,7 +5993,7 @@
                 const hostPlayer = {
                     id: localPlayer.id,
                     name: localPlayer.name,
-                    color: playerColors[0],
+                    color: selectedColor,
                     money: parseInt(document.getElementById('startingMoney').value),
                     position: 0,
                     character: selectedCharacter,
@@ -4950,6 +6032,15 @@
                             map: selectedMap,
                             chanceCards: mode.noLuck ? [] : defaultCards.chance,
                             communityChestCards: mode.noLuck ? [] : defaultCards.community_chest,
+                            allowBots: document.getElementById('rule-allowBots').checked,
+                            onlyLoggedIn: document.getElementById('rule-onlyLoggedIn').checked,
+                            doubleRentFullSet: document.getElementById('rule-doubleRent').checked,
+                            vacationCash: document.getElementById('rule-vacationCash').checked,
+                            noRentInPrison: document.getElementById('rule-noRentInPrison').checked,
+                            allowAuction: document.getElementById('rule-allowAuction').checked,
+                            evenBuild: document.getElementById('rule-evenBuild').checked,
+                            randomizeOrder: document.getElementById('rule-randomizeOrder').checked,
+                            allowShares: document.getElementById('rule-allowShares').checked
                         }
                     });
                     console.log('✅ Game creation message sent:', gameId);
@@ -5049,7 +6140,7 @@
                     const newPlayer = {
                         id: localPlayer.id,
                         name: localPlayer.name,
-                        color: '', // Server tarafında atanacak
+                        color: selectedColor,
                         position: 0,
                         character: selectedCharacter,
                         team: '', // No team at start
@@ -5130,6 +6221,15 @@
                 map: gameData.settings.map, // Preserve the map selection
                 chanceCards: defaultCards.chance,
                 communityChestCards: defaultCards.community_chest,
+                allowBots: document.getElementById('rule-allowBots').checked,
+                onlyLoggedIn: document.getElementById('rule-onlyLoggedIn').checked,
+                doubleRentFullSet: document.getElementById('rule-doubleRent').checked,
+                vacationCash: document.getElementById('rule-vacationCash').checked,
+                noRentInPrison: document.getElementById('rule-noRentInPrison').checked,
+                allowAuction: document.getElementById('rule-allowAuction').checked,
+                evenBuild: document.getElementById('rule-evenBuild').checked,
+                randomizeOrder: document.getElementById('rule-randomizeOrder').checked,
+                allowShares: document.getElementById('rule-allowShares').checked
             };
 
             console.log('🎮 Starting game with map:', gameData.settings.map);
@@ -5159,19 +6259,44 @@
                 creditHistory: [] // Kredi geçmişi
             }));
 
+            // Randomize turn order if rule enabled
+            let finalPlayers = initializedPlayers;
+            if (settings.randomizeOrder) {
+                finalPlayers = [...initializedPlayers];
+                for (let idx = finalPlayers.length - 1; idx > 0; idx--) {
+                    const randomIdx = Math.floor(Math.random() * (idx + 1));
+                    [finalPlayers[idx], finalPlayers[randomIdx]] = [finalPlayers[randomIdx], finalPlayers[idx]];
+                }
+                console.log('🎲 Turn order randomized:', finalPlayers.map(p => p.name));
+            }
+
             sendMessage({
                 type: 'start_game',
                 gameId: currentGameId,
                 settings: settings,
-                players: initializedPlayers
+                players: finalPlayers
             });
         });
 
-        // --- UI TRANSITIONS ---
         function showGameSettings() {
-            lobby.classList.add('hidden');
-            gameContainer.classList.add('hidden');
-            gameSettingsScreen.classList.remove('hidden');
+            // Manage dashboard modal visibility
+            document.getElementById('appearance-modal').classList.add('hidden');
+            document.getElementById('lobby-waiting-room').classList.remove('hidden');
+
+            const isHost = gameData && localPlayer.id === gameData.hostId;
+            const waitingStatus = document.getElementById('lobby-waiting-status');
+            if (waitingStatus) {
+                waitingStatus.style.display = isHost ? 'none' : 'block';
+            }
+
+            const addBotBtn = document.getElementById('addBotBtn');
+            const startGameBtn = document.getElementById('startGameBtn');
+            if (addBotBtn) addBotBtn.style.display = isHost ? 'block' : 'none';
+            if (startGameBtn) {
+                startGameBtn.style.display = isHost ? 'block' : 'none';
+                startGameBtn.textContent = '🚀 Start Game';
+            }
+
             displayGameId.textContent = currentGameId;
 
             // Generate shareable link
@@ -5182,71 +6307,18 @@
                 gameLinkInput.value = gameLink;
             }
 
-            populateSettingsEditor(gameData.settings.board);
+            // Sync Settings and edit mode
+            syncLobbySettingsUI();
+            if (gameData && gameData.settings && gameData.settings.board) {
+                populateSettingsEditor(gameData.settings.board);
+            }
 
-            // Mobilde oyun kontrol butonlarını gizle
+            // Remove in-game classes
             document.body.classList.remove('in-game');
-
-            // Hide game link display in settings screen
-            const gameLinkDisplay = document.getElementById('game-link-display');
-            const gameLinkDisplayMobile = document.getElementById('game-link-display-mobile');
-            if (gameLinkDisplay) {
-                gameLinkDisplay.classList.add('hidden');
-            }
-            if (gameLinkDisplayMobile) {
-                gameLinkDisplayMobile.classList.add('hidden');
-            }
-
-            // Show game-settings-only elements
-            const customizeTitle = document.getElementById('customize-board-title');
-            const propertiesEditor = document.getElementById('properties-editor');
-            const lobbyControls = document.getElementById('lobby-controls');
-            const allowTradingContainer = document.getElementById('allow-trading-container');
-            const auctionTimerContainer = document.getElementById('auction-timer-container');
-
-            if (customizeTitle) customizeTitle.style.display = 'block';
-            if (propertiesEditor) propertiesEditor.style.display = 'grid';
-            if (lobbyControls) lobbyControls.style.display = 'flex';
-            if (allowTradingContainer) allowTradingContainer.style.display = 'flex';
-            if (auctionTimerContainer) auctionTimerContainer.style.display = 'block';
         }
 
         function showWaitingLobby() {
-            lobby.classList.add('hidden');
-            gameContainer.classList.add('hidden');
-            gameSettingsScreen.classList.remove('hidden');
-
-            // Mobilde oyun kontrol butonlarını gizle
-            document.body.classList.remove('in-game');
-
-            // Hide game link display in waiting lobby
-            const gameLinkDisplay = document.getElementById('game-link-display');
-            const gameLinkDisplayMobile = document.getElementById('game-link-display-mobile');
-            if (gameLinkDisplay) {
-                gameLinkDisplay.classList.add('hidden');
-            }
-            if (gameLinkDisplayMobile) {
-                gameLinkDisplayMobile.classList.add('hidden');
-            }
-
-            gameSettingsScreen.querySelectorAll('input, button').forEach(el => {
-                if (el.id !== 'displayGameId' && el.id !== 'copyGameIdBtn') el.disabled = true;
-            });
-            startGameBtn.textContent = 'Waiting for Host to Start...';
-            displayGameId.textContent = currentGameId;
-
-            // Show game-settings-only elements (but disabled)
-            const customizeTitle = document.getElementById('customize-board-title');
-            const propertiesEditor = document.getElementById('properties-editor');
-            const lobbyControls = document.getElementById('lobby-controls');
-            const allowTradingContainer = document.getElementById('allow-trading-container');
-            const auctionTimerContainer = document.getElementById('auction-timer-container');
-
-            if (customizeTitle) customizeTitle.style.display = 'block';
-            if (propertiesEditor) propertiesEditor.style.display = 'grid';
-            if (lobbyControls) lobbyControls.style.display = 'flex';
-            if (allowTradingContainer) allowTradingContainer.style.display = 'flex';
-            if (auctionTimerContainer) auctionTimerContainer.style.display = 'block';
+            showGameSettings();
         }
 
         // Apply map-specific theme to board
@@ -5298,6 +6370,12 @@
         }
 
         function showGame() {
+            const newLobby = document.getElementById('new-lobby');
+            if (newLobby) {
+                newLobby.classList.add('hidden');
+                newLobby.style.cssText = 'display: none !important; visibility: hidden !important; position: fixed !important; left: -9999px !important; z-index: -9999 !important;';
+            }
+
             lobby.classList.add('hidden');
             lobby.style.cssText = 'display: none !important; visibility: hidden !important; position: fixed !important; left: -9999px !important; z-index: -9999 !important;';
 
@@ -5444,12 +6522,11 @@
                 spaceEl.style.gridRow = String(placement.row);
                 spaceEl.style.gridColumn = String(placement.col);
 
-                // Add corner class for special spaces
-                if ([0, 10, 20, 30].includes(i)) {
-                    spaceEl.classList.add('corner');
+                const edgeClass = placement.edgeClass;
+                if (edgeClass) {
+                    spaceEl.classList.add(edgeClass);
                 }
 
-                const edgeClass = placement.edgeClass;
                 if (placement.cornerClass) {
                     spaceEl.classList.add(placement.cornerClass);
                 }
@@ -5478,7 +6555,8 @@
                         const flagBgHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="property-flag-bg" alt="" aria-hidden="true" loading="lazy" />` : '';
                         const flagHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="flag-icon" alt="${spaceData.countryCode} flag" loading="lazy" />` : '';
                         content = `${ownerHTML}<div class="space-name">${spaceData.name}</div>`;
-                        spaceEl.innerHTML = `<div class="property-flag-bg-wrap">${flagBgHTML}</div><div class="space-inner ${edgeClass}">${content}${priceLabel}${flagHTML}</div>`;
+                        // houses-container is always present so updateBoardPiecesAndHouses can inject buildings
+                        spaceEl.innerHTML = `<div class="property-flag-bg-wrap">${flagBgHTML}</div><div class="houses-container"></div><div class="space-inner ${edgeClass}">${content}${priceLabel}${flagHTML}</div>`;
                         spacesContainer.appendChild(spaceEl);
 
                         // 🏠 Add click event to show property details
@@ -5806,8 +6884,8 @@
                 // Check if any modal is currently open blocking the user's view
                 const modal = document.getElementById('modal');
                 const mgmtModal = document.getElementById('gameManagementModal');
-                const isModalActive = (modal && !modal.classList.contains('hidden')) || 
-                                      (mgmtModal && !mgmtModal.classList.contains('hidden'));
+                const isModalActive = (modal && !modal.classList.contains('hidden')) ||
+                    (mgmtModal && !mgmtModal.classList.contains('hidden'));
 
                 if (isModalActive && !isMyTurn) {
                     console.log('🙈 Modal/menu is active, skipping dice roll overlay for other player');
@@ -5838,7 +6916,7 @@
                         <div id="dice-overlay-container" class="dice-animation-container rolling">
                             <!-- Particles -->
                             <div id="dice-overlay-particles" class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl hidden"></div>
-                            
+
                             <!-- 2D Dice Wrapper -->
                             <div id="dice-scenes-wrapper" class="flex gap-6 justify-center items-center"></div>
                         </div>
@@ -6037,7 +7115,7 @@
             if (dice2El) dice2El.textContent = dice2;
         }
 
-        window.toggleGameLog = function() {
+        window.toggleGameLog = function () {
             const container = document.getElementById('game-log-container');
             const icon = document.getElementById('log-toggle-icon');
             const propList = document.getElementById('my-properties-list');
@@ -6062,8 +7140,13 @@
             if (!listEl || !gameData || !localPlayer) return;
 
             const myProperties = gameData.properties
-                .map((prop, idx) => ({...prop, spaceIndex: idx}))
-                .filter(prop => prop.owners && prop.owners[localPlayer.id] > 0);
+                .map((prop, idx) => ({ ...prop, spaceIndex: idx }))
+                .filter(prop => {
+                    if (!prop) return false;
+                    if (prop.ownerId === localPlayer.id) return true;
+                    if (prop.owners && prop.owners[localPlayer.id] > 0) return true;
+                    return false;
+                });
 
             if (countEl) {
                 countEl.textContent = myProperties.length;
@@ -6077,8 +7160,8 @@
             listEl.innerHTML = myProperties.map(prop => {
                 const space = gameData.settings.board[prop.spaceIndex];
                 const propColor = space.color || '#cccccc';
-                const share = prop.owners[localPlayer.id] || 0;
-                
+                const share = (prop.owners && prop.owners[localPlayer.id]) ? prop.owners[localPlayer.id] : (prop.ownerId === localPlayer.id ? 100 : 0);
+
                 let housesHTML = '';
                 if (prop.houses > 0) {
                     if (prop.houses === 5) {
@@ -6087,8 +7170,8 @@
                         housesHTML = `<span class="text-[10px] bg-green-950/60 text-green-400 px-1.5 py-0.5 rounded border border-green-900/40">🏠 ${prop.houses}</span>`;
                     }
                 }
-                
-                const mortgageHTML = prop.isMortgaged ? 
+
+                const mortgageHTML = prop.isMortgaged ?
                     `<span class="text-[9px] bg-red-950/60 text-red-500 font-bold px-1.5 py-0.5 rounded border border-red-900/50">MORTGAGED</span>` : '';
 
                 return `
@@ -6109,6 +7192,35 @@
             }).join('');
         }
 
+        function updateTradesPanel() {
+            const listEl = document.getElementById('trades-incoming-list');
+            if (!listEl || !gameData) return;
+            const incoming = (gameData.trades || []).filter(t => t && t.toId === localPlayer.id && t.status === 'pending');
+            const outgoing = (gameData.trades || []).filter(t => t && t.fromId === localPlayer.id && t.status === 'pending');
+            if (incoming.length === 0 && outgoing.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-500 italic">No pending trades.</p>';
+                return;
+            }
+            let html = '';
+            incoming.forEach(trade => {
+                const from = gameData.players.find(p => p.id === trade.fromId);
+                if (!from) return;
+                html += `<div class="flex items-center justify-between px-2 py-1 rounded text-xs" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);">
+                    <span class="text-green-400 font-semibold truncate">📥 ${from.name}</span>
+                    <button onclick="window.respondToTrade('${trade.id}')" class="text-[10px] px-1.5 py-0.5 rounded neon-btn-cyan flex-shrink-0 ml-1">View</button>
+                </div>`;
+            });
+            outgoing.forEach(trade => {
+                const to = gameData.players.find(p => p.id === trade.toId);
+                if (!to) return;
+                html += `<div class="flex items-center justify-between px-2 py-1 rounded text-xs" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);">
+                    <span class="text-purple-300 truncate">📤 → ${to.name}</span>
+                    <button onclick="window.cancelTrade('${trade.id}')" class="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ml-1" style="background:rgba(239,68,68,0.3);color:#fca5a5;">✕</button>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+        }
+
         function updateGameUI() {
             const currentPlayer = gameData.players[gameData.currentPlayerIndex];
             const isMyTurn = currentPlayer && currentPlayer.id === localPlayer.id;
@@ -6126,16 +7238,16 @@
             updateControls();
             updateGameLog();
             updateMyPropertiesDisplay();
+            updateTradesPanel();
             updateBoardTitle();
 
             // Update dice display if lastDiceRoll exists
             if (gameData.lastDiceRoll && gameData.lastDiceRoll.length === 2 && gameData.lastDiceRoll[0] > 0) {
                 updateDiceDisplay(gameData.lastDiceRoll[0], gameData.lastDiceRoll[1]);
-                // 🎲 Trigger dice animation for OTHER players as soon as we receive a new rollId.
-                // The rolling player already set lastAnimatedRollId before broadcasting,
-                // so they won't double-animate. Other players animate on either 'rolling' or 'rolled'.
-                if (!isMyTurn && 
-                    (gameData.turnState === 'rolled' || gameData.turnState === 'rolling') &&
+                // Only animate for OTHER players. The roller already set window.lastAnimatedRollId before broadcasting.
+                // Also skip the 'rolling' transient state — only animate on 'rolled' (final values).
+                if (!isMyTurn &&
+                    gameData.turnState === 'rolled' &&
                     gameData.rollId && gameData.rollId !== window.lastAnimatedRollId) {
                     window.lastAnimatedRollId = gameData.rollId;
                     rollCSSDice(gameData.lastDiceRoll[0], gameData.lastDiceRoll[1]);
@@ -6228,50 +7340,13 @@
                 const playerProperties = gameData.properties
                     .map((prop, idx) => ({ ...prop, spaceIndex: idx }))
                     .filter(prop => prop.owners && prop.owners[p.id] > 0);
-                let propertiesHTML = '';
-                if (playerProperties.length > 0) {
-                    // Mobile: expandable property list
-                    propertiesHTML = `
-                        <div class="mt-2">
-                            <button class="property-list-toggle text-xs px-2 py-1 rounded mb-1" style="background: #374151; color: #D1D5DB;" onclick="window.togglePropertyList('${p.id}')">${playerProperties.length} Properties ▼</button>
-                            <div class="property-list hidden flex flex-wrap gap-1 max-h-32 overflow-y-auto">
-                                ${playerProperties.map(prop => {
-                        const space = gameData.settings.board[prop.spaceIndex];
-                        const propColor = space.color || '#cccccc';
-                        const housesDisplay = prop.houses > 0 ? (prop.houses === 5 ? '🏨' : `🏠${prop.houses}`) : '';
-                        const share = prop.owners[p.id] || 0;
-                        return `<div class=\"property-mini-icon text-xs px-1 py-0.5 rounded\" style=\"background: #111827; border-left: 4px solid ${propColor}; color: #E5E7EB; min-width: 40px;\" title=\"${space.name}\">${space.name.substring(0, 3)}${housesDisplay} <span class=\"font-bold text-[8px]\" style=\"color: #9CA3AF;\">${share}%</span></div>`;
-                    }).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
                 return `
-                    <div class="player-card rounded-xl p-3 transition-all duration-300 cursor-pointer ${isCurrent ? 'player-card-active border-purple-500 shadow-lg' : 'border-gray-800'}" style="background: ${isCurrent ? 'linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(22, 20, 38, 0.8) 100%)' : 'rgba(22, 20, 38, 0.5)'}; border: 1px solid ${isCurrent ? 'rgba(167, 139, 250, 0.8)' : 'rgba(167, 139, 250, 0.12)'}; border-left: 4px solid ${p.color}; ${isCurrent ? 'box-shadow: 0 0 16px rgba(147, 51, 234, 0.45);' : ''}" data-player-id="${p.id}">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-6 h-6 rounded-full flex-shrink-0" style="background: linear-gradient(135deg, ${p.color} 0%, ${adjustColor(p.color, -30)} 100%); border: 2px solid #111827; box-shadow: 0 0 6px ${p.color}80;"></div>
-                                <span class="font-bold truncate text-gray-200">${teamBadge} ${p.name} ${p.id === localPlayer.id ? '<span class="text-purple-400 font-semibold">(You)</span>' : ''} ${isCurrent ? '🎲' : ''} ${p.isLucky && p.luckyTurnsLeft > 0 ? `⭐(${p.luckyTurnsLeft})` : ''}</span>
-                            </div>
-                            <span class="font-bold text-lg flex-shrink-0 text-green-400">$${p.money}</span>
-                        </div>
-                        ${p.creditAmount > 0 ? `
-                        <div class="mt-2 rounded-lg p-2" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35);">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="font-semibold text-red-400">💳 Kredi: $${p.creditAmount}</span>
-                                <span class="text-xs text-red-300">⏰ ${p.creditTurnsLeft} tur kaldı</span>
-                            </div>
-                        </div>
-                        ` : ''}
-                        ${propertiesHTML}
-                        <div class="flex justify-between items-center mt-2">
-                            ${p.inJail ? `<div class="font-bold text-sm flex items-center gap-1 text-red-400">🔒 IN JAIL</div>` : '<div></div>'}
-                            <div class="flex gap-2">
-                                ${p.id === localPlayer.id && p.money < 0 ? `<button onclick="window.declareBankruptcy()" class="text-xs px-3 py-1.5 rounded-lg neon-btn-purple" style="background: linear-gradient(135deg, #ef4444, #dc2626) !important; border-color: rgba(239, 68, 68, 0.4) !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.35) !important;">💥 İflas Et</button>` : ''}
-                                ${p.id !== localPlayer.id && gameData.settings.allowTrading ? `<button data-player-id="${p.id}" onclick="window.showTradeModal('${p.id}')" class="trade-btn text-xs px-3 py-1.5 rounded-lg neon-btn-cyan">🤝 Trade</button>` : ''}
-                                ${p.id === gameData.hostId && localPlayer.id === gameData.hostId ? `<button onclick="showGameManagementModal()" class="text-xs px-3 py-1.5 rounded-lg neon-btn-purple">🎮 Manage</button>` : ''}
-                            </div>
-                        </div>
+                    <div class="player-card-compact flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all cursor-pointer" style="background: ${isCurrent ? 'rgba(147,51,234,0.18)' : 'rgba(22,20,38,0.55)'}; border: 1px solid ${isCurrent ? 'rgba(167,139,250,0.7)' : 'rgba(167,139,250,0.1)'}; border-left: 3px solid ${p.color}; ${isCurrent ? 'box-shadow: 0 0 10px rgba(147,51,234,0.35);' : ''}" data-player-id="${p.id}">
+                        <div class="w-5 h-5 rounded-full flex-shrink-0" style="background:${p.color}; box-shadow:0 0 5px ${p.color}80; border:1.5px solid rgba(255,255,255,0.25);"></div>
+                        <span class="font-bold text-xs text-gray-200 truncate flex-1 min-w-0">${isCurrent ? '🎲 ' : ''}${p.name}${p.id === localPlayer.id ? ' <span style="color:#a78bfa;font-size:9px;">(You)</span>' : ''}${p.inJail ? ' 🔒' : ''}${p.isLucky && p.luckyTurnsLeft > 0 ? ` ⭐${p.luckyTurnsLeft}` : ''}</span>
+                        <span class="font-bold text-xs flex-shrink-0" style="color:#4ade80;">$${p.money}</span>
+                        ${p.id !== localPlayer.id && gameData.settings.allowTrading ? `<button data-player-id="${p.id}" onclick="event.stopPropagation();window.showTradeModal('${p.id}')" class="trade-btn flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded neon-btn-cyan leading-none">Trade</button>` : ''}
+                        ${p.id === localPlayer.id && p.money < 0 ? `<button onclick="event.stopPropagation();window.declareBankruptcy()" class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded leading-none" style="background:rgba(239,68,68,0.7);color:#fff;">💥</button>` : ''}
                     </div>
                 `;
             }).join('');
@@ -6311,7 +7386,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-2">
                         ${!p.isBankrupt ? `
                         <button onclick="adjustMoney('${p.id}', 100)" class="text-xs bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition">
@@ -6633,10 +7708,10 @@
                             <div class="text-sm text-gray-400">👤 Owners</div>
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${property && property.owners ? Object.entries(property.owners).map(([ownerId, percentage]) => {
-                                    const owner = gameData.players.find(p => p.id === ownerId);
-                                    if (!owner) return '';
-                                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} <span class="font-bold">${percentage}%</span></span>`;
-                                }).join(' ') : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
+                    const owner = gameData.players.find(p => p.id === ownerId);
+                    if (!owner) return '';
+                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} <span class="font-bold">${percentage}%</span></span>`;
+                }).join(' ') : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
                             </div>
                             ${property && property.houses > 0 ? `<div class="text-sm text-purple-300 mt-2 font-semibold">${property.houses === 5 ? '🏨 Hotel' : `🏠 ${property.houses} House${property.houses > 1 ? 's' : ''}`}</div>` : ''}
                         </div>
@@ -6649,7 +7724,7 @@
                             <div class="text-sm text-gray-400">💰 Purchase Price</div>
                             <div class="text-2xl font-black text-emerald-400">$${spaceData.price}</div>
                         </div>
-                        
+
                         <div class="p-3 rounded-lg border-l-4" style="background: rgba(59, 130, 246, 0.08); border-color: #3b82f6;">
                             <div class="text-sm text-gray-400 mb-2">💵 Rent by Railroads Owned</div>
                             <div class="space-y-1 text-sm text-gray-300">
@@ -6671,15 +7746,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="p-3 rounded-lg border-l-4" style="background: rgba(139, 92, 246, 0.08); border-color: #8b5cf6;">
                             <div class="text-sm text-gray-400">👤 Owners</div>
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${property && property.owners ? Object.entries(property.owners).map(([ownerId, percentage]) => {
-                                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
-                                    if (!ownerPlayer) return '';
-                                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${ownerPlayer.color}44;"><span style="color:${ownerPlayer.color}">●</span> ${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
-                                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
+                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
+                    if (!ownerPlayer) return '';
+                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${ownerPlayer.color}44;"><span style="color:${ownerPlayer.color}">●</span> ${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
+                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
                             </div>
                             ${property && property.mortgaged ? `<div class="text-sm text-red-400 font-bold mt-2">🔒 MORTGAGED</div>` : ''}
                         </div>
@@ -6692,7 +7767,7 @@
                             <div class="text-sm text-gray-400">💰 Purchase Price</div>
                             <div class="text-2xl font-black text-emerald-400">$${spaceData.price}</div>
                         </div>
-                        
+
                         <div class="p-3 rounded-lg border-l-4" style="background: rgba(59, 130, 246, 0.08); border-color: #3b82f6;">
                             <div class="text-sm text-gray-400 mb-2">💵 Rent Formula</div>
                             <div class="space-y-1 text-sm text-gray-300">
@@ -6706,15 +7781,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="p-3 rounded-lg border-l-4" style="background: rgba(139, 92, 246, 0.08); border-color: #8b5cf6;">
                             <div class="text-sm text-gray-400">👤 Owners</div>
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${property && property.owners ? Object.entries(property.owners).map(([ownerId, percentage]) => {
-                                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
-                                    if (!ownerPlayer) return '';
-                                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${ownerPlayer.color}44;"><span style="color:${ownerPlayer.color}">●</span> ${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
-                                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
+                    const ownerPlayer = gameData.players.find(p => p.id === ownerId);
+                    if (!ownerPlayer) return '';
+                    return `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${ownerPlayer.color}44;"><span style="color:${ownerPlayer.color}">●</span> ${ownerPlayer.name} <span class="font-bold">${percentage}%</span></span>`;
+                }).join(' ') : owner ? `<span class="inline-block text-xs px-2 py-1 rounded bg-purple-950/40 border border-purple-900/40 text-gray-200" style="border-color: ${owner.color}44;"><span style="color:${owner.color}">●</span> ${owner.name} ${characterIcons[owner.character] || ''} 100%</span>` : '<span class="text-gray-500 italic text-xs">🆓 Available for Purchase</span>'}
                             </div>
                             ${property && property.mortgaged ? `<div class="text-sm text-red-400 font-bold mt-2">🔒 MORTGAGED</div>` : ''}
                         </div>
@@ -6730,7 +7805,9 @@
         }
 
         function updateBoardPiecesAndHouses() {
-            renderBoard();
+            if (board.querySelectorAll('.space').length === 0) {
+                renderBoard();
+            }
             const piecesContainer = document.getElementById('pieces-container');
             if (!piecesContainer) return;
             piecesContainer.innerHTML = '';
@@ -6746,10 +7823,10 @@
                 // Get emoji from characterIcons (🤖 for bots)
                 const emoji = p.isBot ? '🤖' : (characterIcons[p.character] || '❓');
 
-                // Debug log
-                console.log(`🎮 Player ${p.name}: character='${p.character}', emoji='${emoji}'`);
-
                 pieceEl.innerHTML = emoji; // Use innerHTML to support <img> tags
+                // Apply the player's identity color as a glow ring so pieces are visually distinct
+                pieceEl.style.filter = `drop-shadow(0 0 4px ${p.color}) drop-shadow(0 2px 4px rgba(0,0,0,0.5))`;
+                pieceEl.title = p.name;
 
                 const targetSpace = document.getElementById(`space-${p.position}`);
                 if (targetSpace) {
@@ -6774,18 +7851,46 @@
             });
 
             // Update property ownership and houses
-            board.querySelectorAll('.owner-indicator, .houses-container > *').forEach(el => el.remove());
+            board.querySelectorAll('.owner-indicator').forEach(el => el.remove());
+            board.querySelectorAll('.houses-container').forEach(el => { el.innerHTML = ''; });
             gameData.properties.forEach((prop, i) => {
                 const spaceEl = document.getElementById(`space-${i}`);
                 if (!spaceEl) return;
 
-                if (prop.ownerId) {
-                    const owner = gameData.players.find(p => p.id === prop.ownerId);
+                // Reset background of space-inner
+                const spaceInner = spaceEl.querySelector('.space-inner');
+                if (spaceInner) {
+                    spaceInner.style.removeProperty('background-color');
+                    spaceInner.style.removeProperty('background');
+                    spaceInner.style.removeProperty('border-radius');
+                }
+
+                let mainOwnerId = prop.ownerId;
+                if (!mainOwnerId && prop.owners) {
+                    const ownerIds = Object.keys(prop.owners).filter(id => prop.owners[id] > 0);
+                    if (ownerIds.length > 0) {
+                        mainOwnerId = ownerIds[0];
+                    }
+                }
+
+                if (mainOwnerId) {
+                    const owner = gameData.players.find(p => p.id === mainOwnerId);
                     if (owner) {
                         const indicator = document.createElement('div');
                         indicator.className = 'owner-indicator';
                         indicator.style.backgroundColor = owner.color;
                         spaceEl.appendChild(indicator);
+
+                        if (spaceInner) {
+                            const opacityColor = owner.color.startsWith('#') ? (owner.color + '66') : owner.color;
+                            spaceInner.style.setProperty('background-color', opacityColor, 'important');
+                            spaceInner.style.borderRadius = 'inherit';
+                            // Side columns have transposed geometry — ensure fill covers the full tile
+                            if (spaceEl.classList.contains('edge-left') || spaceEl.classList.contains('edge-right')) {
+                                spaceInner.style.width = '100%';
+                                spaceInner.style.height = '100%';
+                            }
+                        }
                     }
                 }
 
@@ -6917,11 +8022,13 @@
 
             // End turn butonu her zaman görünür ama sadece kendi turunda ve action_complete'de aktif
             endTurnBtn.classList.remove('hidden'); // Her zaman göster
-            endTurnBtn.disabled = !canAct || gameData.turnState !== 'action_complete';
+            // Allow end turn if action_complete OR if auction just ended (rolled state after auction cleanup)
+            const canEndTurn = canAct && (gameData.turnState === 'action_complete' || (!gameData.auction?.active && gameData.turnState === 'rolled'));
+            endTurnBtn.disabled = !canEndTurn;
             if (!canAct) {
                 endTurnBtn.style.opacity = '0.5';
                 endTurnBtn.style.cursor = 'not-allowed';
-            } else if (gameData.turnState !== 'action_complete') {
+            } else if (!canEndTurn) {
                 endTurnBtn.style.opacity = '0.6';
                 endTurnBtn.style.cursor = 'not-allowed';
             } else {
@@ -7103,15 +8210,16 @@
 
                 console.log('🎲 Rolling dice:', die1, '+', die2, '=', total);
 
-                // IMMEDIATELY broadcast dice values so ALL players start animation at once
+                // Generate a unique rollId and mark it as already-animated locally
                 const myRollId = `${localPlayer.id}-${Date.now()}`;
-                window.lastAnimatedRollId = myRollId; // Mark so we skip the echo
+                window.lastAnimatedRollId = myRollId; // Pre-mark: skip echo animation for self
+                window.isRollingDice = true; // Extra guard against ghost triggers
 
-                // Fire-and-forget: send dice data to server right away
+                // Broadcast immediately (transient state, no server write)
                 updateGame({
                     lastDiceRoll: [die1, die2],
                     rollId: myRollId,
-                    turnState: 'rolling' // transient state so others know animation is in progress
+                    turnState: 'rolling'
                 });
 
                 // 🎲 Play animation locally (everyone else starts theirs from the broadcast)
@@ -7747,7 +8855,8 @@
             const currentPlayer = gameData.players[gameData.currentPlayerIndex];
             const isMyTurn = currentPlayer && currentPlayer.id === localPlayer.id;
 
-            if (!isMyTurn || gameData.turnState !== 'action_complete') {
+            const canEndNow = isMyTurn && (gameData.turnState === 'action_complete' || (!gameData.auction?.active && gameData.turnState === 'rolled'));
+            if (!canEndNow) {
                 console.log('Not your turn or turn not complete yet!');
                 return;
             }
@@ -7872,9 +8981,29 @@
                     payTax(space.amount);
                     break;
                 case 'free_parking':
-                    addLog('🅿️ Resting at Free Parking - nothing happens!');
-                    // Free parking does nothing, so automatically end turn
-                    setTimeout(() => endTurn(), 1000);
+                    if (gameData.settings.vacationCash && gameData.vacationCashPool > 0) {
+                        const amount = gameData.vacationCashPool;
+                        const currentPlayerIndex = gameData.currentPlayerIndex;
+                        const playersCopy = JSON.parse(JSON.stringify(gameData.players));
+                        playersCopy[currentPlayerIndex].money += amount;
+                        addLog(`🌴 ${playersCopy[currentPlayerIndex].name} collected $${amount} from Vacation Cash!`);
+
+                        await updateGame({
+                            players: playersCopy,
+                            vacationCashPool: 0
+                        });
+
+                        showModal('🌴 Vacation Cash!', `You collected $${amount} from the Vacation Cash pool!`, [
+                            { text: 'Nice!', class: 'bg-green-500', action: hideModal }
+                        ]);
+                        setTimeout(() => {
+                            hideModal();
+                            endTurn();
+                        }, 2000);
+                    } else {
+                        addLog('🅿️ Resting at Free Parking - nothing happens!');
+                        setTimeout(() => endTurn(), 1000);
+                    }
                     break;
                 default:
                     handleAfterLanding();
@@ -8197,7 +9326,7 @@
 
             availablePartners.forEach(partner => {
                 partnerHTML += `
-                    <button onclick="window.sendPartnershipRequest('${position}', ${sharePercentage}, '${partner.id}')" 
+                    <button onclick="window.sendPartnershipRequest('${position}', ${sharePercentage}, '${partner.id}')"
                             class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-between transition duration-200">
                         <span>${partner.name}</span>
                         <span class="text-sm">💰 $${partner.money}</span>
@@ -8561,7 +9690,7 @@
                         <p class="text-sm"><span class="font-semibold">${requester.name}</span> wants to partner with you on:</p>
                         <p class="text-lg font-bold text-gray-800 mt-2">${request.propertyName}</p>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-green-50 p-3 rounded-lg">
                             <p class="text-xs text-gray-600">Their Share</p>
@@ -8574,9 +9703,9 @@
                             <p class="text-sm ${canAfford ? 'text-gray-700' : 'text-red-600'}">$${request.partnerCost}</p>
                         </div>
                     </div>
-                    
+
                     ${!canAfford ? '<p class="text-red-600 text-sm text-center">⚠️ You don\'t have enough money!</p>' : ''}
-                    
+
                     <p class="text-xs text-gray-500 text-center">
                         💡 You'll share rental income and building rights based on ownership percentage.
                     </p>
@@ -8681,15 +9810,213 @@
             );
         }
 
-        // Auction system with timer - everyone can bid but not twice in a row
+        // Auction system — fast local timer, no server writes per tick
         let auctionTimerInterval = null;
+        let auctionLocalTimeRemaining = 0;
 
+        // ── Local countdown: runs on every participant, writes only to DOM ──
+        function startLocalAuctionTimer(duration) {
+            clearInterval(auctionTimerInterval);
+            auctionLocalTimeRemaining = duration;
+            // Use performance.now() for drift-free ticking
+            let tickStart = performance.now();
+            auctionTimerInterval = setInterval(() => {
+                const now = performance.now();
+                // Resync: account for setTimeout drift by computing elapsed real time
+                const elapsed = Math.round((now - tickStart) / 1000);
+                tickStart = now;
+                auctionLocalTimeRemaining = Math.max(0, auctionLocalTimeRemaining - elapsed);
+                renderAuctionModal(); // DOM-only update, zero server writes
+                if (auctionLocalTimeRemaining <= 0) {
+                    clearInterval(auctionTimerInterval);
+                    auctionTimerInterval = null;
+                    // Only the HOST actually ends the auction to avoid race conditions
+                    if (localPlayer.id === gameData.hostId) {
+                        endAuction();
+                    }
+                }
+            }, 1000);
+        }
+
+        // ── Build the rent/payout table rows for the deed panel ──
+        function buildAuctionRentRows(space) {
+            let rows = '';
+            if (space.type === 'property') {
+                const rents = space.rent || [];
+                const labels = ['0 houses', '1 house', '2 houses', '3 houses', '4 houses', 'Hotel'];
+                rents.forEach((rent, i) => {
+                    rows += `<tr${i === 0 ? ' class="highlight-row"' : ''}><td>${labels[i] || `Tier ${i}`}</td><td>$${rent}</td></tr>`;
+                });
+            } else if (space.type === 'railroad') {
+                rows = `
+                    <tr><td>1 airport owned</td><td>$25</td></tr>
+                    <tr><td>2 airports owned</td><td>$50</td></tr>
+                    <tr><td>3 airports owned</td><td>$100</td></tr>
+                    <tr><td>4 airports owned</td><td>$200</td></tr>`;
+            } else if (space.type === 'utility') {
+                rows = `
+                    <tr><td>1 utility owned</td><td>4× dice</td></tr>
+                    <tr><td>2 utilities owned</td><td>10× dice</td></tr>`;
+            }
+            return rows;
+        }
+
+        // ── Main render function — writes only to the overlay DOM nodes ──
+        function renderAuctionModal() {
+            if (!gameData || !gameData.auction || !gameData.auction.active) return;
+
+            const overlay = document.getElementById('auction-overlay');
+            if (!overlay) return;
+
+            const auction = gameData.auction;
+            const space = gameData.settings.board[auction.position];
+            const currentPlayer = gameData.players.find(p => p.id === localPlayer.id);
+            const amIInAuction = auction.playersInAuction.includes(localPlayer.id);
+            const iAmLastBidder = auction.lastBidder === localPlayer.id;
+            const canBidAtAll = currentPlayer && !currentPlayer.isBankrupt && amIInAuction && !iAmLastBidder;
+
+            const canAfford2   = currentPlayer && currentPlayer.money >= (auction.currentBid + 2);
+            const canAfford10  = currentPlayer && currentPlayer.money >= (auction.currentBid + 10);
+            const canAfford100 = currentPlayer && currentPlayer.money >= (auction.currentBid + 100);
+
+            const bidder = auction.currentBidder
+                ? gameData.players.find(p => p.id === auction.currentBidder)
+                : null;
+
+            // Show overlay
+            overlay.classList.remove('hidden');
+
+            // ── Left panel: property header ──
+            const propIcon = space.type === 'railroad' ? '✈️' : space.type === 'utility' ? '⚡' : '🏠';
+            const propIconEl = document.getElementById('auction-prop-icon');
+            const propNameEl = document.getElementById('auction-prop-name');
+            const propSubEl  = document.getElementById('auction-prop-subtitle');
+            if (propIconEl) propIconEl.textContent = propIcon;
+            if (propNameEl) propNameEl.textContent = space.name;
+            if (propSubEl)  propSubEl.textContent = `🔨 Live Auction — ${auction.playersInAuction.length} player${auction.playersInAuction.length !== 1 ? 's' : ''} bidding`;
+
+            // ── Current bid ──
+            const bidDisplay = document.getElementById('auction-bid-display');
+            if (bidDisplay) {
+                bidDisplay.textContent = `$${auction.currentBid}`;
+                bidDisplay.style.transform = 'scale(1.08)';
+                setTimeout(() => { if (bidDisplay) bidDisplay.style.transform = 'scale(1)'; }, 200);
+            }
+
+            // ── Bidder badge ──
+            const bidderDot  = document.getElementById('auction-bidder-dot');
+            const bidderName = document.getElementById('auction-bidder-name');
+            if (bidderDot)  bidderDot.style.background  = bidder ? bidder.color : 'rgba(255,255,255,0.2)';
+            if (bidderName) bidderName.textContent = bidder ? `${bidder.name} leads` : 'No bids yet';
+
+            // ── Countdown bar ──
+            const duration = auction.timerDuration || 10;
+            const pct = Math.max(0, (auctionLocalTimeRemaining / duration) * 100);
+            const bar  = document.getElementById('auction-countdown-bar');
+            const txt  = document.getElementById('auction-countdown-text');
+            if (bar) {
+                // Disable transition on first render (when pct == 100%) to avoid fill-from-0 flash
+                if (pct >= 99) {
+                    bar.style.transition = 'none';
+                    bar.style.width = `${pct}%`;
+                    // Re-enable transition after paint
+                    requestAnimationFrame(() => { bar.style.transition = 'width 1s linear, background 0.3s ease'; });
+                } else {
+                    bar.style.width = `${pct}%`;
+                }
+                if (auctionLocalTimeRemaining <= 3) {
+                    bar.classList.add('urgent');
+                } else {
+                    bar.classList.remove('urgent');
+                }
+            }
+            if (txt) txt.textContent = `${Math.ceil(auctionLocalTimeRemaining)}s`;
+
+            // ── Players remaining ──
+            const remaining = document.getElementById('auction-players-remaining');
+            if (remaining) remaining.textContent = `${auction.playersInAuction.length} player${auction.playersInAuction.length !== 1 ? 's' : ''} still bidding`;
+
+            // ── Quick-bid buttons ──
+            const btn2   = document.getElementById('auction-bid-2');
+            const btn10  = document.getElementById('auction-bid-10');
+            const btn100 = document.getElementById('auction-bid-100');
+            const passBtn = document.getElementById('auction-pass-btn');
+            const tot2   = document.getElementById('auction-bid-2-total');
+            const tot10  = document.getElementById('auction-bid-10-total');
+            const tot100 = document.getElementById('auction-bid-100-total');
+
+            if (tot2)   tot2.textContent   = `Total: $${auction.currentBid + 2}`;
+            if (tot10)  tot10.textContent  = `Total: $${auction.currentBid + 10}`;
+            if (tot100) tot100.textContent = `Total: $${auction.currentBid + 100}`;
+
+            if (btn2)   { btn2.disabled   = !canBidAtAll || !canAfford2;   btn2.onclick   = () => placeBid(auction.currentBid + 2); }
+            if (btn10)  { btn10.disabled  = !canBidAtAll || !canAfford10;  btn10.onclick  = () => placeBid(auction.currentBid + 10); }
+            if (btn100) { btn100.disabled = !canBidAtAll || !canAfford100; btn100.onclick = () => placeBid(auction.currentBid + 100); }
+            if (passBtn){ passBtn.disabled = !amIInAuction; passBtn.onclick = () => passAuction(); }
+
+            // ── Status message ──
+            const statusEl = document.getElementById('auction-status-msg');
+            if (statusEl) {
+                statusEl.className = 'auction-status-msg';
+                if (iAmLastBidder) {
+                    statusEl.textContent = '⏳ You hold the highest bid — wait for a counter-bid';
+                    statusEl.classList.add('waiting');
+                } else if (!amIInAuction) {
+                    statusEl.textContent = '❌ You have passed this auction';
+                    statusEl.classList.add('passed');
+                } else if (canBidAtAll) {
+                    statusEl.textContent = '✅ Place your bid!';
+                    statusEl.classList.add('can-bid');
+                } else {
+                    statusEl.textContent = '⏳ Waiting...';
+                    statusEl.classList.add('waiting');
+                }
+            }
+
+            // My balance
+            const myMoney = document.getElementById('auction-my-money');
+            if (myMoney) myMoney.textContent = `Your balance: $${currentPlayer?.money ?? 0}`;
+
+            // ── Right panel: deed card ──
+            const colorBand = document.getElementById('auction-deed-color-band');
+            if (colorBand) colorBand.style.background = space.color || '#7c3aed';
+            const deedName = document.getElementById('auction-deed-prop-name');
+            if (deedName) deedName.textContent = space.name;
+            const deedType = document.getElementById('auction-deed-prop-type');
+            if (deedType) deedType.textContent = space.type === 'railroad' ? 'Airport / Railroad' : space.type === 'utility' ? 'Utility' : `${space.color || ''} Property`.trim();
+
+            const rentTbody = document.getElementById('auction-rent-tbody');
+            if (rentTbody) rentTbody.innerHTML = buildAuctionRentRows(space);
+
+            const priceValue = document.getElementById('auction-deed-price-value');
+            if (priceValue) priceValue.textContent = `$${space.price || '—'}`;
+        }
+
+        // Kept for backward-compat calls that still use showAuctionModal name
+        function showAuctionModal() { renderAuctionModal(); }
+
+        function hideAuctionOverlay() {
+            const overlay = document.getElementById('auction-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
         function startAuction(position) {
             // Close both modal and property buy panel
             hideModal();
             hidePropertyBuyPanel();
 
             const space = gameData.settings.board[position];
+
+            // If auction is disabled, skip phase and end turn/pass action
+            if (gameData.settings && gameData.settings.allowAuction === false) {
+                addLog(`🔨 Auction is disabled. Skipping auction phase for ${space.name}.`);
+                updateGame({
+                    turnState: 'action_complete'
+                }).then(() => {
+                    endTurn();
+                });
+                return;
+            }
+
             const auctionTimer = gameData.settings.auctionTimer || 10;
 
             // Get all non-bankrupt players
@@ -8714,85 +10041,7 @@
             });
         }
 
-        function showAuctionModal() {
-            if (!gameData.auction || !gameData.auction.active) return;
 
-            const space = gameData.settings.board[gameData.auction.position];
-            const currentPlayer = gameData.players.find(p => p.id === localPlayer.id);
-            const amIInAuction = gameData.auction.playersInAuction.includes(localPlayer.id);
-
-            // Can bid if: in auction, not bankrupt, not the last bidder, and can afford
-            const iAmLastBidder = gameData.auction.lastBidder === localPlayer.id;
-            const canBidAtAll = currentPlayer && !currentPlayer.isBankrupt &&
-                amIInAuction && !iAmLastBidder;
-
-            const bidderName = gameData.auction.currentBidder
-                ? gameData.players.find(p => p.id === gameData.auction.currentBidder)?.name
-                : 'None';
-
-            // Calculate bid amounts that player can afford
-            const canAfford10 = currentPlayer && currentPlayer.money >= (gameData.auction.currentBid + 10);
-            const canAfford50 = currentPlayer && currentPlayer.money >= (gameData.auction.currentBid + 50);
-            const canAfford100 = currentPlayer && currentPlayer.money >= (gameData.auction.currentBid + 100);
-
-            let statusMessage = '';
-            if (iAmLastBidder) {
-                statusMessage = '⏳ Waiting for others to bid...';
-            } else if (canBidAtAll) {
-                statusMessage = '✅ You can bid now!';
-            } else if (!amIInAuction) {
-                statusMessage = '❌ You passed';
-            } else {
-                statusMessage = '⏳ Waiting...';
-            }
-
-            showModal(
-                `🔨 Auction: ${gameData.auction.propertyName}`,
-                `
-                    <div class="text-center">
-                        <p class="text-lg mb-2">Current Bid: <span class="font-bold text-green-600">$${gameData.auction.currentBid}</span></p>
-                        <p class="text-sm mb-2">Highest Bidder: <span class="font-bold">${bidderName}</span></p>
-                        <p class="text-sm text-gray-600">Your Money: $${currentPlayer?.money || 0}</p>
-                        <div class="mt-3 p-2 ${iAmLastBidder ? 'bg-yellow-50' : 'bg-blue-50'} rounded">
-                            <p class="text-sm font-bold ${iAmLastBidder ? 'text-yellow-600' : 'text-blue-600'}">
-                                ${statusMessage}
-                            </p>
-                            <p class="text-xl font-bold ${gameData.auction.timeRemaining <= 3 ? 'text-red-600' : 'text-blue-600'} mt-1">
-                                ⏱️ ${gameData.auction.timeRemaining}s
-                            </p>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Players remaining: ${gameData.auction.playersInAuction.length}</p>
-                        ${iAmLastBidder ? '<p class="text-xs text-yellow-600 mt-1">You must wait for someone else to bid before bidding again</p>' : ''}
-                    </div>
-                `,
-                [
-                    {
-                        text: `+$10 (Total: $${gameData.auction.currentBid + 10})`,
-                        class: 'bg-green-500',
-                        action: () => placeBid(gameData.auction.currentBid + 10),
-                        disabled: !canBidAtAll || !canAfford10
-                    },
-                    {
-                        text: `+$50 (Total: $${gameData.auction.currentBid + 50})`,
-                        class: 'bg-green-600',
-                        action: () => placeBid(gameData.auction.currentBid + 50),
-                        disabled: !canBidAtAll || !canAfford50
-                    },
-                    {
-                        text: `+$100 (Total: $${gameData.auction.currentBid + 100})`,
-                        class: 'bg-green-700',
-                        action: () => placeBid(gameData.auction.currentBid + 100),
-                        disabled: !canBidAtAll || !canAfford100
-                    },
-                    {
-                        text: 'Pass',
-                        class: 'bg-red-500',
-                        action: () => passAuction(),
-                        disabled: !amIInAuction
-                    }
-                ]
-            );
-        }
 
         // 🤖 Bot için maksimum bid sınırı hesapla
         // - Aynı renk grubundan kartı varsa daha istekli (set tamamlanınca ev dikebilir)
@@ -8887,7 +10136,8 @@
                 return;
             }
 
-            if (!playerId) hideModal();
+            // Keep overlay open so the player can spectate — it closes when auction ends
+            // if (!playerId) hideModal();
 
             const currentPlayer = gameData.players.find(p => p.id === passerId);
             const auctionCopy = JSON.parse(JSON.stringify(gameData.auction));
@@ -8973,7 +10223,8 @@
                 auctionTimerInterval = null;
             }
 
-            // Close auction modal for everyone
+            // Close auction overlay + generic modal for everyone
+            hideAuctionOverlay();
             hideModal();
 
             if (gameData.auction.currentBidder) {
@@ -9011,6 +10262,11 @@
                 hideModal();
             }
 
+            // Ensure turnState is action_complete before calling endTurn
+            if (gameData.turnState !== 'action_complete') {
+                await updateGame({ turnState: 'action_complete' });
+                await new Promise(r => setTimeout(r, 150));
+            }
             endTurn();
         }
 
@@ -9028,9 +10284,27 @@
                 return;
             }
 
+            // Don't collect rent while in prison rule
+            if (gameData.settings.noRentInPrison && propertyState.ownerId) {
+                const owner = gameData.players.find(p => p.id === propertyState.ownerId);
+                if (owner && owner.inJail) {
+                    addLog(`🔒 ${owner.name} is in prison. No rent collected for ${space.name}!`);
+                    endTurn();
+                    return;
+                }
+            }
+
             let baseRent = 0;
             if (space.type === 'property') {
                 baseRent = space.rent[propertyState.houses];
+                // Double rent on unimproved full set properties
+                if (gameData.settings.doubleRentFullSet && propertyState.houses === 0 && propertyState.ownerId) {
+                    const hasMonopoly = checkMonopoly(propertyState.ownerId, space.color);
+                    if (hasMonopoly) {
+                        baseRent *= 2;
+                        console.log(`💸 Double rent applied on full set for ${space.name}. Base rent: ${baseRent}`);
+                    }
+                }
             } else if (space.type === 'railroad') {
                 const owner = gameData.players.find(p => p.id === propertyState.ownerId);
                 const railCount = gameData.properties.filter(p => p.ownerId === owner.id && gameData.settings.board[p.spaceIndex].type === 'railroad').length;
@@ -9183,10 +10457,10 @@
                     const currentPos = playersCopy[currentPlayerIndex].position;
                     const targetPos = card.space;
                     playersCopy[currentPlayerIndex].position = targetPos;
-                    
+
                     const goAmount = gameData.settings.passGoAmount || gameData.settings.passGoBonus || 200;
                     let passGoBonus = 0;
-                    
+
                     if (targetPos === 0) {
                         // Landed exactly on GO (normally $300 in DeepPixel: goAmount + 100)
                         passGoBonus = goAmount + 100;
@@ -9204,7 +10478,7 @@
                         playersCopy[currentPlayerIndex].money += goAmount;
                         addLog(`💰 ${playersCopy[currentPlayerIndex].name} collected $${goAmount} from card.`);
                     }
-                    
+
                     await updateGame({ players: playersCopy });
                     setTimeout(() => {
                         hideModal();
@@ -9282,12 +10556,17 @@
             const currentPlayerIndex = gameData.currentPlayerIndex;
             const currentPlayer = gameData.players[currentPlayerIndex];
 
+            let nextVacationPool = gameData.vacationCashPool || 0;
+            if (gameData.settings.vacationCash) {
+                nextVacationPool += amount;
+            }
+
             // Bot ise direkt öde, modal gösterme
             if (currentPlayer.isBot) {
                 const playersCopy = JSON.parse(JSON.stringify(gameData.players));
                 playersCopy[currentPlayerIndex].money -= amount;
                 addLog(`🤖 ${playersCopy[currentPlayerIndex].name} paid $${amount} in taxes.`);
-                await updateGame({ players: playersCopy });
+                await updateGame({ players: playersCopy, vacationCashPool: nextVacationPool });
 
                 // Check bankruptcy after tax payment
                 const isBankrupt = await checkBankruptcy(currentPlayerIndex);
@@ -9306,7 +10585,7 @@
                         const playersCopy = JSON.parse(JSON.stringify(gameData.players));
                         playersCopy[currentPlayerIndex].money -= amount;
                         addLog(`${playersCopy[currentPlayerIndex].name} paid $${amount} in taxes.`);
-                        await updateGame({ players: playersCopy });
+                        await updateGame({ players: playersCopy, vacationCashPool: nextVacationPool });
                         hideModal();
 
                         // Check for bankruptcy after tax payment
@@ -9444,7 +10723,21 @@
                         const isRailroad = space.type === 'railroad';
                         const isUtility = space.type === 'utility';
                         const hasMonopoly = isProperty ? checkMonopoly(myPlayer.id, space.color) : false;
-                        const canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
+                        let canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
+                        if (canBuyHouse && gameData.settings.evenBuild) {
+                            const colorSpaces = gameData.settings.board
+                                .map((s, idx) => ({ ...s, idx }))
+                                .filter(s => s.type === 'property' && s.color === space.color);
+                            const targetHouseCount = prop.houses;
+                            for (const cs of colorSpaces) {
+                                if (cs.idx === prop.spaceIndex) continue;
+                                const otherHouseCount = gameData.properties[cs.idx].houses;
+                                if (targetHouseCount > otherHouseCount) {
+                                    canBuyHouse = false;
+                                    break;
+                                }
+                            }
+                        }
                         const canSellHouse = isProperty && prop.houses > 0;
                         const canMortgage = !prop.mortgaged && (isRailroad || isUtility || prop.houses === 0);
                         const canUnmortgage = prop.mortgaged && myPlayer.money >= space.price;
@@ -9464,32 +10757,32 @@
                             <div class="flex gap-2 flex-wrap">
                                 ${isProperty ? `
                                 <!-- Buy House/Hotel -->
-                                <button onclick="event.stopPropagation(); window.buyHouse(${prop.spaceIndex})" 
-                                    class="text-xs px-3 py-2 rounded ${canBuyHouse ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'} text-white" 
+                                <button onclick="event.stopPropagation(); window.buyHouse(${prop.spaceIndex})"
+                                    class="text-xs px-3 py-2 rounded ${canBuyHouse ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'} text-white"
                                     ${!canBuyHouse ? 'disabled' : ''}>
                                     🏠 Buy ${prop.houses === 4 ? 'Hotel' : 'House'} ($${space.houseCost})
                                 </button>
-                                
+
                                 <!-- Sell House -->
                                 ${canSellHouse ? `
-                                    <button onclick="event.stopPropagation(); window.sellHouse(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.sellHouse(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-orange-500 hover:bg-orange-600 text-white">
                                         🔨 Sell ${prop.houses === 5 ? 'Hotel' : 'House'} ($${houseSellPrice})
                                     </button>
                                 ` : ''}
                                 ` : ''}
-                                
+
                                 <!-- Mortgage -->
                                 ${canMortgage ? `
-                                    <button onclick="event.stopPropagation(); window.mortgageProperty(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.mortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-red-500 hover:bg-red-600 text-white">
                                         🔒 Mortgage ($${mortgageValue})
                                     </button>
                                 ` : ''}
-                                
+
                                 <!-- Unmortgage -->
                                 ${canUnmortgage ? `
-                                    <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white">
                                         🔓 Unmortgage ($${mortgageValue})
                                     </button>
@@ -9522,7 +10815,7 @@
             let modalHTML = `
                 <div class="text-left space-y-4">
                     <p class="text-sm text-gray-600 mb-4">Use your joker cards strategically to gain an advantage!</p>
-                    
+
                     <!-- Kart Çalma Joker'i -->
                     <div class="border border-purple-300 rounded-lg p-4 bg-purple-50">
                         <div class="flex justify-between items-center mb-2">
@@ -9530,12 +10823,12 @@
                             <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded">${jokers.steal || 0} left</span>
                         </div>
                         <p class="text-sm text-gray-600 mb-2">Pay 3x the property's price to steal it from another player. The money goes to them.</p>
-                        <button onclick="window.useJokerSteal()" ${jokers.steal > 0 ? '' : 'disabled'} 
+                        <button onclick="window.useJokerSteal()" ${jokers.steal > 0 ? '' : 'disabled'}
                             class="w-full px-4 py-2 rounded ${jokers.steal > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'} text-white font-bold">
                             ${jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left'}
                         </button>
                     </div>
-                    
+
                     <!-- Tur Atlama Joker'i -->
                     <div class="border border-red-300 rounded-lg p-4 bg-red-50">
                         <div class="flex justify-between items-center mb-2">
@@ -9543,12 +10836,12 @@
                             <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">${jokers.skip || 0} left</span>
                         </div>
                         <p class="text-sm text-gray-600 mb-2">Make another player skip their next turn.</p>
-                        <button onclick="window.useJokerSkip()" ${jokers.skip > 0 ? '' : 'disabled'} 
+                        <button onclick="window.useJokerSkip()" ${jokers.skip > 0 ? '' : 'disabled'}
                             class="w-full px-4 py-2 rounded ${jokers.skip > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white font-bold">
                             ${jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left'}
                         </button>
                     </div>
-                    
+
                     <!-- Zar Tekrar Atma Joker'i -->
                     <div class="border border-blue-300 rounded-lg p-4 bg-blue-50">
                         <div class="flex justify-between items-center mb-2">
@@ -9556,7 +10849,7 @@
                             <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${jokers.reroll || 0} left</span>
                         </div>
                         <p class="text-sm text-gray-600 mb-2">Reroll your dice if you don't like the result. Use immediately after rolling.</p>
-                        <button onclick="window.useJokerReroll()" ${jokers.reroll > 0 ? '' : 'disabled'} 
+                        <button onclick="window.useJokerReroll()" ${jokers.reroll > 0 ? '' : 'disabled'}
                             class="w-full px-4 py-2 rounded ${jokers.reroll > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'} text-white font-bold">
                             ${jokers.reroll > 0 ? 'Use Reroll Card' : 'No Cards Left'}
                         </button>
@@ -9592,6 +10885,23 @@
             if (!checkMonopoly(currentPlayer.id, space.color)) {
                 alert('You must own all properties of this color to build!');
                 return;
+            }
+
+            // Even build check
+            if (gameData.settings.evenBuild) {
+                const colorSpaces = gameData.settings.board
+                    .map((s, idx) => ({ ...s, idx }))
+                    .filter(s => s.type === 'property' && s.color === space.color);
+
+                const targetHouseCount = gameData.properties[spaceIndex].houses;
+                for (const cs of colorSpaces) {
+                    if (cs.idx === spaceIndex) continue;
+                    const otherHouseCount = gameData.properties[cs.idx].houses;
+                    if (targetHouseCount > otherHouseCount) {
+                        alert(`Even Build Rule: You must build evenly! Add a house to ${cs.name} first.`);
+                        return;
+                    }
+                }
             }
 
             if (currentPlayer.money < space.houseCost) {
@@ -9759,7 +11069,21 @@
                         const isRailroad = space.type === 'railroad';
                         const isUtility = space.type === 'utility';
                         const hasMonopoly = isProperty ? checkMonopoly(myPlayer.id, space.color) : false;
-                        const canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
+                        let canBuyHouse = isProperty && hasMonopoly && myPlayer.money >= space.houseCost && prop.houses < 5 && !prop.mortgaged;
+                        if (canBuyHouse && gameData.settings.evenBuild) {
+                            const colorSpaces = gameData.settings.board
+                                .map((s, idx) => ({ ...s, idx }))
+                                .filter(s => s.type === 'property' && s.color === space.color);
+                            const targetHouseCount = prop.houses;
+                            for (const cs of colorSpaces) {
+                                if (cs.idx === prop.spaceIndex) continue;
+                                const otherHouseCount = gameData.properties[cs.idx].houses;
+                                if (targetHouseCount > otherHouseCount) {
+                                    canBuyHouse = false;
+                                    break;
+                                }
+                            }
+                        }
                         const canSellHouse = isProperty && prop.houses > 0;
                         const canMortgage = !prop.mortgaged && (isRailroad || isUtility || prop.houses === 0);
                         const canUnmortgage = prop.mortgaged && myPlayer.money >= space.price;
@@ -9779,32 +11103,32 @@
                             <div class="flex gap-2 flex-wrap">
                                 ${isProperty ? `
                                 <!-- Buy House/Hotel -->
-                                <button onclick="event.stopPropagation(); window.buyHouse(${prop.spaceIndex})" 
-                                    class="text-xs px-3 py-2 rounded ${canBuyHouse ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'} text-white" 
+                                <button onclick="event.stopPropagation(); window.buyHouse(${prop.spaceIndex})"
+                                    class="text-xs px-3 py-2 rounded ${canBuyHouse ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 cursor-not-allowed'} text-white"
                                     ${!canBuyHouse ? 'disabled' : ''}>
                                     🏠 Buy ${prop.houses === 4 ? 'Hotel' : 'House'} ($${space.houseCost})
                                 </button>
-                                
+
                                 <!-- Sell House -->
                                 ${canSellHouse ? `
-                                    <button onclick="event.stopPropagation(); window.sellHouse(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.sellHouse(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-orange-500 hover:bg-orange-600 text-white">
                                         🔨 Sell ${prop.houses === 5 ? 'Hotel' : 'House'} ($${houseSellPrice})
                                     </button>
                                 ` : ''}
                                 ` : ''}
-                                
+
                                 <!-- Mortgage -->
                                 ${canMortgage ? `
-                                    <button onclick="event.stopPropagation(); window.mortgageProperty(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.mortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-red-500 hover:bg-red-600 text-white">
                                         🔒 Mortgage ($${mortgageValue})
                                     </button>
                                 ` : ''}
-                                
+
                                 <!-- Unmortgage -->
                                 ${canUnmortgage ? `
-                                    <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})" 
+                                    <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white">
                                         🔓 Unmortgage ($${mortgageValue})
                                     </button>
@@ -10100,13 +11424,13 @@
                         ${!isMyTurnNow ? '<br>⏳ It is not your turn right now.' : ''}
                     </p>
                     ${jokerCard('#A78BFA', '💎 Steal Property', jokers.steal || 0,
-                        "Pay 3x the property's price to steal it from another player. The money goes to them.",
-                        'window.useJokerSteal()', jokers.steal > 0 && isMyTurnNow && !jokerAlreadyUsed,
-                        jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left')}
+                "Pay 3x the property's price to steal it from another player. The money goes to them.",
+                'window.useJokerSteal()', jokers.steal > 0 && isMyTurnNow && !jokerAlreadyUsed,
+                jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left')}
                     ${jokerCard('#F87171', "⏭️ Skip Player's Turn", jokers.skip || 0,
-                        'Make another player skip their next turn.',
-                        'window.useJokerSkip()', jokers.skip > 0 && isMyTurnNow && !jokerAlreadyUsed,
-                        jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left')}
+                    'Make another player skip their next turn.',
+                    'window.useJokerSkip()', jokers.skip > 0 && isMyTurnNow && !jokerAlreadyUsed,
+                    jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left')}
                     ${jokerCard('#22D3EE', '🎲 Reroll Dice', jokers.reroll || 0,
                         "Reroll your dice if you don't like the result. Use immediately after rolling.",
                         'window.useJokerReroll()', jokers.reroll > 0 && isMyTurnNow && !jokerAlreadyUsed,
@@ -10518,7 +11842,7 @@
                         <p class="text-sm text-gray-600">Kredi Limitiniz</p>
                         <p class="text-3xl font-bold text-green-600">$${creditLimit}</p>
                     </div>
-                    
+
                     <div class="bg-blue-50 p-3 rounded">
                         <p class="text-sm font-semibold mb-2">📋 Kredi Koşulları:</p>
                         <ul class="text-sm space-y-1 list-disc ml-5">
@@ -10527,15 +11851,15 @@
                             <li>Tüm mülkleriniz bankaya geçer</li>
                         </ul>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium mb-2">Çekmek istediğiniz tutar:</label>
-                        <input type="number" id="creditAmountInput" 
-                               class="w-full px-4 py-2 border rounded-lg" 
+                        <input type="number" id="creditAmountInput"
+                               class="w-full px-4 py-2 border rounded-lg"
                                min="1" max="${creditLimit}" value="${creditLimit}"
                                placeholder="Miktar girin">
                     </div>
-                    
+
                     <p class="text-xs text-gray-500">
                         💡 Kredi limitiniz, mülklerinizin ve binaların likidasyon değerine göre hesaplanmıştır.
                     </p>
@@ -10924,7 +12248,7 @@
                             ${getPropertyNames(trade.offer.properties)}
                         </div>
                     </div>
-                    
+
                     <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
                         <h4 class="font-bold text-green-800 mb-2">📥 In Exchange For:</h4>
                         <div class="ml-2">
@@ -10987,27 +12311,57 @@
             playersCopy[toPlayerIndex].money -= trade.request.money;
             playersCopy[fromPlayerIndex].money += trade.request.money;
 
-            // Transfer properties - HEM ownerId HEM de owners'ı güncelle
+            // Transfer properties with share-merging logic
             (trade.offer.properties || []).forEach(propIndex => {
-                if (propertiesCopy[propIndex]) {
-                    propertiesCopy[propIndex].ownerId = trade.toId;
-                    // Hisse sistemini güncelle - %100 yeni sahibin
-                    propertiesCopy[propIndex].owners = {
-                        [trade.toId]: 100
-                    };
-                    propertiesCopy[propIndex].houses = 0; // Reset houses
+                if (!propertiesCopy[propIndex]) return;
+                const prop = propertiesCopy[propIndex];
+                const existingOwners = prop.owners || {};
+                // Merge: add traded share to receiver's existing share
+                const fromShare = existingOwners[trade.fromId] || (prop.ownerId === trade.fromId ? 100 : 0);
+                const toExisting = existingOwners[trade.toId] || 0;
+                const mergedShare = Math.min(100, toExisting + fromShare);
+                // Remove sender, add/update receiver
+                const newOwners = {};
+                Object.entries(existingOwners).forEach(([id, pct]) => {
+                    if (id !== trade.fromId) newOwners[id] = pct;
+                });
+                newOwners[trade.toId] = mergedShare;
+                // If total is 100 and only one owner, set as sole owner
+                const totalPct = Object.values(newOwners).reduce((s,v) => s+v, 0);
+                if (totalPct >= 100 && Object.keys(newOwners).length === 1) {
+                    prop.ownerId = trade.toId;
+                    prop.owners = { [trade.toId]: 100 };
+                } else {
+                    const mainId = Object.entries(newOwners).sort((a,b)=>b[1]-a[1])[0][0];
+                    prop.ownerId = mainId;
+                    prop.owners = newOwners;
                 }
+                // Only reset houses when consolidating to 100%
+                if (prop.owners[trade.toId] === 100) prop.houses = prop.houses || 0;
             });
 
             (trade.request.properties || []).forEach(propIndex => {
-                if (propertiesCopy[propIndex]) {
-                    propertiesCopy[propIndex].ownerId = trade.fromId;
-                    // Hisse sistemini güncelle - %100 yeni sahibin
-                    propertiesCopy[propIndex].owners = {
-                        [trade.fromId]: 100
-                    };
-                    propertiesCopy[propIndex].houses = 0; // Reset houses
+                if (!propertiesCopy[propIndex]) return;
+                const prop = propertiesCopy[propIndex];
+                const existingOwners = prop.owners || {};
+                const toShare = existingOwners[trade.toId] || (prop.ownerId === trade.toId ? 100 : 0);
+                const fromExisting = existingOwners[trade.fromId] || 0;
+                const mergedShare = Math.min(100, fromExisting + toShare);
+                const newOwners = {};
+                Object.entries(existingOwners).forEach(([id, pct]) => {
+                    if (id !== trade.toId) newOwners[id] = pct;
+                });
+                newOwners[trade.fromId] = mergedShare;
+                const totalPct = Object.values(newOwners).reduce((s,v) => s+v, 0);
+                if (totalPct >= 100 && Object.keys(newOwners).length === 1) {
+                    prop.ownerId = trade.fromId;
+                    prop.owners = { [trade.fromId]: 100 };
+                } else {
+                    const mainId = Object.entries(newOwners).sort((a,b)=>b[1]-a[1])[0][0];
+                    prop.ownerId = mainId;
+                    prop.owners = newOwners;
                 }
+                if (prop.owners[trade.fromId] === 100) prop.houses = prop.houses || 0;
             });
 
             // Remove trade from list
@@ -11319,23 +12673,29 @@
                 return;
             }
 
+            const sharesEnabled = gameData.settings && gameData.settings.allowShares !== false;
+
             propertyBuyTitle.textContent = `🏡 Buy ${space.name}?`;
             propertyBuyName.textContent = space.name;
-            propertyBuyDesc.innerHTML = `
-                <p class="text-sm text-gray-600">This property is unowned. Choose your ownership share:</p>
-                <p class="text-xs text-gray-500 mt-2">💡 Tip: Lower shares cost less but you'll share rental income and building rights.</p>
-            `;
+            propertyBuyDesc.innerHTML = sharesEnabled
+                ? `<p class="text-sm text-gray-600">This property is unowned. Choose your ownership share:</p>
+                   <p class="text-xs text-gray-500 mt-2">💡 Tip: Lower shares cost less but you'll share rental income and building rights.</p>`
+                : `<p class="text-sm text-gray-600">This property is unowned. Buy it outright or decline to auction.</p>
+                   <p class="text-xs text-gray-500 mt-2">⚙️ Partial share buying is disabled in this game's settings.</p>`;
 
             // Clear previous options
             propertyBuyOptions.innerHTML = '';
 
-            // Add share options
-            const shareOptions = [
+            // Build share options — honour allowShares toggle
+            const allShareOptions = [
                 { percentage: 100, label: '100% Full Ownership', class: 'bg-green-600 hover:bg-green-700' },
-                { percentage: 75, label: '75% Majority', class: 'bg-green-500 hover:bg-green-600' },
-                { percentage: 50, label: '50% Half', class: 'bg-green-400 hover:bg-green-500' },
-                { percentage: 25, label: '25% Quarter', class: 'bg-green-300 hover:bg-green-400 text-gray-800' }
+                { percentage: 75,  label: '75% Majority',        class: 'bg-green-500 hover:bg-green-600' },
+                { percentage: 50,  label: '50% Half',            class: 'bg-green-400 hover:bg-green-500' },
+                { percentage: 25,  label: '25% Quarter',         class: 'bg-green-300 hover:bg-green-400 text-gray-800' }
             ];
+
+            // If shares disabled, only offer 100%
+            const shareOptions = sharesEnabled ? allShareOptions : [allShareOptions[0]];
 
             shareOptions.forEach(option => {
                 const cost = Math.floor(space.price * (option.percentage / 100));
@@ -11493,14 +12853,25 @@
         // Chat functions
         function addChatMessage(playerName, text, isOwn = false) {
             const chatMessages = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${isOwn ? 'bg-blue-50 border-blue-400' : ''}`;
-            messageDiv.innerHTML = `
-                <div class="sender">${playerName}</div>
-                <div class="text">${text}</div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (chatMessages) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${isOwn ? 'bg-blue-50 border-blue-400' : ''}`;
+                messageDiv.innerHTML = `
+                    <div class="sender">${playerName}</div>
+                    <div class="text">${text}</div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Also append to lobby chat messages
+            const lobbyChat = document.getElementById('lobby-chat-messages');
+            if (lobbyChat) {
+                const p = document.createElement('p');
+                p.innerHTML = `<span class="font-bold text-purple-400">${playerName}:</span> ${text}`;
+                lobbyChat.appendChild(p);
+                lobbyChat.scrollTop = lobbyChat.scrollHeight;
+            }
         }
 
         function sendChatMessage() {
@@ -11600,6 +12971,34 @@
         }
 
         function init() {
+            renderColorTokens();
+            bindLobbySettingsListeners();
+            renderLobbyBoardPreview('classic');
+            selectedCharacter = colorToCharacterMap[selectedColor] || 'money';
+
+            // Custom lobby chat event listeners
+            const lobbyChatInput = document.getElementById('lobby-chat-input');
+            const lobbyChatSendBtn = document.getElementById('lobby-send-chat-btn');
+            if (lobbyChatInput && lobbyChatSendBtn) {
+                lobbyChatSendBtn.addEventListener('click', () => {
+                    const text = lobbyChatInput.value.trim();
+                    if (text && ws && ws.readyState === WebSocket.OPEN) {
+                        sendMessage({
+                            type: 'chat_message',
+                            gameId: currentGameId,
+                            playerName: localPlayer.name,
+                            text: text
+                        });
+                        lobbyChatInput.value = '';
+                    }
+                });
+                lobbyChatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        lobbyChatSendBtn.click();
+                    }
+                });
+            }
+
             const storedName = localStorage.getItem('monopolyPlayerName');
             if (storedName) playerNameInput.value = storedName;
 

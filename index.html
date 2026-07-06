@@ -251,33 +251,43 @@
         .property-tile {
             position: relative;
             overflow: visible !important;
-            background: #070910 !important;
+            background: #0b0914 !important;
             isolation: isolate;
         }
 
-        .property-flag-bg-wrap {
+        .property-tile-flag-wrap {
             position: absolute;
             inset: 0;
             overflow: hidden;
             z-index: 1;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        .property-tile-flag {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(8px);
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .property-tile-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.85) 100%);
+            z-index: 2;
             pointer-events: none;
             border-radius: inherit;
         }
 
-        .property-flag-bg {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: blur(25px) brightness(0.45) saturate(1.4);
-            transform: scale(1.18);
-            pointer-events: none;
-        }
-
         .property-tile .space-inner {
             position: relative;
-            z-index: 10;
+            z-index: 3;
             overflow: visible;
             display: flex;
             flex-direction: column;
@@ -305,41 +315,10 @@
             transform: rotate(-90deg);
         }
 
-        .property-tile .flag-icon {
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
-            filter: none;
-            opacity: 1;
-            z-index: 11;
-        }
-
-        .property-tile.edge-bottom .flag-icon {
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .property-tile.edge-top .flag-icon {
-            bottom: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .property-tile.edge-left .flag-icon {
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .property-tile.edge-right .flag-icon {
-            bottom: -14px;
-            left: 50%;
-            transform: translateX(-50%);
+        .space-name {
+            position: relative;
+            z-index: 3;
+            color: #ffffff !important;
         }
 
         .space:hover {
@@ -645,7 +624,7 @@
             z-index: 9999;
             border-radius: 20px;
             border: 1px solid rgba(167, 139, 250, 0.25);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(147,51,234,0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(147, 51, 234, 0.2);
             padding: 12px 20px;
             pointer-events: none;
         }
@@ -1084,6 +1063,7 @@
             bottom: auto;
             right: auto;
         }
+
         .edge-right .owner-indicator {
             bottom: 3px;
             left: 3px;
@@ -1098,26 +1078,8 @@
             border-radius: inherit !important;
         }
 
-        /* Fix property-flag-bg-wrap overflow on side tiles */
-        .edge-left .property-flag-bg-wrap,
-        .edge-right .property-flag-bg-wrap {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            border-radius: inherit;
-        }
-        /* On side tiles the tile is taller-than-wide (portrait), so cover it properly.
-           The color-bar runs along the short (horizontal) axis of the tile, not vertical. */
-        .edge-left .property-flag-bg,
-        .edge-right .property-flag-bg {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* Counter-rotate the blurred flag so it fills the portrait tile correctly */
-            transform: rotate(90deg) scale(1.6);
-        }
+
+
         /* Ownership indicator: left column inner-corner */
         .edge-left .owner-indicator {
             top: auto;
@@ -1125,21 +1087,23 @@
             right: 3px;
             left: auto;
         }
+
         /* Color-bar on side tiles should run along the inner vertical edge */
         .edge-left .color-bar {
             width: 22% !important;
             height: 100% !important;
             border-bottom: none !important;
-            border-right: 2px solid rgba(0,0,0,0.3);
+            border-right: 2px solid rgba(0, 0, 0, 0.3);
             position: absolute;
             right: 0;
             top: 0;
         }
+
         .edge-right .color-bar {
             width: 22% !important;
             height: 100% !important;
             border-bottom: none !important;
-            border-left: 2px solid rgba(0,0,0,0.3);
+            border-left: 2px solid rgba(0, 0, 0, 0.3);
             position: absolute;
             left: 0;
             top: 0;
@@ -1158,9 +1122,11 @@
             -webkit-backdrop-filter: blur(14px);
             transition: opacity 0.3s ease;
         }
+
         #auction-overlay.hidden {
             display: none;
         }
+
         #auction-card {
             display: flex;
             width: min(920px, 96vw);
@@ -1170,15 +1136,24 @@
             border: 1px solid rgba(139, 92, 246, 0.28);
             box-shadow:
                 0 40px 120px rgba(0, 0, 0, 0.9),
-                0 0 0 1px rgba(255,255,255,0.04) inset,
+                0 0 0 1px rgba(255, 255, 255, 0.04) inset,
                 0 0 80px rgba(139, 92, 246, 0.08);
             overflow: hidden;
             animation: auctionCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
+
         @keyframes auctionCardIn {
-            from { opacity: 0; transform: scale(0.88) translateY(24px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.88) translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
+
         #auction-left-panel {
             flex: 1.15;
             padding: 2rem 2rem 1.5rem;
@@ -1188,6 +1163,7 @@
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             min-width: 0;
         }
+
         #auction-right-panel {
             flex: 0.85;
             padding: 1.75rem 1.75rem 1.5rem;
@@ -1197,16 +1173,19 @@
             background: rgba(255, 255, 255, 0.018);
             min-width: 0;
         }
+
         #auction-prop-header {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
+
         #auction-prop-icon {
             font-size: 2rem;
             line-height: 1;
-            filter: drop-shadow(0 0 10px rgba(167,139,250,0.4));
+            filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.4));
         }
+
         #auction-prop-name {
             font-size: 1.15rem;
             font-weight: 800;
@@ -1214,17 +1193,20 @@
             letter-spacing: -0.01em;
             line-height: 1.2;
         }
+
         #auction-prop-subtitle {
             font-size: 0.72rem;
-            color: rgba(167,139,250,0.7);
+            color: rgba(167, 139, 250, 0.7);
             font-weight: 500;
             margin-top: 1px;
         }
+
         #auction-bid-area {
             display: flex;
             align-items: flex-end;
             gap: 1rem;
         }
+
         #auction-bid-display {
             font-size: 3.2rem;
             font-weight: 900;
@@ -1234,6 +1216,7 @@
             letter-spacing: -0.03em;
             transition: all 0.2s ease;
         }
+
         #auction-bidder-badge {
             display: flex;
             align-items: center;
@@ -1244,42 +1227,49 @@
             border-radius: 20px;
             margin-bottom: 6px;
         }
+
         #auction-bidder-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.6);
+            border: 2px solid rgba(255, 255, 255, 0.6);
             flex-shrink: 0;
             transition: background-color 0.3s ease;
         }
+
         #auction-bidder-name {
             font-size: 0.78rem;
             font-weight: 700;
             color: #d4bbff;
         }
+
         #auction-countdown-wrap {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
+
         #auction-countdown-label {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.72rem;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
         }
+
         #auction-countdown-text {
             font-weight: 700;
             color: #a78bfa;
             font-size: 0.82rem;
         }
+
         #auction-countdown-track {
             height: 6px;
             background: rgba(255, 255, 255, 0.07);
             border-radius: 3px;
             overflow: hidden;
         }
+
         #auction-countdown-bar {
             height: 100%;
             background: linear-gradient(90deg, #7c3aed, #a78bfa);
@@ -1287,18 +1277,22 @@
             /* Sync transition exactly to the 1s tick interval to prevent visual lag */
             transition: width 1s linear, background 0.3s ease;
         }
+
         #auction-countdown-bar.urgent {
             background: linear-gradient(90deg, #dc2626, #f87171);
         }
+
         #auction-players-remaining {
             font-size: 0.7rem;
-            color: rgba(255,255,255,0.35);
+            color: rgba(255, 255, 255, 0.35);
         }
+
         #auction-bid-buttons {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
         }
+
         .auction-quick-bid {
             flex: 1;
             min-width: 0;
@@ -1306,7 +1300,7 @@
             border-radius: 10px;
             font-weight: 800;
             font-size: 0.82rem;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
@@ -1315,14 +1309,49 @@
             gap: 2px;
             line-height: 1.2;
         }
-        .auction-quick-bid:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.15); }
-        .auction-quick-bid:active:not(:disabled) { transform: translateY(0); }
-        .auction-quick-bid:disabled { opacity: 0.3; cursor: not-allowed; }
-        .auction-quick-bid .bid-increment { font-size: 0.95rem; }
-        .auction-quick-bid .bid-total { font-size: 0.65rem; opacity: 0.75; font-weight: 600; }
-        #auction-bid-2  { background: rgba(52, 211, 153, 0.12); color: #6ee7b7; border-color: rgba(52,211,153,0.25); }
-        #auction-bid-10 { background: rgba(139, 92, 246, 0.16); color: #c4b5fd; border-color: rgba(139,92,246,0.35); }
-        #auction-bid-100 { background: rgba(245, 158, 11, 0.12); color: #fcd34d; border-color: rgba(245,158,11,0.28); }
+
+        .auction-quick-bid:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .auction-quick-bid:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .auction-quick-bid:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .auction-quick-bid .bid-increment {
+            font-size: 0.95rem;
+        }
+
+        .auction-quick-bid .bid-total {
+            font-size: 0.65rem;
+            opacity: 0.75;
+            font-weight: 600;
+        }
+
+        #auction-bid-2 {
+            background: rgba(52, 211, 153, 0.12);
+            color: #6ee7b7;
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+
+        #auction-bid-10 {
+            background: rgba(139, 92, 246, 0.16);
+            color: #c4b5fd;
+            border-color: rgba(139, 92, 246, 0.35);
+        }
+
+        #auction-bid-100 {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.28);
+        }
+
         #auction-pass-btn {
             flex: 0 0 auto;
             padding: 0.7rem 1rem;
@@ -1331,94 +1360,153 @@
             font-size: 0.78rem;
             background: rgba(239, 68, 68, 0.1);
             color: #fca5a5;
-            border: 1px solid rgba(239,68,68,0.25);
+            border: 1px solid rgba(239, 68, 68, 0.25);
             cursor: pointer;
             transition: all 0.15s ease;
         }
-        #auction-pass-btn:hover:not(:disabled) { background: rgba(239,68,68,0.22); }
-        #auction-pass-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        #auction-pass-btn:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.22);
+        }
+
+        #auction-pass-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
         #auction-status-msg {
             font-size: 0.75rem;
             font-weight: 600;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
             padding: 6px 10px;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             border-radius: 8px;
             text-align: center;
         }
-        #auction-status-msg.waiting { color: #fbbf24; }
-        #auction-status-msg.can-bid { color: #34d399; }
-        #auction-status-msg.passed  { color: #f87171; }
+
+        #auction-status-msg.waiting {
+            color: #fbbf24;
+        }
+
+        #auction-status-msg.can-bid {
+            color: #34d399;
+        }
+
+        #auction-status-msg.passed {
+            color: #f87171;
+        }
+
         /* ─── Right panel: Deed card ─── */
         #auction-deed-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 14px;
             overflow: hidden;
             flex: 0 0 auto;
         }
+
         #auction-deed-color-band {
             height: 26px;
             width: 100%;
         }
+
         #auction-deed-body {
             padding: 0.75rem;
             display: flex;
             flex-direction: column;
             gap: 3px;
         }
+
         #auction-deed-prop-name {
             font-size: 0.92rem;
             font-weight: 800;
             color: #e2d9ff;
             text-align: center;
         }
+
         #auction-deed-prop-type {
             font-size: 0.65rem;
-            color: rgba(167,139,250,0.6);
+            color: rgba(167, 139, 250, 0.6);
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
+
         #auction-rent-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.72rem;
         }
-        #auction-rent-table tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
-        #auction-rent-table tr:last-child { border-bottom: none; }
-        #auction-rent-table td { padding: 5px 6px; color: #9ca3af; }
-        #auction-rent-table td:last-child { text-align: right; color: #a78bfa; font-weight: 700; }
-        #auction-rent-table tr.highlight-row td { color: #c4b5fd; background: rgba(139,92,246,0.08); }
+
+        #auction-rent-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #auction-rent-table tr:last-child {
+            border-bottom: none;
+        }
+
+        #auction-rent-table td {
+            padding: 5px 6px;
+            color: #9ca3af;
+        }
+
+        #auction-rent-table td:last-child {
+            text-align: right;
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        #auction-rent-table tr.highlight-row td {
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.08);
+        }
+
         #auction-deed-price-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 8px 10px;
-            background: rgba(139,92,246,0.1);
+            background: rgba(139, 92, 246, 0.1);
             border-radius: 8px;
             margin-top: auto;
         }
+
         #auction-deed-price-label {
             font-size: 0.72rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5);
             font-weight: 600;
         }
+
         #auction-deed-price-value {
             font-size: 1.05rem;
             font-weight: 900;
             color: #a78bfa;
         }
+
         #auction-my-money {
             font-size: 0.68rem;
-            color: rgba(255,255,255,0.35);
+            color: rgba(255, 255, 255, 0.35);
             text-align: center;
         }
+
         /* Responsive auction card */
         @media (max-width: 640px) {
-            #auction-card { flex-direction: column; height: auto; max-height: 95vh; overflow-y: auto; }
-            #auction-left-panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
-            #auction-right-panel { flex: none; }
+            #auction-card {
+                flex-direction: column;
+                height: auto;
+                max-height: 95vh;
+                overflow-y: auto;
+            }
+
+            #auction-left-panel {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            #auction-right-panel {
+                flex: none;
+            }
         }
 
         /* 💬 Chat Panel Styling */
@@ -1800,6 +1888,7 @@
             height: 100%;
             flex-direction: column;
         }
+
         .edge-right .houses-container {
             top: 0;
             bottom: 0;
@@ -1814,9 +1903,9 @@
             width: 11px;
             height: 11px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border: 1.5px solid rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
             border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 4px rgba(16,185,129,0.6);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 4px rgba(16, 185, 129, 0.6);
             flex-shrink: 0;
         }
 
@@ -1824,16 +1913,23 @@
             width: 18px;
             height: 11px;
             background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            border: 1.5px solid rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
             border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px rgba(244,63,94,0.6);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px rgba(244, 63, 94, 0.6);
             flex-shrink: 0;
         }
 
         /* Smaller on mobile */
         @media (max-width: 768px) {
-            .house { width: 7px; height: 7px; }
-            .hotel { width: 11px; height: 7px; }
+            .house {
+                width: 7px;
+                height: 7px;
+            }
+
+            .hotel {
+                width: 11px;
+                height: 7px;
+            }
         }
 
         /* 📱 Mobile Optimizations */
@@ -2997,20 +3093,7 @@
             transform: rotate(-90deg);
         }
 
-        .flag-icon {
-            display: block;
-            width: 24px;
-            height: 16px;
-            border-radius: 3px;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            align-self: center;
-            margin-top: 3px;
-            filter: blur(0.4px) saturate(0.9);
-            opacity: 0.82;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            z-index: 1;
-        }
+
 
         .price-tag {
             position: absolute;
@@ -3353,6 +3436,293 @@
                 min-height: 500px;
                 padding: 32px 16px;
             }
+        }
+
+        /* ═══════════════════════════════════════════
+           Tile Quick-Action Popup
+           ═══════════════════════════════════════════ */
+        #tile-action-popup {
+            position: fixed;
+            z-index: 10500;
+            background: linear-gradient(145deg, #0f0d1f 0%, #181528 100%);
+            border: 1px solid rgba(167, 139, 250, 0.35);
+            border-radius: 14px;
+            padding: 0;
+            display: none;
+            flex-direction: column;
+            width: 220px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+                0 0 30px rgba(147, 51, 234, 0.12);
+            overflow: hidden;
+        }
+
+        #tile-action-popup.visible {
+            display: flex;
+        }
+
+        #tile-action-popup.pop-in {
+            animation: tilePopupIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes tilePopupIn {
+            from {
+                opacity: 0;
+                transform: scale(0.84) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* ── Header ── */
+        .tap-header {
+            padding: 8px 12px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .tap-prop-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #e2d9ff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tap-color-swatch {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 5px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .tap-owner-line {
+            font-size: 9px;
+            color: rgba(167, 139, 250, 0.6);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Rent table ── */
+        .tap-rent-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            padding: 4px 10px 6px;
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tap-rent-table tr td {
+            padding: 1.5px 0;
+            color: #9ca3af;
+        }
+
+        .tap-rent-table tr td:last-child {
+            text-align: right;
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        .tap-rent-table tr.tap-current-row td {
+            color: #c4b5fd;
+            font-weight: 700;
+        }
+
+        .tap-rent-table tr.tap-current-row td:last-child {
+            color: #34d399;
+        }
+
+        .tap-rent-table tr.tap-current-row td:first-child::before {
+            content: '▶ ';
+            color: #34d399;
+            font-size: 8px;
+        }
+
+        /* ── Action buttons ── */
+        .tap-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 6px 8px 8px;
+        }
+
+        .tile-popup-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.03);
+            color: #e2d9ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.1s ease, border-color 0.1s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .tile-popup-btn:hover:not(:disabled) {
+            background: rgba(167, 139, 250, 0.14);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: #fff;
+        }
+
+        .tile-popup-btn:disabled {
+            opacity: 0.28;
+            cursor: not-allowed;
+        }
+
+        .tap-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .tile-btn-icon {
+            font-size: 13px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .tap-price-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 4px;
+            padding: 1px 5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tap-price-badge.green {
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+
+        .tap-price-badge.red {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.25);
+        }
+
+        .tile-popup-btn.btn-details {
+            border-color: rgba(167, 139, 250, 0.2);
+            background: rgba(167, 139, 250, 0.06);
+            color: #c4b5fd;
+        }
+
+        .tile-popup-btn.btn-details:hover {
+            background: rgba(167, 139, 250, 0.18);
+        }
+
+        /* ═══════════════════════════════════════════
+           Center-board inline Game Log
+           ═══════════════════════════════════════════ */
+        #center-game-log {
+            width: 100%;
+            max-height: 72px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(167, 139, 250, 0.25) transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #center-game-log::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #center-game-log::-webkit-scrollbar-thumb {
+            background: rgba(167, 139, 250, 0.3);
+            border-radius: 2px;
+        }
+
+        .cgl-entry {
+            font-size: 10px;
+            line-height: 1.35;
+            color: rgba(209, 213, 219, 0.75);
+            padding: 1px 4px;
+            border-left: 2px solid rgba(167, 139, 250, 0.3);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .cgl-entry:last-child {
+            color: #e2d9ff;
+            border-left-color: #9333ea;
+            background: rgba(147, 51, 234, 0.08);
+        }
+
+        /* ═══════════════════════════════════════════
+           RE-FIX: Side-tile ownership colored-blur overlay
+           ═══════════════════════════════════════════ */
+
+
+        /* Ownership glow overlay on tiles — fills whole tile */
+        .tile-owner-glow {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            border-radius: inherit;
+            opacity: 0.32;
+        }
+
+        /* For side tiles the overlay must also fill the portrait card */
+        .edge-left .tile-owner-glow,
+        .edge-right .tile-owner-glow {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Color-bar strip: top/bottom tiles → horizontal strip at top */
+        .color-bar-strip {
+            position: absolute;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .edge-top .color-bar-strip,
+        .edge-bottom .color-bar-strip {
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 22%;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+        }
+
+        /* Side tiles → vertical strip on the board-edge side */
+        .edge-left .color-bar-strip {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 22%;
+            border-left: 1px solid rgba(0, 0, 0, 0.35);
+        }
+
+        .edge-right .color-bar-strip {
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 22%;
+            border-right: 1px solid rgba(0, 0, 0, 0.35);
         }
     </style>
 </head>
@@ -3823,46 +4193,53 @@
         <main class="flex-grow flex items-center justify-center overflow-auto">
             <div class="w-fit h-fit p-1 board-container-wrapper">
                 <div id="board" class="board">
-                    <div class="center-board">
+                    <div class="center-board" style="justify-content: flex-start; padding-top: 10px;">
                         <div class="absolute top-0 left-0 right-0 h-1 shadow-glow"
                             style="background-color: #9333ea; box-shadow: 0 0 15px 0 rgba(167, 139, 250, 0.6);"></div>
-                        <h1 id="board-title" class="text-4xl font-bold tracking-widest glow-text"
+                        <h1 id="board-title" class="text-3xl font-bold tracking-widest glow-text mb-1"
                             style="color: #ffffff;">DEEPPIXEL</h1>
 
-
-
                         <!-- Dice Result Display -->
-                        <div id="dice-result" class="flex gap-3 items-center justify-center mb-4">
+                        <div id="dice-result" class="flex gap-3 items-center justify-center mb-2">
                             <div id="dice1-result"
                                 class="flex items-center justify-center font-bold text-2xl rounded-xl"
-                                style="width: 50px; height: 50px; background: linear-gradient(145deg, #fff, #f0f0f5); color: #7c3aed; border: 2px solid rgba(147, 51, 234, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                style="width: 46px; height: 46px; background: linear-gradient(145deg, #fff, #f0f0f5); color: #7c3aed; border: 2px solid rgba(147, 51, 234, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                                 ?</div>
                             <div id="dice2-result"
                                 class="flex items-center justify-center font-bold text-2xl rounded-xl"
-                                style="width: 50px; height: 50px; background: linear-gradient(145deg, #fff, #f0f0f5); color: #7c3aed; border: 2px solid rgba(147, 51, 234, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                style="width: 46px; height: 46px; background: linear-gradient(145deg, #fff, #f0f0f5); color: #7c3aed; border: 2px solid rgba(147, 51, 234, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                                 ?</div>
                         </div>
 
-                        <p id="turn-info" class="text-lg font-semibold" style="color: #E5E7EB;">It's <span
+                        <p id="turn-info" class="text-base font-semibold mb-2" style="color: #E5E7EB;">It's <span
                                 class="font-bold" style="color: #9333ea;">your</span> turn to roll.</p>
 
                         <!-- Action Buttons -->
-                        <div class="flex flex-col w-full max-w-sm gap-2">
+                        <div class="flex flex-col w-full max-w-sm gap-2 mb-3">
                             <button id="rollDiceBtn"
-                                class="w-full neon-btn-purple py-3 px-4 flex items-center justify-center gap-2">
+                                class="w-full neon-btn-purple py-2.5 px-4 flex items-center justify-center gap-2">
                                 <span class="material-icons-outlined">casino</span>
                                 Roll Dice
                             </button>
-                            <button id="managePropertiesBtn"
-                                class="w-full neon-btn-dark py-2 px-4 flex items-center justify-center gap-2">
-                                <span class="material-icons-outlined">business_center</span>
-                                Manage Properties
-                            </button>
+                            <!-- managePropertiesBtn kept here for JS references; visually hidden -->
+                            <!-- managePropertiesBtn kept hidden; sidebar Manage button triggers it -->
+                            <button id="managePropertiesBtn" class="hidden"></button>
                             <button id="endTurnBtn"
-                                class="end-turn-btn w-full neon-btn-dark py-3 px-4 flex items-center justify-center gap-2">
+                                class="end-turn-btn w-full neon-btn-dark py-2.5 px-4 flex items-center justify-center gap-2">
                                 <span class="material-icons-outlined">skip_next</span>
                                 End Turn
                             </button>
+                        </div>
+
+                        <!-- Inline center-board Game Log -->
+                        <div class="w-full max-w-sm"
+                            style="border-top: 1px solid rgba(167,139,250,0.15); padding-top: 6px;">
+                            <div class="flex items-center gap-1 mb-1.5"
+                                style="color:rgba(167,139,250,0.6); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">
+                                <span class="material-icons-outlined" style="font-size:11px;">receipt_long</span>
+                                Live Log
+                            </div>
+                            <div id="center-game-log"></div>
                         </div>
 
                         <div class="absolute bottom-0 left-0 right-0 h-1 shadow-glow"
@@ -3877,7 +4254,8 @@
         <aside class="w-80 flex-shrink-0 flex flex-col gap-4">
             <!-- Players List + Trades Panel -->
             <div class="glass-panel p-3 flex flex-col gap-2">
-                <h2 class="text-sm font-bold uppercase tracking-wider flex items-center justify-between" style="color: #a78bfa;">
+                <h2 class="text-sm font-bold uppercase tracking-wider flex items-center justify-between"
+                    style="color: #a78bfa;">
                     <span>Players (<span id="player-count">1</span>/4)</span>
                 </h2>
                 <div id="players-info" class="flex flex-col gap-1">
@@ -3935,10 +4313,15 @@
 
                 <!-- My Properties Section -->
                 <div class="flex flex-col gap-2 flex-grow overflow-hidden">
-                    <h2 class="text-lg font-bold flex items-center justify-between" style="color: #ffffff;">
-                        <span>My Properties</span>
-                        <span id="my-properties-count"
-                            class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-900/50 text-purple-300">0</span>
+                    <h2 class="text-sm font-bold flex items-center justify-between" style="color: #ffffff;">
+                        <span class="flex items-center gap-1.5">My Properties <span id="my-properties-count"
+                                class="text-xs font-semibold px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300">0</span></span>
+                        <button id="managePropertiesSideBtn"
+                            class="flex items-center gap-1 px-2 py-1 rounded neon-btn-dark text-[10px] font-bold leading-none"
+                            title="Manage Properties">
+                            <span class="material-icons-outlined" style="font-size:13px;">build</span>
+                            Manage
+                        </button>
                     </h2>
                     <div id="my-properties-list" class="overflow-y-auto flex-grow space-y-1.5 pr-1"
                         style="max-height: 300px; min-height: 120px;">
@@ -4011,6 +4394,9 @@
         </div>
     </div>
     </div>
+
+    <!-- Tile Quick-Action Popup (content injected dynamically by showTileActionPopup) -->
+    <div id="tile-action-popup" role="menu" aria-label="Property actions"></div>
 
     <!-- Generic Modal -->
     <div id="modal"
@@ -4088,7 +4474,10 @@
                 </div>
                 <table id="auction-rent-table">
                     <tbody id="auction-rent-tbody">
-                        <tr><td>Rent</td><td>$-</td></tr>
+                        <tr>
+                            <td>Rent</td>
+                            <td>$-</td>
+                        </tr>
                     </tbody>
                 </table>
                 <div id="auction-deed-price-row">
@@ -4292,16 +4681,19 @@
             if (!indicator) {
                 indicator = document.createElement('div');
                 indicator.id = 'connection-status';
-                indicator.style.cssText = 'position: fixed; top: 10px; left: 10px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; z-index: 10000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; max-width: 200px; text-align: center; cursor: pointer;';
+                indicator.style.cssText = 'position: fixed; top: 15px; left: 15px; display: flex; align-items: center; gap: 6px; z-index: 10000; pointer-events: none;';
+                
+                const dot = document.createElement('span');
+                dot.className = 'status-dot';
+                dot.style.cssText = 'width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: background-color 0.3s;';
+                
+                const label = document.createElement('span');
+                label.className = 'status-label';
+                label.style.cssText = 'font-size: 12px; font-weight: 500; color: #9ca3af; font-family: sans-serif;';
+                
+                indicator.appendChild(dot);
+                indicator.appendChild(label);
                 document.body.appendChild(indicator);
-
-                // Toggle debug log on click
-                indicator.addEventListener('click', () => {
-                    const debugLog = document.getElementById('debug-log');
-                    if (debugLog) {
-                        debugLog.style.display = 'none';
-                    }
-                });
             }
 
             // Create debug log display
@@ -4320,22 +4712,22 @@
                 debugLog.appendChild(closeBtn);
             }
 
+            const dot = indicator.querySelector('.status-dot');
+            const label = indicator.querySelector('.status-label');
+
             if (connectionStatus === 'connected') {
-                indicator.textContent = '🟢 Connected';
-                indicator.style.backgroundColor = '#10b981';
-                indicator.style.color = 'white';
+                dot.style.backgroundColor = '#10b981';
+                label.textContent = 'Connected';
                 console.log('🟢 Status: Connected');
                 addDebugLog('🟢 CONNECTED');
             } else if (connectionStatus === 'connecting') {
-                indicator.textContent = '🟡 Connecting...';
-                indicator.style.backgroundColor = '#f59e0b';
-                indicator.style.color = 'white';
+                dot.style.backgroundColor = '#f59e0b';
+                label.textContent = 'Connecting...';
                 console.log('🟡 Status: Connecting...');
                 addDebugLog('🟡 CONNECTING...');
             } else {
-                indicator.textContent = '🔴 Disconnected';
-                indicator.style.backgroundColor = '#ef4444';
-                indicator.style.color = 'white';
+                dot.style.backgroundColor = '#ef4444';
+                label.textContent = 'Disconnected';
                 console.log('🔴 Status: Disconnected');
                 addDebugLog('🔴 DISCONNECTED');
             }
@@ -6300,8 +6692,7 @@
             displayGameId.textContent = currentGameId;
 
             // Generate shareable link
-            const currentUrl = window.location.origin + window.location.pathname;
-            const gameLink = `${currentUrl}?gameId=${currentGameId}`;
+            const gameLink = `${window.location.origin}/room/${currentGameId}`;
             const gameLinkInput = document.getElementById('gameLinkInput');
             if (gameLinkInput) {
                 gameLinkInput.value = gameLink;
@@ -6400,16 +6791,14 @@
             const gameLinkDisplayMobile = document.getElementById('game-link-display-mobile');
             const gameLinkInputMobile = document.getElementById('game-link-input-mobile');
 
+            const gameLink = `${window.location.origin}/room/${currentGameId}`;
+
             if (gameLinkDisplay && gameLinkInput) {
-                const currentUrl = window.location.origin + window.location.pathname;
-                const gameLink = `${currentUrl}?gameId=${currentGameId}`;
                 gameLinkInput.value = gameLink;
                 gameLinkDisplay.classList.remove('hidden');
             }
 
             if (gameLinkDisplayMobile && gameLinkInputMobile) {
-                const currentUrl = window.location.origin + window.location.pathname;
-                const gameLink = `${currentUrl}?gameId=${currentGameId}`;
                 gameLinkInputMobile.value = gameLink;
                 gameLinkDisplayMobile.classList.remove('hidden');
             }
@@ -6552,11 +6941,11 @@
 
                     if (spaceData.type === 'property') {
                         spaceEl.classList.add('property-tile', edgeClass);
-                        const flagBgHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="property-flag-bg" alt="" aria-hidden="true" loading="lazy" />` : '';
-                        const flagHTML = spaceData.countryCode ? `<img src="./flags/${spaceData.countryCode}.png" class="flag-icon" alt="${spaceData.countryCode} flag" loading="lazy" />` : '';
+                        const flagHTML = spaceData.countryCode ? `<div class="property-tile-flag-wrap"><img src="./flags/${spaceData.countryCode}.png" class="property-tile-flag" alt="" aria-hidden="true" loading="lazy" /></div>` : '';
+                        const overlayHTML = spaceData.countryCode ? `<div class="property-tile-overlay"></div>` : '';
                         content = `${ownerHTML}<div class="space-name">${spaceData.name}</div>`;
                         // houses-container is always present so updateBoardPiecesAndHouses can inject buildings
-                        spaceEl.innerHTML = `<div class="property-flag-bg-wrap">${flagBgHTML}</div><div class="houses-container"></div><div class="space-inner ${edgeClass}">${content}${priceLabel}${flagHTML}</div>`;
+                        spaceEl.innerHTML = `${flagHTML}${overlayHTML}<div class="houses-container"></div><div class="space-inner ${edgeClass}">${content}${priceLabel}</div>`;
                         spacesContainer.appendChild(spaceEl);
 
                         // 🏠 Add click event to show property details
@@ -7328,25 +7717,27 @@
             playersInfo.innerHTML = gameData.players.map((p) => {
                 if (p.isBankrupt) return '';
                 const isCurrent = p.id === currentPlayer.id;
-                // Team badge
-                const teamBadges = {
-                    red: '🔴',
-                    blue: '🔵',
-                    green: '🟢',
-                    yellow: '🟡'
-                };
-                const teamBadge = p.team ? teamBadges[p.team] || '' : '';
-                // Sahip olunan kartları al ve mini ikonlar olarak göster
-                const playerProperties = gameData.properties
-                    .map((prop, idx) => ({ ...prop, spaceIndex: idx }))
-                    .filter(prop => prop.owners && prop.owners[p.id] > 0);
+                const isHost = p.id === gameData.hostId;
+                // Action button: host gets ⚙️ fix menu, others get Trade
+                let actionBtn = '';
+                if (p.id !== localPlayer.id && gameData.settings.allowTrading) {
+                    actionBtn = `<button data-player-id="${p.id}" onclick="event.stopPropagation();window.showTradeModal('${p.id}')" class="trade-btn flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded neon-btn-cyan leading-none">Trade</button>`;
+                }
+                // Host fix button shown on the host's own card row (visible to host only)
+                let hostBtn = '';
+                if (isHost && localPlayer.id === gameData.hostId && p.id === gameData.hostId) {
+                    hostBtn = `<button onclick="event.stopPropagation();window.openHostPanel()" class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded leading-none" style="background:rgba(245,158,11,0.25);color:#fbbf24;border:1px solid rgba(245,158,11,0.4);" title="Host Controls">⚙️</button>`;
+                }
+                let bankruptBtn = '';
+                if (p.id === localPlayer.id && p.money < 0) {
+                    bankruptBtn = `<button onclick="event.stopPropagation();window.declareBankruptcy()" class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded leading-none" style="background:rgba(239,68,68,0.7);color:#fff;">💥</button>`;
+                }
                 return `
                     <div class="player-card-compact flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all cursor-pointer" style="background: ${isCurrent ? 'rgba(147,51,234,0.18)' : 'rgba(22,20,38,0.55)'}; border: 1px solid ${isCurrent ? 'rgba(167,139,250,0.7)' : 'rgba(167,139,250,0.1)'}; border-left: 3px solid ${p.color}; ${isCurrent ? 'box-shadow: 0 0 10px rgba(147,51,234,0.35);' : ''}" data-player-id="${p.id}">
                         <div class="w-5 h-5 rounded-full flex-shrink-0" style="background:${p.color}; box-shadow:0 0 5px ${p.color}80; border:1.5px solid rgba(255,255,255,0.25);"></div>
-                        <span class="font-bold text-xs text-gray-200 truncate flex-1 min-w-0">${isCurrent ? '🎲 ' : ''}${p.name}${p.id === localPlayer.id ? ' <span style="color:#a78bfa;font-size:9px;">(You)</span>' : ''}${p.inJail ? ' 🔒' : ''}${p.isLucky && p.luckyTurnsLeft > 0 ? ` ⭐${p.luckyTurnsLeft}` : ''}</span>
+                        <span class="font-bold text-xs text-gray-200 truncate flex-1 min-w-0">${isCurrent ? '🎲 ' : ''}${p.name}${isHost ? ' 👑' : ''}${p.id === localPlayer.id ? ' <span style="color:#a78bfa;font-size:9px;">(You)</span>' : ''}${p.inJail ? ' 🔒' : ''}</span>
                         <span class="font-bold text-xs flex-shrink-0" style="color:#4ade80;">$${p.money}</span>
-                        ${p.id !== localPlayer.id && gameData.settings.allowTrading ? `<button data-player-id="${p.id}" onclick="event.stopPropagation();window.showTradeModal('${p.id}')" class="trade-btn flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded neon-btn-cyan leading-none">Trade</button>` : ''}
-                        ${p.id === localPlayer.id && p.money < 0 ? `<button onclick="event.stopPropagation();window.declareBankruptcy()" class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded leading-none" style="background:rgba(239,68,68,0.7);color:#fff;">💥</button>` : ''}
+                        ${actionBtn}${hostBtn}${bankruptBtn}
                     </div>
                 `;
             }).join('');
@@ -7362,66 +7753,100 @@
                 });
             }
 
-            window.showGameManagementModal = function () {
-                // Only host can access
-                if (localPlayer.id !== gameData.hostId) {
-                    alert('Only the host can manage the game!');
-                    return;
-                }
-
-                const modal = document.getElementById('game-management-modal');
-                const playersContainer = document.getElementById('game-management-players');
-
-                playersContainer.innerHTML = gameData.players.map(p => {
-                    const isCurrent = gameData.players[gameData.currentPlayerIndex].id === p.id;
+            // ── modern host panel (replaces the old white-card modal) ──
+            window.openHostPanel = function () {
+                if (localPlayer.id !== gameData.hostId) return;
+                const isCurr = (pid) => gameData.players[gameData.currentPlayerIndex]?.id === pid;
+                const rows = gameData.players.map(p => {
+                    const cur = isCurr(p.id);
                     return `
-                <div class="bg-gradient-to-r from-gray-50 to-white p-4 rounded-lg border-2 ${isCurrent ? 'border-blue-500' : 'border-gray-200'} shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full border-2 border-white shadow" style="background: ${p.color}"></div>
-                            <div>
-                                <span class="font-bold text-lg">${p.name}</span>
-                                <span class="text-xs text-gray-500 ml-2">${isCurrent ? '🎲 Current Turn' : ''}</span>
-                                <div class="text-sm text-green-600 font-semibold">💰 $${p.money}</div>
-                            </div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:${cur ? 'rgba(147,51,234,0.15)' : 'rgba(255,255,255,0.03)'};border:1px solid ${cur ? 'rgba(167,139,250,0.45)' : 'rgba(255,255,255,0.07)'};">
+                        <div style="width:32px;height:32px;border-radius:50%;background:${p.color};flex-shrink:0;box-shadow:0 0 8px ${p.color}80;"></div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:800;color:#f3f4f6;">${p.name}${cur ? ' 🎲' : ''}${p.isBankrupt ? ' <span style="color:#f87171;font-size:10px;">BANKRUPT</span>' : ''}</div>
+                            <div style="font-size:11px;color:#4ade80;font-weight:700;">$${p.money}</div>
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
                         ${!p.isBankrupt ? `
-                        <button onclick="adjustMoney('${p.id}', 100)" class="text-xs bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition">
-                            💰 +$100
-                        </button>
-                        <button onclick="adjustMoney('${p.id}', -100)" class="text-xs bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition">
-                            💸 -$100
-                        </button>
-                        <button onclick="adjustMoneyCustom('${p.id}')" class="text-xs bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition">
-                            💵 Custom Amount
-                        </button>
-                        ${isCurrent ? `
-                        <button onclick="forceEndTurnPlayer('${p.id}')" class="text-xs bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition">
-                            ⏭️ Force End Turn
-                        </button>
-                        ` : '<div></div>'}
-                        <button onclick="teleportPlayer('${p.id}')" class="text-xs bg-purple-500 text-white px-3 py-2 rounded-lg hover:bg-purple-600 transition col-span-2">
-                            📍 Teleport Player
-                        </button>
-                        ` : ''}
-                        ${p.id !== localPlayer.id ? `
-                        <button onclick="kickPlayer('${p.id}')" class="text-xs bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition col-span-2">
-                            ❌ Kick Player
-                        </button>
-                        ` : '<div class="col-span-2 text-xs text-gray-500 text-center">You cannot kick yourself</div>'}
-                    </div>
-                </div>
-            `}).join('');
-
-                modal.classList.remove('hidden');
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;">
+                            <button onclick="window._hostGive('${p.id}',100)" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);cursor:pointer;font-weight:700;">+$100</button>
+                            <button onclick="window._hostGive('${p.id}',500)" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);cursor:pointer;font-weight:700;">+$500</button>
+                            <button onclick="window._hostTake('${p.id}',100)" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.3);cursor:pointer;font-weight:700;">-$100</button>
+                            <button onclick="window._hostCustom('${p.id}')" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(167,139,250,0.12);color:#c4b5fd;border:1px solid rgba(167,139,250,0.3);cursor:pointer;font-weight:700;">Custom</button>
+                            <button onclick="window._hostTeleport('${p.id}')" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);cursor:pointer;font-weight:700;">📍 Move</button>
+                            ${cur ? `<button onclick="window._hostForceEnd('${p.id}')" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);cursor:pointer;font-weight:700;">⏭ End Turn</button>` : ''}
+                            ${p.id !== localPlayer.id ? `<button onclick="window._hostKick('${p.id}')" style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3);cursor:pointer;font-weight:700;">✕ Kick</button>` : ''}
+                        </div>` : ''}
+                    </div>`;
+                }).join('');
+                showModal('⚙️ Host Controls', `<div style="display:flex;flex-direction:column;gap:8px;">${rows}</div>`, [
+                    { text: 'Close', class: 'bg-gray-500', action: hideModal }
+                ]);
             };
 
-            window.hideGameManagementModal = function () {
-                document.getElementById('game-management-modal').classList.add('hidden');
+            window._hostGive = async function (pid, amt) {
+                const p = gameData.players.find(x => x.id === pid); if (!p) return;
+                p.money += amt; await updateGame({ players: gameData.players });
+                addLog(`⚙️ Host gave $${amt} to ${p.name}.`); window.openHostPanel();
             };
+            window._hostTake = async function (pid, amt) {
+                const p = gameData.players.find(x => x.id === pid); if (!p) return;
+                p.money -= amt; await updateGame({ players: gameData.players });
+                addLog(`⚙️ Host took $${amt} from ${p.name}.`); window.openHostPanel();
+            };
+            window._hostCustom = async function (pid) {
+                const p = gameData.players.find(x => x.id === pid); if (!p) return;
+                hideModal();
+                setTimeout(() => {
+                    const raw = prompt(`Adjust ${p.name}'s cash (use – for negative):\nCurrent: $${p.money}`);
+                    if (raw === null || raw === '') { window.openHostPanel(); return; }
+                    const n = parseInt(raw);
+                    if (isNaN(n)) { window.openHostPanel(); return; }
+                    p.money += n;
+                    updateGame({ players: gameData.players }).then(() => {
+                        addLog(`⚙️ Host adjusted ${p.name}'s cash by ${n > 0 ? '+' : ''}$${n}.`);
+                        window.openHostPanel();
+                    });
+                }, 100);
+            };
+            window._hostTeleport = async function (pid) {
+                const p = gameData.players.find(x => x.id === pid); if (!p) return;
+                hideModal();
+                setTimeout(() => {
+                    const raw = prompt(`Teleport ${p.name} to space 0–39:\nCurrent: ${p.position}`);
+                    if (raw === null || raw === '') { window.openHostPanel(); return; }
+                    const n = parseInt(raw);
+                    if (isNaN(n) || n < 0 || n > 39) { window.openHostPanel(); return; }
+                    p.position = n;
+                    updateGame({ players: gameData.players }).then(() => {
+                        addLog(`⚙️ Host teleported ${p.name} to ${gameData.settings.board[n]?.name}.`);
+                        window.openHostPanel();
+                    });
+                }, 100);
+            };
+            window._hostForceEnd = async function (pid) {
+                hideModal();
+                let next = (gameData.currentPlayerIndex + 1) % gameData.players.length;
+                while (gameData.players[next].isBankrupt) next = (next + 1) % gameData.players.length;
+                await updateGame({ currentPlayerIndex: next, turnState: 'start', lastDiceRoll: [0, 0] });
+                addLog('⚙️ Host forced end of turn.');
+            };
+            window._hostKick = async function (pid) {
+                if (!confirm('Kick this player?')) { window.openHostPanel(); return; }
+                hideModal();
+                const pFiltered = gameData.players.filter(x => x.id !== pid);
+                const propsFixed = JSON.parse(JSON.stringify(gameData.properties));
+                propsFixed.forEach(pr => { if (pr.ownerId === pid) { pr.ownerId = null; pr.owners = {}; pr.houses = 0; } });
+                await updateGame({ players: pFiltered, properties: propsFixed });
+                addLog(`⚙️ Host kicked a player.`);
+            };
+
+            // keep old names alive so other call-sites still work
+            window.showGameManagementModal = window.openHostPanel;
+            window.hideGameManagementModal = hideModal;
+            window.adjustMoney = window._hostGive;
+            window.kickPlayer = window._hostKick;
+            window.forceEndTurnPlayer = window._hostForceEnd;
+            window.teleportPlayer = window._hostTeleport;
 
             window.adjustMoney = async function (playerId, amount) {
                 const player = gameData.players.find(p => p.id === playerId);
@@ -8588,7 +9013,7 @@
 
                     // İpotekleyebilir (ev yoksa)
                     if (propData.houses === 0 && !propData.mortgaged) {
-                        const mortgageValue = Math.floor(space.price * (share / 100));
+                        const mortgageValue = Math.floor((space.price / 2) * (share / 100));
                         options.push({
                             type: 'mortgage',
                             spaceIndex: propData.spaceIndex,
@@ -8600,7 +9025,7 @@
                 } else if (space.type === 'railroad' || space.type === 'utility') {
                     // İpotekleyebilir
                     if (!propData.mortgaged) {
-                        const mortgageValue = Math.floor(space.price * (share / 100));
+                        const mortgageValue = Math.floor((space.price / 2) * (share / 100));
                         options.push({
                             type: 'mortgage',
                             spaceIndex: propData.spaceIndex,
@@ -8682,7 +9107,7 @@
             }
 
             const share = property.owners ? (property.owners[player.id] || 0) : 100;
-            const mortgageValue = Math.floor(space.price * (share / 100));
+            const mortgageValue = Math.floor((space.price / 2) * (share / 100));
 
             const propertiesCopy = JSON.parse(JSON.stringify(gameData.properties));
             const playersCopy = JSON.parse(JSON.stringify(gameData.players));
@@ -9875,8 +10300,8 @@
             const iAmLastBidder = auction.lastBidder === localPlayer.id;
             const canBidAtAll = currentPlayer && !currentPlayer.isBankrupt && amIInAuction && !iAmLastBidder;
 
-            const canAfford2   = currentPlayer && currentPlayer.money >= (auction.currentBid + 2);
-            const canAfford10  = currentPlayer && currentPlayer.money >= (auction.currentBid + 10);
+            const canAfford2 = currentPlayer && currentPlayer.money >= (auction.currentBid + 2);
+            const canAfford10 = currentPlayer && currentPlayer.money >= (auction.currentBid + 10);
             const canAfford100 = currentPlayer && currentPlayer.money >= (auction.currentBid + 100);
 
             const bidder = auction.currentBidder
@@ -9890,10 +10315,10 @@
             const propIcon = space.type === 'railroad' ? '✈️' : space.type === 'utility' ? '⚡' : '🏠';
             const propIconEl = document.getElementById('auction-prop-icon');
             const propNameEl = document.getElementById('auction-prop-name');
-            const propSubEl  = document.getElementById('auction-prop-subtitle');
+            const propSubEl = document.getElementById('auction-prop-subtitle');
             if (propIconEl) propIconEl.textContent = propIcon;
             if (propNameEl) propNameEl.textContent = space.name;
-            if (propSubEl)  propSubEl.textContent = `🔨 Live Auction — ${auction.playersInAuction.length} player${auction.playersInAuction.length !== 1 ? 's' : ''} bidding`;
+            if (propSubEl) propSubEl.textContent = `🔨 Live Auction — ${auction.playersInAuction.length} player${auction.playersInAuction.length !== 1 ? 's' : ''} bidding`;
 
             // ── Current bid ──
             const bidDisplay = document.getElementById('auction-bid-display');
@@ -9904,16 +10329,16 @@
             }
 
             // ── Bidder badge ──
-            const bidderDot  = document.getElementById('auction-bidder-dot');
+            const bidderDot = document.getElementById('auction-bidder-dot');
             const bidderName = document.getElementById('auction-bidder-name');
-            if (bidderDot)  bidderDot.style.background  = bidder ? bidder.color : 'rgba(255,255,255,0.2)';
+            if (bidderDot) bidderDot.style.background = bidder ? bidder.color : 'rgba(255,255,255,0.2)';
             if (bidderName) bidderName.textContent = bidder ? `${bidder.name} leads` : 'No bids yet';
 
             // ── Countdown bar ──
             const duration = auction.timerDuration || 10;
             const pct = Math.max(0, (auctionLocalTimeRemaining / duration) * 100);
-            const bar  = document.getElementById('auction-countdown-bar');
-            const txt  = document.getElementById('auction-countdown-text');
+            const bar = document.getElementById('auction-countdown-bar');
+            const txt = document.getElementById('auction-countdown-text');
             if (bar) {
                 // Disable transition on first render (when pct == 100%) to avoid fill-from-0 flash
                 if (pct >= 99) {
@@ -9937,22 +10362,22 @@
             if (remaining) remaining.textContent = `${auction.playersInAuction.length} player${auction.playersInAuction.length !== 1 ? 's' : ''} still bidding`;
 
             // ── Quick-bid buttons ──
-            const btn2   = document.getElementById('auction-bid-2');
-            const btn10  = document.getElementById('auction-bid-10');
+            const btn2 = document.getElementById('auction-bid-2');
+            const btn10 = document.getElementById('auction-bid-10');
             const btn100 = document.getElementById('auction-bid-100');
             const passBtn = document.getElementById('auction-pass-btn');
-            const tot2   = document.getElementById('auction-bid-2-total');
-            const tot10  = document.getElementById('auction-bid-10-total');
+            const tot2 = document.getElementById('auction-bid-2-total');
+            const tot10 = document.getElementById('auction-bid-10-total');
             const tot100 = document.getElementById('auction-bid-100-total');
 
-            if (tot2)   tot2.textContent   = `Total: $${auction.currentBid + 2}`;
-            if (tot10)  tot10.textContent  = `Total: $${auction.currentBid + 10}`;
+            if (tot2) tot2.textContent = `Total: $${auction.currentBid + 2}`;
+            if (tot10) tot10.textContent = `Total: $${auction.currentBid + 10}`;
             if (tot100) tot100.textContent = `Total: $${auction.currentBid + 100}`;
 
-            if (btn2)   { btn2.disabled   = !canBidAtAll || !canAfford2;   btn2.onclick   = () => placeBid(auction.currentBid + 2); }
-            if (btn10)  { btn10.disabled  = !canBidAtAll || !canAfford10;  btn10.onclick  = () => placeBid(auction.currentBid + 10); }
+            if (btn2) { btn2.disabled = !canBidAtAll || !canAfford2; btn2.onclick = () => placeBid(auction.currentBid + 2); }
+            if (btn10) { btn10.disabled = !canBidAtAll || !canAfford10; btn10.onclick = () => placeBid(auction.currentBid + 10); }
             if (btn100) { btn100.disabled = !canBidAtAll || !canAfford100; btn100.onclick = () => placeBid(auction.currentBid + 100); }
-            if (passBtn){ passBtn.disabled = !amIInAuction; passBtn.onclick = () => passAuction(); }
+            if (passBtn) { passBtn.disabled = !amIInAuction; passBtn.onclick = () => passAuction(); }
 
             // ── Status message ──
             const statusEl = document.getElementById('auction-status-msg');
@@ -10697,7 +11122,7 @@
             playersCopy[gameData.currentPlayerIndex].money -= 50;
             playersCopy[gameData.currentPlayerIndex].inJail = false;
             playersCopy[gameData.currentPlayerIndex].jailTurns = 0;
-            addLog(`${playersCopy[gameData.currentPlayerIndex].name} paid $50 to get out of jail.`);
+            addLog(`${gameData.players[gameData.currentPlayerIndex].name} paid $50 to get out of jail.`);
             await updateGame({ players: playersCopy });
             endTurn();
         }
@@ -10738,11 +11163,11 @@
                                 }
                             }
                         }
+                        const mortgageValue = Math.floor(space.price / 2);
+                        const unmortgageValue = Math.round(mortgageValue * 1.10);
                         const canSellHouse = isProperty && prop.houses > 0;
                         const canMortgage = !prop.mortgaged && (isRailroad || isUtility || prop.houses === 0);
-                        const canUnmortgage = prop.mortgaged && myPlayer.money >= space.price;
-
-                        const mortgageValue = space.price;
+                        const canUnmortgage = prop.mortgaged && myPlayer.money >= unmortgageValue;
                         const houseSellPrice = isProperty ? Math.floor(space.houseCost * 0.75) : 0;
 
                         modalHTML += `
@@ -10784,10 +11209,10 @@
                                 ${canUnmortgage ? `
                                     <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white">
-                                        🔓 Unmortgage ($${mortgageValue})
+                                        🔓 Unmortgage ($${unmortgageValue})
                                     </button>
                                 ` : prop.mortgaged ? `
-                                    <span class="text-xs text-gray-500">Need $${mortgageValue} to unmortgage</span>
+                                    <span class="text-xs text-gray-500">Need $${unmortgageValue} to unmortgage</span>
                                 ` : ''}
                             </div>
                          </div>`;
@@ -10803,63 +11228,7 @@
         // 🃏 Joker Cards - Joker kartlarını göster ve kullan
         jokerCardsBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent click from bubbling to modal
-            const myPlayer = gameData.players.find(p => p.id === localPlayer.id);
-            if (!myPlayer || !myPlayer.jokerCards) {
-                showModal('🃏 Joker Cards', '<p class="text-gray-600">You don\'t have any joker cards.</p>', [
-                    { text: 'Close', class: 'bg-gray-500', action: hideModal }
-                ]);
-                return;
-            }
-
-            const jokers = myPlayer.jokerCards;
-            let modalHTML = `
-                <div class="text-left space-y-4">
-                    <p class="text-sm text-gray-600 mb-4">Use your joker cards strategically to gain an advantage!</p>
-
-                    <!-- Kart Çalma Joker'i -->
-                    <div class="border border-purple-300 rounded-lg p-4 bg-purple-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">💎 Steal Property</span>
-                            <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded">${jokers.steal || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Pay 3x the property's price to steal it from another player. The money goes to them.</p>
-                        <button onclick="window.useJokerSteal()" ${jokers.steal > 0 ? '' : 'disabled'}
-                            class="w-full px-4 py-2 rounded ${jokers.steal > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'} text-white font-bold">
-                            ${jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left'}
-                        </button>
-                    </div>
-
-                    <!-- Tur Atlama Joker'i -->
-                    <div class="border border-red-300 rounded-lg p-4 bg-red-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">⏭️ Skip Player's Turn</span>
-                            <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">${jokers.skip || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Make another player skip their next turn.</p>
-                        <button onclick="window.useJokerSkip()" ${jokers.skip > 0 ? '' : 'disabled'}
-                            class="w-full px-4 py-2 rounded ${jokers.skip > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white font-bold">
-                            ${jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left'}
-                        </button>
-                    </div>
-
-                    <!-- Zar Tekrar Atma Joker'i -->
-                    <div class="border border-blue-300 rounded-lg p-4 bg-blue-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg">🎲 Reroll Dice</span>
-                            <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${jokers.reroll || 0} left</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Reroll your dice if you don't like the result. Use immediately after rolling.</p>
-                        <button onclick="window.useJokerReroll()" ${jokers.reroll > 0 ? '' : 'disabled'}
-                            class="w-full px-4 py-2 rounded ${jokers.reroll > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'} text-white font-bold">
-                            ${jokers.reroll > 0 ? 'Use Reroll Card' : 'No Cards Left'}
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            showModal('🃏 Your Joker Cards', modalHTML, [
-                { text: 'Close', class: 'bg-gray-500', action: hideModal }
-            ]);
+            showJokerModal();
         });
 
         // Check if player owns all properties of a color (monopoly)
@@ -10982,7 +11351,7 @@
                 return;
             }
 
-            const mortgageValue = space.price; // Full purchase price
+            const mortgageValue = Math.floor(space.price / 2);
 
             const propertiesCopy = JSON.parse(JSON.stringify(gameData.properties));
             const playersCopy = JSON.parse(JSON.stringify(gameData.players));
@@ -11015,7 +11384,8 @@
                 return;
             }
 
-            const unmortgageValue = space.price; // Full purchase price
+            const mortgageValue = Math.floor(space.price / 2);
+            const unmortgageValue = Math.round(mortgageValue * 1.10);
 
             if (currentPlayer.money < unmortgageValue) {
                 alert(`Not enough money! You need $${unmortgageValue}.`);
@@ -11084,11 +11454,11 @@
                                 }
                             }
                         }
+                        const mortgageValue = Math.floor(space.price / 2);
+                        const unmortgageValue = Math.round(mortgageValue * 1.10);
                         const canSellHouse = isProperty && prop.houses > 0;
                         const canMortgage = !prop.mortgaged && (isRailroad || isUtility || prop.houses === 0);
-                        const canUnmortgage = prop.mortgaged && myPlayer.money >= space.price;
-
-                        const mortgageValue = space.price;
+                        const canUnmortgage = prop.mortgaged && myPlayer.money >= unmortgageValue;
                         const houseSellPrice = isProperty ? Math.floor(space.houseCost * 0.75) : 0;
 
                         modalHTML += `
@@ -11130,10 +11500,10 @@
                                 ${canUnmortgage ? `
                                     <button onclick="event.stopPropagation(); window.unmortgageProperty(${prop.spaceIndex})"
                                         class="text-xs px-3 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white">
-                                        🔓 Unmortgage ($${mortgageValue})
+                                        🔓 Unmortgage ($${unmortgageValue})
                                     </button>
                                 ` : prop.mortgaged ? `
-                                    <span class="text-xs text-gray-500">Need $${mortgageValue} to unmortgage</span>
+                                    <span class="text-xs text-gray-500">Need $${unmortgageValue} to unmortgage</span>
                                 ` : ''}
                             </div>
                          </div>`;
@@ -11173,43 +11543,63 @@
                 return;
             }
             if (!canUseJoker(myPlayer)) return;
-            // Instead of closing the modal, re-render the joker modal after use
-            // Diğer oyuncuların sahip olduğu kartları göster
+
             const otherPlayers = gameData.players.filter(p => p.id !== localPlayer.id && !p.bankrupt);
             let modalHTML = `
-                <div class="text-left space-y-3 max-h-96 overflow-y-auto" style="color: #E5E7EB;">
-                    <p class="text-sm mb-3" style="color: #9CA3AF;">Select a player and then select a property to steal. You'll pay 3x its price to that player.</p>
+                <div class="text-left" style="color: #E5E7EB; display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 4px;">
+                    <p style="font-size:12px; color: #9CA3AF; margin: 0 0 6px 0; line-height: 1.45;">Select a player and property to hijack. You must pay 3x the standard listing price as compensation.</p>
             `;
             let anyProperties = false;
             otherPlayers.forEach(player => {
                 const playerProperties = gameData.properties.filter(p => p.ownerId === player.id && !p.mortgaged);
                 if (playerProperties.length > 0) {
                     anyProperties = true;
-                    modalHTML += `<div class="rounded-lg p-3" style="background: rgba(31, 41, 55, 0.7); border: 1px solid #374151;">
-                        <h4 class="font-bold mb-2" style="color: #F3F4F6;">${player.name}'s Properties:</h4>`;
+                    modalHTML += `
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #a78bfa; display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${player.color}; display: inline-block; box-shadow: 0 0 6px ${player.color};"></span>
+                                <span>${player.name}'s Properties</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">`;
                     playerProperties.forEach(prop => {
                         const space = gameData.settings.board[prop.spaceIndex];
                         const stealCost = space.price * 3;
                         const canAfford = myPlayer.money >= stealCost;
+                        const borderClr = space.color || '#A78BFA';
                         modalHTML += `
-                            <button onclick=\"window.executeJokerSteal('${player.id}', ${prop.spaceIndex}, ${stealCost})\"
-                                ${canAfford ? '' : 'disabled'}
-                                class=\"w-full text-left px-3 py-2 mb-2 rounded\"
-                                style=\"background: ${canAfford ? 'rgba(147, 51, 234, 0.15)' : '#1F2937'}; border: 1px solid ${canAfford ? '#9333ea' : '#374151'}; border-left: 4px solid ${space.color || '#9333ea'}; ${canAfford ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.5;'}\">
-                                <div class=\"font-semibold\" style=\"color: #F3F4F6;\">${space.name}</div>
-                                <div class=\"text-xs\" style=\"color: #9CA3AF;\">Cost: $${stealCost} ${!canAfford ? '(Can\'t afford)' : ''}</div>
-                            </button>
+                                <button onclick="window.executeJokerSteal('${player.id}', ${prop.spaceIndex}, ${stealCost})"
+                                    ${canAfford ? '' : 'disabled'}
+                                    style="display: flex; align-items: center; width: 100%; padding: 10px 12px; border-radius: 8px;
+                                        background: ${canAfford ? 'rgba(167, 139, 250, 0.04)' : 'rgba(255, 255, 255, 0.01)'};
+                                        border: 1px solid ${canAfford ? 'rgba(167, 139, 250, 0.15)' : 'rgba(255, 255, 255, 0.03)'};
+                                        border-left: 4px solid ${borderClr};
+                                        cursor: ${canAfford ? 'pointer' : 'not-allowed'};
+                                        transition: all 0.2s ease;
+                                        opacity: ${canAfford ? '1' : '0.45'};"
+                                    onmouseover="if(${canAfford}) { this.style.background='rgba(167, 139, 250, 0.1)'; this.style.borderColor='rgba(167, 139, 250, 0.4)'; }"
+                                    onmouseout="if(${canAfford}) { this.style.background='rgba(167, 139, 250, 0.04)'; this.style.borderColor='rgba(167, 139, 250, 0.15)'; }">
+                                    <div style="flex: 1; text-align: left; min-width: 0; padding-right: 8px;">
+                                        <div style="font-weight: 700; color: #ffffff; font-size: 12px; truncate; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${space.name}</div>
+                                        <div style="font-size: 10px; color: #a78bfa; font-weight: 700; margin-top: 1px;">Steal Price: $${stealCost}</div>
+                                    </div>
+                                    ${!canAfford ? '<span style="font-size: 9px; color: #f87171; font-weight: 800; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Insufficient Funds</span>' : '<span style="font-size: 12px;">💎</span>'}
+                                </button>
                         `;
                     });
-                    modalHTML += `</div>`;
+                    modalHTML += `
+                            </div>
+                        </div>`;
                 }
             });
             if (!anyProperties) {
-                modalHTML += `<p class="text-sm" style="color: #9CA3AF;">Nobody owns a stealable property yet.</p>`;
+                modalHTML += `
+                    <div style="padding: 24px; text-align: center; color: #6b7280; font-style: italic; font-size: 13px;">
+                        No stealable/unmortgaged properties currently owned by opponents.
+                    </div>`;
             }
             modalHTML += `</div>`;
-            showModal('💎 Steal Property', modalHTML, [
-                { text: 'Back to Jokers', class: 'bg-gray-500', action: showJokerModal },
+            showModal('💎 Hijack Property', modalHTML, [
+                { text: 'Back to Deck', class: 'bg-gray-500', action: showJokerModal },
                 { text: 'Cancel', class: 'bg-gray-400', action: hideModal }
             ], true);
         };
@@ -11266,25 +11656,36 @@
             }
             if (!canUseJoker(myPlayer)) return;
 
-            // Diğer oyuncuları göster
             const otherPlayers = gameData.players.filter(p => p.id !== localPlayer.id && !p.bankrupt);
             let modalHTML = `
-                <div class="text-left space-y-2" style="color: #E5E7EB;">
-                    <p class="text-sm mb-3" style="color: #9CA3AF;">Select a player to skip their next turn:</p>
+                <div class="text-left" style="color: #E5E7EB; display: flex; flex-direction: column; gap: 10px;">
+                    <p style="font-size:12px; color: #9CA3AF; margin: 0 0 4px 0; line-height: 1.45;">Target an opponent to freeze. Their token will skip its next turn sequence.</p>
             `;
             otherPlayers.forEach(player => {
                 modalHTML += `
-                    <button onclick=\"window.executeJokerSkip('${player.id}')\"
-                        class=\"w-full text-left px-4 py-3 rounded\"
-                        style=\"background: rgba(248, 113, 113, 0.12); border: 1px solid rgba(248, 113, 113, 0.4); border-left: 4px solid ${player.color || '#F87171'}; cursor: pointer;\">
-                        <div class=\"font-semibold\" style=\"color: #F3F4F6;\">${player.name}</div>
-                        <div class=\"text-xs\" style=\"color: #9CA3AF;\">They will miss their next turn</div>
+                    <button onclick="window.executeJokerSkip('${player.id}')"
+                        style="display: flex; align-items: center; width: 100%; padding: 12px 14px; border-radius: 10px;
+                            background: rgba(248, 113, 113, 0.04);
+                            border: 1px solid rgba(248, 113, 113, 0.15);
+                            border-left: 4px solid ${player.color || '#F87171'};
+                            cursor: pointer;
+                            transition: all 0.2s ease;"
+                        onmouseover="this.style.background='rgba(248, 113, 113, 0.1)'; this.style.borderColor='rgba(248, 113, 113, 0.4)';"
+                        onmouseout="this.style.background='rgba(248, 113, 113, 0.04)'; this.style.borderColor='rgba(248, 113, 113, 0.15)';"
+                        class="player-skip-row">
+                        <div style="flex: 1; text-align: left; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${player.color}; box-shadow: 0 0 6px ${player.color}; flex-shrink: 0;"></div>
+                            <span style="font-weight: 700; color: #ffffff; font-size: 13px;">${player.name}</span>
+                        </div>
+                        <div style="font-size: 10px; color: #f87171; font-weight: 700; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">
+                            Freeze Next Turn
+                        </div>
                     </button>
                 `;
             });
             modalHTML += `</div>`;
-            showModal('⏭️ Skip Player Turn', modalHTML, [
-                { text: 'Back to Jokers', class: 'bg-gray-500', action: showJokerModal },
+            showModal('⏭️ Freeze Opponent', modalHTML, [
+                { text: 'Back to Deck', class: 'bg-gray-500', action: showJokerModal },
                 { text: 'Cancel', class: 'bg-gray-400', action: hideModal }
             ], true);
         };
@@ -11402,39 +11803,74 @@
             const jokers = myPlayer.jokerCards;
             const isMyTurnNow = gameData.players[gameData.currentPlayerIndex] && gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
             const jokerAlreadyUsed = !!myPlayer.usedJokerThisTurn;
-            const jokerCard = (accent, title, count, desc, onclick, enabled, btnLabel) => `
-                    <div class="rounded-lg p-4" style="background: rgba(31, 41, 55, 0.7); border: 1px solid ${accent}55; border-left: 4px solid ${accent};">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg" style="color: #F3F4F6;">${title}</span>
-                            <span class="text-xs px-2 py-1 rounded font-bold" style="background: ${accent}25; color: ${accent}; border: 1px solid ${accent}55;">${count} left</span>
+            const jokerCard = (accent, r, g, b, icon, title, count, desc, onclick, enabled) => {
+                const btnLabel = count > 0 ? (enabled ? 'Use Card' : 'Locked') : 'Empty';
+                return `
+                    <div style="display:flex;align-items:center;gap:16px;padding:16px;border-radius:14px;
+                        background:${enabled ? `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.08) 0%, rgba(${r}, ${g}, ${b}, 0.02) 100%)` : 'rgba(255,255,255,0.02)'};
+                        border:1px solid ${enabled ? `${accent}40` : 'rgba(255,255,255,0.06)'};
+                        border-left:5px solid ${accent};
+                        box-shadow:${enabled ? `0 4px 20px 0 rgba(${r}, ${g}, ${b}, 0.15)` : 'none'};
+                        transition:all 0.2s ease-in-out;
+                        opacity:${count > 0 ? '1' : '0.45'};">
+                        <div style="font-size:28px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 10px rgba(255,255,255,0.02);flex-shrink:0;">
+                            ${icon}
                         </div>
-                        <p class="text-sm mb-2" style="color: #9CA3AF;">${desc}</p>
+                        <div style="flex:1;min-width:0;text-align:left;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                                <span style="font-size:14px;font-weight:800;color:#ffffff;letter-spacing:0.02em;">${title}</span>
+                                <span style="font-size:10px;font-weight:700;color:${accent};background:${accent}15;border:1px solid ${accent}30;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap;">
+                                    ${count} Left
+                                </span>
+                            </div>
+                            <div style="font-size:11px;color:#9ca3af;line-height:1.45;">${desc}</div>
+                        </div>
                         <button onclick="${onclick}" ${enabled ? '' : 'disabled'}
-                            class="w-full px-4 py-2 rounded font-bold ${enabled ? 'neon-btn-purple' : ''}"
-                            style="${enabled ? '' : 'background: #374151; color: #6B7280; cursor: not-allowed;'}">
+                            class="${enabled ? (accent === '#22D3EE' ? 'neon-btn-cyan' : 'neon-btn-purple') : ''}"
+                            style="flex-shrink:0;padding:8px 16px;border-radius:8px;font-size:11px;font-weight:800;
+                                ${enabled ? '' : 'background:#242533;color:#6b7280;border:1px solid #3f3f5c;cursor:not-allowed;'}
+                                text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;min-width:80px;height:36px;display:flex;align-items:center;justify-content:center;">
                             ${btnLabel}
                         </button>
                     </div>`;
+            };
+
+            let statusBanner = '';
+            if (!isMyTurnNow) {
+                statusBanner = `
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);color:#fbbf24;font-size:11px;font-weight:700;line-height:1.4;">
+                        <span style="font-size:16px;">⏳</span>
+                        <span>WAITING · You can only activate Joker cards during your turn.</span>
+                    </div>`;
+            } else if (jokerAlreadyUsed) {
+                statusBanner = `
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:11px;font-weight:700;line-height:1.4;">
+                        <span style="font-size:16px;">❌</span>
+                        <span>LIMIT REACHED · You have already used 1 Joker card this turn.</span>
+                    </div>`;
+            } else {
+                statusBanner = `
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#34d399;font-size:11px;font-weight:700;line-height:1.4;">
+                        <span style="font-size:16px;">⚡</span>
+                        <span>ACTIVE TURN · Select a Joker card to activate it.</span>
+                    </div>`;
+            }
+
             let modalHTML = `
-                <div class="text-left space-y-4" style="color: #E5E7EB;">
-                    <p class="text-sm mb-2" style="color: #9CA3AF;">Use your joker cards strategically to gain an advantage!</p>
-                    <p class="text-xs mb-2 p-2 rounded" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #FCD34D;">
-                        ⚠️ You can use only <strong>1 joker per turn</strong>, and only on <strong>your own turn</strong>.
-                        ${jokerAlreadyUsed ? '<br>❌ You already used a joker this turn!' : ''}
-                        ${!isMyTurnNow ? '<br>⏳ It is not your turn right now.' : ''}
-                    </p>
-                    ${jokerCard('#A78BFA', '💎 Steal Property', jokers.steal || 0,
-                "Pay 3x the property's price to steal it from another player. The money goes to them.",
-                'window.useJokerSteal()', jokers.steal > 0 && isMyTurnNow && !jokerAlreadyUsed,
-                jokers.steal > 0 ? 'Use Steal Card' : 'No Cards Left')}
-                    ${jokerCard('#F87171', "⏭️ Skip Player's Turn", jokers.skip || 0,
-                    'Make another player skip their next turn.',
-                    'window.useJokerSkip()', jokers.skip > 0 && isMyTurnNow && !jokerAlreadyUsed,
-                    jokers.skip > 0 ? 'Use Skip Card' : 'No Cards Left')}
-                    ${jokerCard('#22D3EE', '🎲 Reroll Dice', jokers.reroll || 0,
-                        "Reroll your dice if you don't like the result. Use immediately after rolling.",
-                        'window.useJokerReroll()', jokers.reroll > 0 && isMyTurnNow && !jokerAlreadyUsed,
-                        jokers.reroll > 0 ? 'Use Reroll Card' : 'No Cards Left')}
+                <div class="text-left" style="color:#E5E7EB;display:flex;flex-direction:column;gap:12px;">
+                    <p style="font-size:12px;color:#9ca3af;margin:0 0 4px 0;line-height:1.4;">Activate powerful gameplay cards to strategically tip the board in your favor.</p>
+                    ${statusBanner}
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+                        ${jokerCard('#A78BFA', 167, 139, 250, '💎', 'Steal Property', jokers.steal || 0,
+                "Instantly steal an unmortgaged property from another player by paying 3x its value.",
+                'window.useJokerSteal()', jokers.steal > 0 && isMyTurnNow && !jokerAlreadyUsed)}
+                        ${jokerCard('#F87171', 248, 113, 113, '⏭️', "Skip Turn", jokers.skip || 0,
+                    "Select any active opponent to force them to skip their next upcoming turn.",
+                    'window.useJokerSkip()', jokers.skip > 0 && isMyTurnNow && !jokerAlreadyUsed)}
+                        ${jokerCard('#22D3EE', 34, 211, 238, '🎲', 'Reroll Dice', jokers.reroll || 0,
+                        "Reroll your dice roll immediately after moving if you don't like where you landed.",
+                        'window.useJokerReroll()', jokers.reroll > 0 && isMyTurnNow && !jokerAlreadyUsed)}
+                    </div>
                 </div>
             `;
             showModal('🃏 Your Joker Cards', modalHTML, [
@@ -11451,67 +11887,61 @@
             const myProperties = gameData.properties.filter(p => p.ownerId === me.id);
             const theirProperties = gameData.properties.filter(p => p.ownerId === them.id);
 
-            let body = `
-                <div id="trade-interface" class="grid grid-cols-2 gap-4 text-left">
+            const propRow = (p, cls) => {
+                const sp = gameData.settings.board[p.spaceIndex];
+                const clr = sp.color || '#6b7280';
+                return `<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);transition:background 0.1s;">
+                    <input type="checkbox" class="${cls}" value="${p.spaceIndex}" style="accent-color:#9333ea;width:14px;height:14px;flex-shrink:0;">
+                    <span style="width:4px;height:16px;border-radius:2px;background:${clr};flex-shrink:0;"></span>
+                    <span style="font-size:12px;color:#e2d9ff;font-weight:600;flex:1;">${sp.name}</span>
+                    <span style="font-size:10px;color:#6b7280;">${sp.price ? '$' + sp.price : ''}</span>
+                </label>`;
+            };
+
+            let body = `<div style="color:#E5E7EB;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <!-- My Offer -->
-                    <div class="border-r pr-3">
-                        <h4 class="font-bold text-center mb-3 text-blue-700">💼 Your Offer</h4>
-                        <label class="block mb-2">
-                            <span class="text-sm font-medium">Money:</span>
-                            <input id="trade-my-money" type="number" min="0" max="${me.money}" value="0" class="w-full border-2 p-2 rounded-lg mt-1">
-                            <span class="text-xs text-gray-500">Available: $${me.money}</span>
-                        </label>
-                        <div class="mt-2">
-                            <p class="font-medium text-sm mb-2">Properties:</p>
-                            <div class="space-y-1 max-h-48 overflow-y-auto">
-                                ${myProperties.map(p => {
-                const space = gameData.settings.board[p.spaceIndex];
-                return `
-                                        <label class="flex items-center gap-2 p-2 hover:bg-blue-50 rounded cursor-pointer">
-                                            <input type="checkbox" class="my-prop-checkbox" value="${p.spaceIndex}">
-                                            <span class="text-sm">${space.name}</span>
-                                            <span class="text-xs text-gray-500 ml-auto">$${space.price}</span>
-                                        </label>
-                                    `;
-            }).join('') || '<p class="text-sm text-gray-500 italic">No properties owned</p>'}
+                    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;">
+                        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#93c5fd;margin-bottom:8px;">💼 Your Offer</div>
+                        <div style="margin-bottom:8px;">
+                            <div style="font-size:10px;color:#6b7280;margin-bottom:3px;">Cash · Balance: <span style="color:#4ade80;">$${me.money}</span></div>
+                            <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:4px 8px;">
+                                <span style="color:#6b7280;font-size:12px;">$</span>
+                                <input id="trade-my-money" type="number" min="0" max="${me.money}" value="0"
+                                    style="background:transparent;border:none;outline:none;color:#e2d9ff;font-weight:700;font-size:13px;width:100%;">
                             </div>
+                        </div>
+                        <div style="font-size:10px;color:#6b7280;margin-bottom:4px;">Properties</div>
+                        <div style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;">
+                            ${myProperties.map(p => propRow(p, 'my-prop-checkbox')).join('') ||
+                '<p style="font-size:11px;color:#4b5563;font-style:italic;padding:4px;">None owned</p>'}
                         </div>
                     </div>
                     <!-- Their Offer -->
-                    <div class="pl-3">
-                        <h4 class="font-bold text-center mb-3 text-green-700">🎁 Request From Them</h4>
-                        <label class="block mb-2">
-                            <span class="text-sm font-medium">Money:</span>
-                            <input id="trade-their-money" type="number" min="0" max="${them.money}" value="0" class="w-full border-2 p-2 rounded-lg mt-1">
-                            <span class="text-xs text-gray-500">They have: $${them.money}</span>
-                        </label>
-                        <div class="mt-2">
-                            <p class="font-medium text-sm mb-2">Properties:</p>
-                            <div class="space-y-1 max-h-48 overflow-y-auto">
-                                ${theirProperties.map(p => {
-                const space = gameData.settings.board[p.spaceIndex];
-                return `
-                                        <label class="flex items-center gap-2 p-2 hover:bg-green-50 rounded cursor-pointer">
-                                            <input type="checkbox" class="their-prop-checkbox" value="${p.spaceIndex}">
-                                            <span class="text-sm">${space.name}</span>
-                                            <span class="text-xs text-gray-500 ml-auto">$${space.price}</span>
-                                        </label>
-                                    `;
-            }).join('') || '<p class="text-sm text-gray-500 italic">No properties owned</p>'}
+                    <div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:12px;">
+                        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#6ee7b7;margin-bottom:8px;">🎁 You Want</div>
+                        <div style="margin-bottom:8px;">
+                            <div style="font-size:10px;color:#6b7280;margin-bottom:3px;">Cash · They have: <span style="color:#4ade80;">$${them.money}</span></div>
+                            <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:4px 8px;">
+                                <span style="color:#6b7280;font-size:12px;">$</span>
+                                <input id="trade-their-money" type="number" min="0" max="${them.money}" value="0"
+                                    style="background:transparent;border:none;outline:none;color:#e2d9ff;font-weight:700;font-size:13px;width:100%;">
                             </div>
+                        </div>
+                        <div style="font-size:10px;color:#6b7280;margin-bottom:4px;">Properties</div>
+                        <div style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;">
+                            ${theirProperties.map(p => propRow(p, 'their-prop-checkbox')).join('') ||
+                '<p style="font-size:11px;color:#4b5563;font-style:italic;padding:4px;">None owned</p>'}
                         </div>
                     </div>
                 </div>
-                <!-- Gizli Trade Seçeneği -->
-                <div class="mt-4 p-3 bg-purple-50 border-2 border-purple-300 rounded-lg">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="trade-secret-checkbox" class="w-4 h-4">
-                        <span class="font-semibold text-purple-800">🔒 Make this a secret trade</span>
-                        <span class="text-xs text-purple-600">(${me.secretTradesAvailable || 0} secret trades available)</span>
-                    </label>
-                    <p class="text-xs text-gray-600 mt-2">Secret trades won't be visible to other players. You have ${me.secretTradesAvailable || 0} secret trade credits. Each one used (even if rejected) costs 1 credit.</p>
-                </div>
-            `;
+                <!-- Secret toggle -->
+                <label style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;cursor:pointer;">
+                    <input type="checkbox" id="trade-secret-checkbox" style="accent-color:#9333ea;width:14px;height:14px;">
+                    <span style="font-size:11px;color:#c4b5fd;font-weight:700;">🔒 Secret Trade</span>
+                    <span style="font-size:10px;color:#6b7280;margin-left:auto;">${me.secretTradesAvailable || 0} credits left</span>
+                </label>
+            </div>`;
 
             showModal(`🤝 Trade with ${them.name}`, body, [
                 { text: '📤 Send Offer', class: 'bg-blue-600 hover:bg-blue-700', action: () => proposeTrade(targetPlayerId) },
@@ -12327,12 +12757,12 @@
                 });
                 newOwners[trade.toId] = mergedShare;
                 // If total is 100 and only one owner, set as sole owner
-                const totalPct = Object.values(newOwners).reduce((s,v) => s+v, 0);
+                const totalPct = Object.values(newOwners).reduce((s, v) => s + v, 0);
                 if (totalPct >= 100 && Object.keys(newOwners).length === 1) {
                     prop.ownerId = trade.toId;
                     prop.owners = { [trade.toId]: 100 };
                 } else {
-                    const mainId = Object.entries(newOwners).sort((a,b)=>b[1]-a[1])[0][0];
+                    const mainId = Object.entries(newOwners).sort((a, b) => b[1] - a[1])[0][0];
                     prop.ownerId = mainId;
                     prop.owners = newOwners;
                 }
@@ -12352,12 +12782,12 @@
                     if (id !== trade.toId) newOwners[id] = pct;
                 });
                 newOwners[trade.fromId] = mergedShare;
-                const totalPct = Object.values(newOwners).reduce((s,v) => s+v, 0);
+                const totalPct = Object.values(newOwners).reduce((s, v) => s + v, 0);
                 if (totalPct >= 100 && Object.keys(newOwners).length === 1) {
                     prop.ownerId = trade.fromId;
                     prop.owners = { [trade.fromId]: 100 };
                 } else {
-                    const mainId = Object.entries(newOwners).sort((a,b)=>b[1]-a[1])[0][0];
+                    const mainId = Object.entries(newOwners).sort((a, b) => b[1] - a[1])[0][0];
                     prop.ownerId = mainId;
                     prop.owners = newOwners;
                 }
@@ -12689,9 +13119,9 @@
             // Build share options — honour allowShares toggle
             const allShareOptions = [
                 { percentage: 100, label: '100% Full Ownership', class: 'bg-green-600 hover:bg-green-700' },
-                { percentage: 75,  label: '75% Majority',        class: 'bg-green-500 hover:bg-green-600' },
-                { percentage: 50,  label: '50% Half',            class: 'bg-green-400 hover:bg-green-500' },
-                { percentage: 25,  label: '25% Quarter',         class: 'bg-green-300 hover:bg-green-400 text-gray-800' }
+                { percentage: 75, label: '75% Majority', class: 'bg-green-500 hover:bg-green-600' },
+                { percentage: 50, label: '50% Half', class: 'bg-green-400 hover:bg-green-500' },
+                { percentage: 25, label: '25% Quarter', class: 'bg-green-300 hover:bg-green-400 text-gray-800' }
             ];
 
             // If shares disabled, only offer 100%
@@ -13064,9 +13494,16 @@
                 };
             }
 
-            // Check URL parameters for auto-join
-            const urlParams = new URLSearchParams(window.location.search);
-            const autoJoinGameId = urlParams.get('gameId');
+            // Check URL path or query parameters for auto-join
+            const pathParts = window.location.pathname.split('/');
+            const roomIdx = pathParts.indexOf('room');
+            let autoJoinGameId = null;
+            if (roomIdx !== -1 && pathParts[roomIdx + 1]) {
+                autoJoinGameId = pathParts[roomIdx + 1].trim().toUpperCase();
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                autoJoinGameId = urlParams.get('gameId');
+            }
             if (autoJoinGameId) {
                 gameIdInput.value = autoJoinGameId;
                 // Auto-join will happen after WebSocket connects
@@ -13291,7 +13728,10 @@
                     config: {
                         iceServers: [
                             { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' }
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' },
+                            { urls: 'stun:stun3.l.google.com:19302' },
+                            { urls: 'stun:stun4.l.google.com:19302' }
                         ]
                     }
                 });
@@ -13310,15 +13750,28 @@
                     console.log(`🔊 Received remote stream from ${remotePeerId}`);
                     console.log('Stream tracks:', remoteStream.getTracks());
 
-                    // Create audio element and add to DOM
-                    const audio = document.createElement('audio');
-                    audio.id = `voice-${remotePeerId}`;
+                    // Force enable all remote audio tracks to ensure they are audible
+                    remoteStream.getAudioTracks().forEach(track => {
+                        console.log(`Remote track: ${track.kind}, enabled: ${track.enabled}, muted: ${track.muted}`);
+                        track.enabled = true;
+                    });
+
+                    // Create or get audio element and add to DOM
+                    let audio = document.getElementById(`voice-${remotePeerId}`);
+                    if (!audio) {
+                        audio = document.createElement('audio');
+                        audio.id = `voice-${remotePeerId}`;
+                    }
                     audio.srcObject = remoteStream;
                     audio.autoplay = true;
+                    audio.playsInline = true;
+                    audio.muted = false;
                     audio.volume = 1.0;
+                    audio.style.display = 'none';
 
-                    // Add to body (hidden)
-                    document.body.appendChild(audio);
+                    if (!audio.parentElement) {
+                        document.body.appendChild(audio);
+                    }
 
                     // Play audio
                     audio.play()
@@ -13388,6 +13841,399 @@
         }
 
         init();
+
+        // ══════════════════════════════════════════════════════
+        //  TILE QUICK-ACTION POPUP
+        // ══════════════════════════════════════════════════════
+        let _tilePopupIndex = null;
+        let _tilePopupSpace = null;
+
+        function showTileActionPopup(spaceIndex, spaceData, anchorEl) {
+            _tilePopupIndex = spaceIndex;
+            _tilePopupSpace = spaceData;
+
+            const popup = document.getElementById('tile-action-popup');
+            if (!popup) return;
+
+            // ── Gather state ──────────────────────────────────────────────
+            const prop = gameData && gameData.properties ? gameData.properties[spaceIndex] : null;
+            const isMyTurn = gameData && gameData.players[gameData.currentPlayerIndex] &&
+                gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
+            const amOwner = prop && (prop.ownerId === localPlayer.id ||
+                (prop.owners && prop.owners[localPlayer.id] > 0));
+            const isMortgaged = prop && prop.mortgaged;
+            const houses = prop ? (prop.houses || 0) : 0;
+            const hasMonopoly = spaceData.type === 'property' && amOwner &&
+                typeof checkMonopoly === 'function' &&
+                checkMonopoly(localPlayer.id, spaceData.color);
+            const me = gameData ? gameData.players.find(p => p.id === localPlayer.id) : null;
+            const myMoney = me ? me.money : 0;
+            const houseCost = spaceData.houseCost || 50;
+            const mortgageVal = Math.floor((spaceData.price || 0) / 2);
+            const unmortgageVal = Math.floor(mortgageVal * 1.1);
+            const houseSell = Math.floor(houseCost * 0.75);
+
+            const canBuyHouse = isMyTurn && amOwner && spaceData.type === 'property' && hasMonopoly &&
+                myMoney >= houseCost && houses < 5 && !isMortgaged;
+            const canSellHouse = isMyTurn && amOwner && spaceData.type === 'property' && houses > 0;
+            const canMortgage = isMyTurn && amOwner && !isMortgaged && houses === 0;
+            const canUnmortgage = isMyTurn && amOwner && isMortgaged && myMoney >= unmortgageVal;
+
+            // ── Determine owner label ─────────────────────────────────────
+            let ownerLabel = 'Unowned';
+            if (prop) {
+                const ownerId = prop.ownerId || (prop.owners && Object.keys(prop.owners)[0]);
+                const ownerPlayer = ownerId && gameData ? gameData.players.find(p => p.id === ownerId) : null;
+                if (ownerPlayer) {
+                    const share = (prop.owners && prop.owners[ownerId]) ? prop.owners[ownerId] : 100;
+                    ownerLabel = ownerPlayer.name + (share < 100 ? ` (${share}%)` : '');
+                }
+            }
+            if (isMortgaged) ownerLabel += ' · MORTGAGED';
+
+            // ── Build rent table rows ─────────────────────────────────────
+            let rentRowsHTML = '';
+            if (spaceData.type === 'property' && spaceData.rent && spaceData.rent.length) {
+                const labels = ['No houses', '1 House', '2 Houses', '3 Houses', '4 Houses', 'Hotel'];
+                spaceData.rent.forEach((r, idx) => {
+                    const isCurrent = (idx === houses) && amOwner;
+                    rentRowsHTML += `<tr class="${isCurrent ? 'tap-current-row' : ''}">
+                        <td>${labels[idx] || `Tier ${idx}`}</td>
+                        <td>$${r}</td>
+                    </tr>`;
+                });
+            } else if (spaceData.type === 'railroad') {
+                [[1, '$25'], [2, '$50'], [3, '$100'], [4, '$200']].forEach(([n, r]) => {
+                    rentRowsHTML += `<tr><td>${n} Airport${n > 1 ? 's' : ''} owned</td><td>${r}</td></tr>`;
+                });
+            } else if (spaceData.type === 'utility') {
+                rentRowsHTML += `<tr><td>1 utility</td><td>4× dice</td></tr>`;
+                rentRowsHTML += `<tr><td>2 utilities</td><td>10× dice</td></tr>`;
+            }
+
+            // ── Assemble popup HTML ───────────────────────────────────────
+            const colorSwatch = spaceData.color
+                ? `<span class="tap-color-swatch" style="background:${spaceData.color};"></span>`
+                : '';
+
+            const priceLine = spaceData.price
+                ? `<span style="font-size:9px;color:rgba(167,139,250,0.5);margin-left:4px;">$${spaceData.price}</span>`
+                : '';
+
+            popup.innerHTML = `
+                <div class="tap-header">
+                    <div class="tap-prop-name">${colorSwatch}${spaceData.name}${priceLine}</div>
+                    <div class="tap-owner-line">${ownerLabel}</div>
+                </div>
+
+                ${rentRowsHTML ? `
+                <table class="tap-rent-table"><tbody>${rentRowsHTML}</tbody></table>
+                ` : ''}
+
+                <div class="tap-actions">
+                    <button class="tile-popup-btn" id="tap-buy-house"
+                        ${!canBuyHouse ? 'disabled' : ''}
+                        onclick="window.tilePopupBuyHouse()">
+                        <span class="tap-btn-left">
+                            <span class="tile-btn-icon">🏠</span>
+                            ${houses === 4 ? 'Buy Hotel' : 'Buy House'}
+                        </span>
+                        <span class="tap-price-badge green">$${houseCost}</span>
+                    </button>
+
+                    <button class="tile-popup-btn" id="tap-sell-house"
+                        ${!canSellHouse ? 'disabled' : ''}
+                        onclick="window.tilePopupSellHouse()">
+                        <span class="tap-btn-left">
+                            <span class="tile-btn-icon">🔨</span>
+                            ${houses === 5 ? 'Sell Hotel' : 'Sell House'}
+                        </span>
+                        <span class="tap-price-badge red">+$${houseSell}</span>
+                    </button>
+
+                    <button class="tile-popup-btn" id="tap-mortgage"
+                        ${!(canMortgage || canUnmortgage) ? 'disabled' : ''}
+                        onclick="window.tilePopupMortgage()">
+                        <span class="tap-btn-left">
+                            <span class="tile-btn-icon">${isMortgaged ? '🔓' : '🔒'}</span>
+                            ${isMortgaged ? 'Unmortgage' : 'Mortgage'}
+                        </span>
+                        <span class="tap-price-badge">${isMortgaged ? `$${unmortgageVal}` : `+$${mortgageVal}`}</span>
+                    </button>
+
+                    <button class="tile-popup-btn btn-details" id="tap-details"
+                        onclick="window.tilePopupDetails()">
+                        <span class="tap-btn-left">
+                            <span class="tile-btn-icon">📋</span>
+                            Details
+                        </span>
+                    </button>
+                </div>
+            `;
+
+            // ── Position & show ───────────────────────────────────────────
+            popup.classList.remove('visible', 'pop-in');
+            popup.style.display = 'none';
+            // Force reflow so animation re-triggers
+            void popup.offsetWidth;
+            popup.classList.add('visible', 'pop-in');
+            popup.style.display = 'flex';
+
+            const rect = anchorEl.getBoundingClientRect();
+            const pw = 224, ph = popup.scrollHeight || 340;
+            let left = rect.right + 8;
+            let top = rect.top;
+            if (left + pw > window.innerWidth - 8) left = rect.left - pw - 8;
+            if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
+            if (left < 4) left = 4;
+            if (top < 4) top = 4;
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+
+            // Auto-dismiss on outside click
+            setTimeout(() => {
+                document.addEventListener('click', _closeTilePopupOutside, { once: true, capture: true });
+            }, 50);
+        }
+
+        function _closeTilePopupOutside(e) {
+            const popup = document.getElementById('tile-action-popup');
+            if (popup && !popup.contains(e.target)) {
+                hideTileActionPopup();
+            }
+        }
+
+        function hideTileActionPopup() {
+            const popup = document.getElementById('tile-action-popup');
+            if (popup) { popup.classList.remove('visible'); popup.style.display = 'none'; }
+            _tilePopupIndex = null;
+            _tilePopupSpace = null;
+            document.removeEventListener('click', _closeTilePopupOutside, true);
+        }
+
+        window.tilePopupBuyHouse = function () {
+            const idx = _tilePopupIndex;
+            hideTileActionPopup();
+            if (idx === null) return;
+            const isMyTurn = gameData && gameData.players[gameData.currentPlayerIndex] &&
+                gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
+            if (!isMyTurn) return;
+            if (typeof window.buyHouse === 'function') window.buyHouse(idx);
+        };
+
+        window.tilePopupSellHouse = function () {
+            const idx = _tilePopupIndex;
+            hideTileActionPopup();
+            if (idx === null) return;
+            const isMyTurn = gameData && gameData.players[gameData.currentPlayerIndex] &&
+                gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
+            if (!isMyTurn) return;
+            if (typeof window.sellHouse === 'function') window.sellHouse(idx);
+        };
+
+        window.tilePopupMortgage = function () {
+            const idx = _tilePopupIndex;
+            hideTileActionPopup();
+            if (idx === null) return;
+            // Guard: must be player's own turn
+            const isMyTurn = gameData && gameData.players[gameData.currentPlayerIndex] &&
+                gameData.players[gameData.currentPlayerIndex].id === localPlayer.id;
+            if (!isMyTurn) { return; }
+            const prop = gameData && gameData.properties ? gameData.properties[idx] : null;
+            const isMortgaged = prop && prop.mortgaged;
+            if (isMortgaged) {
+                if (typeof window.unmortgageProperty === 'function') window.unmortgageProperty(idx);
+            } else {
+                if (typeof window.mortgageProperty === 'function') window.mortgageProperty(idx);
+            }
+        };
+
+        window.tilePopupDetails = function () {
+            const idx = _tilePopupIndex;
+            const sp = _tilePopupSpace;
+            hideTileActionPopup();
+            if (idx !== null && sp) showPropertyDetails(idx, sp);
+        };
+
+        // Patch renderBoard to use popup instead of direct showPropertyDetails
+        const _origRenderBoard = renderBoard;
+        renderBoard = function () {
+            _origRenderBoard.call(this);
+            // Re-bind all property/railroad/utility click events to use the popup
+            document.querySelectorAll('#board .space').forEach(spaceEl => {
+                const idMatch = spaceEl.id.match(/^space-(\d+)$/);
+                if (!idMatch) return;
+                const idx = parseInt(idMatch[1]);
+                if (!gameData || !gameData.settings || !gameData.settings.board[idx]) return;
+                const spData = gameData.settings.board[idx];
+                if (spData.type !== 'property' && spData.type !== 'railroad' && spData.type !== 'utility') return;
+                // Remove old listener by replacing with clone
+                const newEl = spaceEl.cloneNode(true);
+                spaceEl.parentNode.replaceChild(newEl, spaceEl);
+                newEl.style.cursor = 'pointer';
+                newEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showTileActionPopup(idx, spData, newEl);
+                });
+            });
+        };
+
+        // ══════════════════════════════════════════════════════
+        //  CENTER BOARD GAME LOG
+        // ══════════════════════════════════════════════════════
+        const _origUpdateGameLog = updateGameLog;
+        updateGameLog = function () {
+            _origUpdateGameLog.call(this);
+            const cgl = document.getElementById('center-game-log');
+            if (!cgl || !gameData || !gameData.gameLog) return;
+            const last12 = gameData.gameLog.slice(-12);
+            cgl.innerHTML = last12.map(msg =>
+                `<div class="cgl-entry">${msg}</div>`
+            ).join('');
+            cgl.scrollTop = cgl.scrollHeight;
+        };
+
+        // ══════════════════════════════════════════════════════
+        //  SIDEBAR "MANAGE" BUTTON
+        // ══════════════════════════════════════════════════════
+        const manageSideBtn = document.getElementById('managePropertiesSideBtn');
+        if (manageSideBtn) {
+            manageSideBtn.addEventListener('click', () => {
+                // Trigger the hidden center button's click handler
+                const mainBtn = document.getElementById('managePropertiesBtn');
+                if (mainBtn) mainBtn.click();
+            });
+        }
+
+        // Keep sidebar manage button visibility in sync with main button
+        const _origUpdateControls = updateControls;
+        updateControls = function () {
+            _origUpdateControls.call(this);
+            const sideBtn = document.getElementById('managePropertiesSideBtn');
+            const mainBtn = document.getElementById('managePropertiesBtn');
+            if (sideBtn && mainBtn) {
+                // Mirror disabled state
+                sideBtn.disabled = mainBtn.disabled || mainBtn.classList.contains('hidden');
+            }
+        };
+
+        // ══════════════════════════════════════════════════════
+        //  PUBLIC TRADE VIEWING (non-secret trades visible to all)
+        // ══════════════════════════════════════════════════════
+        // Patch updateTradesPanel to also show public trades from other players
+        const _origUpdateTradesPanel = updateTradesPanel;
+        updateTradesPanel = function () {
+            const listEl = document.getElementById('trades-incoming-list');
+            if (!listEl || !gameData) return;
+            const incoming = (gameData.trades || []).filter(t => t && t.toId === localPlayer.id && t.status === 'pending');
+            const outgoing = (gameData.trades || []).filter(t => t && t.fromId === localPlayer.id && t.status === 'pending');
+            // Public trades: between other players, not secret, pending
+            const publicOther = (gameData.trades || []).filter(t =>
+                t && t.status === 'pending' && !t.isSecret &&
+                t.fromId !== localPlayer.id && t.toId !== localPlayer.id
+            );
+            if (incoming.length === 0 && outgoing.length === 0 && publicOther.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-500 italic">No pending trades.</p>';
+                return;
+            }
+            let html = '';
+            incoming.forEach(trade => {
+                const from = gameData.players.find(p => p.id === trade.fromId);
+                if (!from) return;
+                html += `<div class="flex items-center justify-between px-2 py-1 rounded text-xs" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);">
+                    <span class="text-green-400 font-semibold truncate">📥 ${from.name}</span>
+                    <button onclick="window.respondToTrade('${trade.id}')" class="text-[10px] px-1.5 py-0.5 rounded neon-btn-cyan flex-shrink-0 ml-1">View</button>
+                </div>`;
+            });
+            outgoing.forEach(trade => {
+                const to = gameData.players.find(p => p.id === trade.toId);
+                if (!to) return;
+                html += `<div class="flex items-center justify-between px-2 py-1 rounded text-xs" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);">
+                    <span class="text-purple-300 truncate">📤 → ${to.name}</span>
+                    <button onclick="window.cancelTrade('${trade.id}')" class="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ml-1" style="background:rgba(239,68,68,0.3);color:#fca5a5;">✕</button>
+                </div>`;
+            });
+            publicOther.forEach(trade => {
+                const from = gameData.players.find(p => p.id === trade.fromId);
+                const to = gameData.players.find(p => p.id === trade.toId);
+                if (!from || !to) return;
+                html += `<div class="flex items-center justify-between px-2 py-1 rounded text-xs" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
+                    <span class="text-gray-400 truncate">👁 ${from.name}→${to.name}</span>
+                    <button onclick="window.viewPublicTrade('${trade.id}')" class="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ml-1" style="background:rgba(167,139,250,0.15);color:#c4b5fd;">View</button>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+        };
+
+        // View a public (non-secret) trade between other players
+        window.viewPublicTrade = function (tradeId) {
+            if (!gameData || !gameData.trades) return;
+            const trade = gameData.trades.find(t => t && t.id === tradeId);
+            if (!trade || trade.isSecret) return;
+            const fromPlayer = gameData.players.find(p => p.id === trade.fromId);
+            const toPlayer = gameData.players.find(p => p.id === trade.toId);
+            if (!fromPlayer || !toPlayer) return;
+            const getPropNames = (indices) => {
+                if (!indices || indices.length === 0) return '<em style="color:#6b7280">Nothing</em>';
+                return indices.map(i => {
+                    const sp = gameData.settings.board[i];
+                    return `<span style="color:#e2d9ff;">• ${sp.name} ($${sp.price})</span>`;
+                }).join('<br>');
+            };
+            const body = `
+                <div style="color:#E5E7EB;font-size:13px;line-height:1.6;">
+                    <div style="display:flex;gap:12px;margin-bottom:12px;">
+                        <div style="flex:1;padding:10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);">
+                            <div style="font-weight:800;color:#93c5fd;margin-bottom:4px;">📤 ${fromPlayer.name} offers:</div>
+                            ${trade.offer.money > 0 ? `<div style="color:#4ade80;font-weight:700;">💰 $${trade.offer.money}</div>` : ''}
+                            ${getPropNames(trade.offer.properties)}
+                        </div>
+                        <div style="flex:1;padding:10px;border-radius:8px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);">
+                            <div style="font-weight:800;color:#6ee7b7;margin-bottom:4px;">📥 ${toPlayer.name} gives:</div>
+                            ${trade.request.money > 0 ? `<div style="color:#f87171;font-weight:700;">💸 $${trade.request.money}</div>` : ''}
+                            ${getPropNames(trade.request.properties)}
+                        </div>
+                    </div>
+                    <p style="color:#6b7280;font-size:11px;text-align:center;">👁 You are observing this trade</p>
+                </div>`;
+            showModal(`🤝 Trade: ${fromPlayer.name} ↔ ${toPlayer.name}`, body, [
+                { text: 'Close', class: 'bg-gray-500', action: hideModal }
+            ]);
+        };
+
+        // ══════════════════════════════════════════════════════
+        //  SIDE-TILE OWNERSHIP GLOW RE-RENDER
+        //  Replace the space-inner background approach with a
+        //  proper absolutely-positioned overlay that fills
+        //  portrait side tiles correctly.
+        // ══════════════════════════════════════════════════════
+        const _origUpdateBoardPieces = updateBoardPiecesAndHouses;
+        updateBoardPiecesAndHouses = function () {
+            _origUpdateBoardPieces.call(this);
+            // Remove any existing glow overlays from previous pass
+            document.querySelectorAll('#board .tile-owner-glow').forEach(el => el.remove());
+            if (!gameData || !gameData.properties) return;
+            gameData.properties.forEach((prop, i) => {
+                const spaceEl = document.getElementById(`space-${i}`);
+                if (!spaceEl) return;
+                let mainOwnerId = prop.ownerId;
+                if (!mainOwnerId && prop.owners) {
+                    const ids = Object.keys(prop.owners).filter(id => prop.owners[id] > 0);
+                    if (ids.length) mainOwnerId = ids[0];
+                }
+                if (!mainOwnerId) return;
+                const owner = gameData.players.find(p => p.id === mainOwnerId);
+                if (!owner) return;
+                // Remove old space-inner color (replaced by overlay)
+                const inner = spaceEl.querySelector('.space-inner');
+                if (inner) inner.style.removeProperty('background-color');
+                // Add glow overlay
+                const glow = document.createElement('div');
+                glow.className = 'tile-owner-glow';
+                glow.style.background = owner.color;
+                spaceEl.appendChild(glow);
+            });
+        };
 
     </script>
 

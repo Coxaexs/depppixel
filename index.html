@@ -2000,8 +2000,8 @@
             .board {
                 width: 95vmin;
                 height: 95vmin;
-                grid-template-columns: 100px repeat(9, 1fr) 100px;
-                grid-template-rows: 100px repeat(9, 1fr) 100px;
+                grid-template-columns: 100px repeat(9, minmax(0, 1fr)) 100px;
+                grid-template-rows: 100px repeat(9, minmax(0, 1fr)) 100px;
                 gap: 1px;
                 border: 4px solid #374151;
             }
@@ -2010,6 +2010,7 @@
             .space {
                 font-size: 6px;
                 padding: 2px;
+                overflow: hidden;
             }
 
             /* Smaller corners */
@@ -2493,8 +2494,8 @@
 
             /* 📱 GAME BOARD - Extra Small */
             .board {
-                grid-template-columns: 80px repeat(9, 1fr) 80px;
-                grid-template-rows: 80px repeat(9, 1fr) 80px;
+                grid-template-columns: 80px repeat(9, minmax(0, 1fr)) 80px;
+                grid-template-rows: 80px repeat(9, minmax(0, 1fr)) 80px;
             }
 
             .space {
@@ -2543,8 +2544,8 @@
 
             /* 📱 GAME BOARD - Extra Small */
             .board {
-                grid-template-columns: 50px repeat(9, 1fr) 50px;
-                grid-template-rows: 50px repeat(9, 1fr) 50px;
+                grid-template-columns: 50px repeat(9, minmax(0, 1fr)) 50px;
+                grid-template-rows: 50px repeat(9, minmax(0, 1fr)) 50px;
                 width: 95vw !important;
                 height: 95vw !important;
                 max-width: 95vw !important;
@@ -2721,15 +2722,6 @@
         /* SADECE MOBİL: Oyun kontrolleri sadece oyun içinde görünür */
         @media (max-width: 768px) {
 
-            /* Mobilde normal boyut */
-            body * {
-                zoom: 1;
-                -moz-transform: scale(0.95);
-                transform: scale(0.95);
-                -moz-transform-origin: 0 0;
-                transform-origin: 0 0;
-            }
-
             /* Mobilde board'u tamamen gizle */
             #board,
             .board {
@@ -2772,6 +2764,40 @@
                 gap: 0.5rem;
             }
 
+            /* 📱 Oyun içinde oyuncu bilgisi: sağ sidebar'daki players panelini
+               yatay kaydırılabilir bir şerit olarak boardun üstünde göster */
+            body.in-game #game-container>aside:last-of-type {
+                display: flex !important;
+                width: 100% !important;
+                order: -1;
+                flex-direction: column;
+                gap: 0 !important;
+                /* clear the fixed connection indicator */
+                margin-top: 28px;
+            }
+
+            /* Sadece players paneli kalsın; trades, controls ve properties mobil butonlarda */
+            body.in-game #game-container>aside:last-of-type>*:not(:first-child) {
+                display: none !important;
+            }
+
+            body.in-game #game-container>aside:last-of-type>:first-child {
+                padding: 6px 8px !important;
+            }
+
+            body.in-game #players-info {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 6px;
+                padding-bottom: 4px;
+            }
+
+            body.in-game #players-info .player-card-compact {
+                flex: 0 0 auto;
+                min-width: 150px;
+            }
+
             /* Mobil butonlar varsayılan olarak gizli */
             .mobile-game-actions {
                 display: none !important;
@@ -2785,9 +2811,11 @@
                 right: 0;
                 bottom: 0;
                 z-index: 300;
-                background: #fff;
-                border-top: 2px solid #e0e0e0;
-                box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+                background: rgba(14, 11, 22, 0.92);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-top: 1px solid rgba(167, 139, 250, 0.2);
+                box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.45);
                 padding: 0.8rem;
                 justify-content: space-around;
                 align-items: center;
@@ -2800,9 +2828,9 @@
                 font-size: 0.9rem;
                 font-weight: 600;
                 border-radius: 8px;
-                border: none;
-                background: #1a73e8;
-                color: #fff;
+                border: 1px solid rgba(167, 139, 250, 0.3);
+                background: rgba(147, 51, 234, 0.25);
+                color: #E5E7EB;
                 cursor: pointer;
                 transition: background 0.2s;
                 flex: 1;
@@ -2812,7 +2840,7 @@
             }
 
             body.in-game .mobile-game-actions button:active {
-                background: #155ab6;
+                background: rgba(147, 51, 234, 0.55);
             }
 
             /* Mobil butonlar için grid layout - 2 satır, 3+2 buton */
@@ -3432,9 +3460,26 @@
                 height: auto;
             }
 
+            /* Same priority as desktop: main action first, then settings, then social */
             #new-lobby .panel-center {
+                order: 1;
                 min-height: 500px;
-                padding: 32px 16px;
+                /* top-aligned; centered content taller than the panel overflows off-screen */
+                justify-content: flex-start;
+                /* extra top padding keeps the fixed connection pill from covering content */
+                padding: 60px 16px 32px;
+            }
+
+            #new-lobby .panel-right {
+                order: 2;
+                border-left: none;
+                border-top: 1px solid rgba(167, 139, 250, 0.08);
+            }
+
+            #new-lobby .panel-left {
+                order: 3;
+                border-right: none;
+                border-top: 1px solid rgba(167, 139, 250, 0.08);
             }
         }
 

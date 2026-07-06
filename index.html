@@ -2857,6 +2857,143 @@
             }
         }
 
+        /* 📱 YATAY MOBİL: kısa ekranlar (telefon landscape)
+           Board solda (yüksekliğe göre boyutlanır), oyuncular ortada,
+           aksiyon butonları sağda dikey bir bar */
+        @media (orientation: landscape) and (max-height: 520px) {
+            body.in-game #game-container {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center;
+                padding: 4px 122px 4px 4px !important;
+                gap: 8px !important;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            body.in-game .board {
+                width: calc(100vh - 12px) !important;
+                height: calc(100vh - 12px) !important;
+                max-width: calc(100vh - 12px) !important;
+                max-height: calc(100vh - 12px) !important;
+                margin: 0 !important;
+                padding-bottom: 0 !important;
+                grid-template-columns: 42px repeat(9, minmax(0, 1fr)) 42px !important;
+                grid-template-rows: 42px repeat(9, minmax(0, 1fr)) 42px !important;
+            }
+
+            body.in-game .space {
+                font-size: 5px;
+                padding: 1px;
+                overflow: hidden;
+            }
+
+            body.in-game .corner {
+                font-size: 7px;
+            }
+
+            body.in-game .player-piece {
+                width: 16px;
+                height: 16px;
+                font-size: 14px;
+            }
+
+            /* Board alanı sadece board kadar yer kaplasın, kalan players'a */
+            body.in-game #game-container>main {
+                flex: 0 0 auto !important;
+                width: auto !important;
+                padding: 0 !important;
+            }
+
+            /* Players paneli dikey liste olarak solda (bağlantı yazısının altında),
+               board ortada */
+            body.in-game #game-container>aside:last-of-type {
+                display: flex !important;
+                flex: 1 1 auto;
+                width: auto !important;
+                order: -1;
+                margin-top: 30px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+                flex-direction: column;
+            }
+
+            body.in-game #game-container>aside:last-of-type>*:not(:first-child) {
+                display: none !important;
+            }
+
+            body.in-game #game-container>aside:last-of-type>:first-child {
+                padding: 6px 8px !important;
+            }
+
+            body.in-game #players-info {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                overflow-x: visible;
+            }
+
+            body.in-game #players-info .player-card-compact {
+                min-width: 0;
+            }
+
+            /* Board ortasındaki masaüstü kontrolleri gizle, sağdaki bar kullanılır */
+            body.in-game #rollDiceBtn,
+            body.in-game #endTurnBtn,
+            body.in-game #managePropertiesBtn,
+            body.in-game .center-board h1,
+            body.in-game .center-board div:has(#center-game-log) {
+                display: none !important;
+            }
+
+            /* Ortadaki içerik boardun dışına taşmasın */
+            body.in-game .center-board {
+                overflow: hidden;
+            }
+
+            /* Aksiyon butonları: sağda dikey bar */
+            body.in-game .mobile-game-actions {
+                display: grid !important;
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: auto;
+                width: 114px;
+                grid-template-columns: 1fr !important;
+                grid-auto-rows: min-content;
+                align-content: center;
+                gap: 6px;
+                padding: 8px;
+                z-index: 300;
+                background: rgba(14, 11, 22, 0.92);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-left: 1px solid rgba(167, 139, 250, 0.2);
+                border-top: none;
+                box-shadow: -6px 0 20px rgba(0, 0, 0, 0.45);
+            }
+
+            body.in-game .mobile-game-actions button {
+                display: inline-flex !important;
+                grid-column: auto !important;
+                min-height: 40px;
+                padding: 0.4rem !important;
+                font-size: 0.7rem !important;
+                font-weight: 600;
+                border-radius: 8px;
+                border: 1px solid rgba(167, 139, 250, 0.3);
+                background: rgba(147, 51, 234, 0.25);
+                color: #E5E7EB;
+                justify-content: center;
+                align-items: center;
+            }
+
+            body.in-game .mobile-game-actions button:active {
+                background: rgba(147, 51, 234, 0.55);
+            }
+        }
+
         /* ═══════════════════════════════════════════════════════════════
            Premium Design Tokens & Overrides (Cyberpunk Glassmorphism)
            ═══════════════════════════════════════════════════════════════ */

@@ -1,0 +1,3 @@
+# Saves, replays and stats written by the running game (persistence.js)
+data/
+node_modules/

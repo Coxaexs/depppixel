@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepPixel Stats</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex">
+<style>
+    :root {
+        --bg: #07050d; --panel: #161523; --panel2: #0d0c14; --line: #2a283e;
+        --text: #f3f4f6; --muted: #9ca3af; --accent: #9333ea; --accent2: #c4b5fd;
+        --good: #4ade80; --bad: #f87171; --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background-image: radial-gradient(circle at 50% 0%, rgba(147, 51, 234, .12), transparent 60%); min-height: 100vh; }
+    a { color: var(--accent2); }
+    header { display: flex; align-items: center; gap: 16px; padding: 16px; max-width: 1100px; margin: 0 auto; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 20px; letter-spacing: 2px; text-shadow: 0 0 14px rgba(167, 139, 250, .7); }
+    nav { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+    nav button, .btn { background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 8px 14px; border-radius: 8px;
+        cursor: pointer; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block; }
+    nav button.active, .btn.primary { background: var(--accent); border-color: var(--accent); }
+    main { max-width: 1100px; margin: 0 auto; padding: 0 16px 40px; }
+    .card { background: linear-gradient(160deg, var(--panel), var(--panel2)); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+    .empty { color: var(--muted); text-align: center; padding: 30px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px; border-bottom: 2px solid var(--accent); }
+    td { padding: 8px; border-bottom: 1px solid var(--line); }
+    tr.me td { background: rgba(147, 51, 234, .15); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .scroll { overflow-x: auto; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .tile { background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .tile .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .tile .value { font-size: 24px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .hidden { display: none !important; }
+
+    /* Replay viewer */
+    .viewer { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; }
+    @media (max-width: 820px) { .viewer { grid-template-columns: 1fr; } }
+    .board { display: grid; gap: 2px; aspect-ratio: 1; width: 100%; max-width: 640px; margin: 0 auto; }
+    .space { background: #1b1a2b; border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden;
+        font-size: 8px; line-height: 1.1; padding: 2px; color: var(--muted); min-width: 0; }
+    .space .band { position: absolute; left: 0; right: 0; top: 0; height: 4px; }
+    .space .nm { margin-top: 4px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .space .own { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
+    .space .houses { position: absolute; right: 2px; bottom: 5px; font-size: 8px; color: var(--good); }
+    .space.mort { opacity: .45; }
+    .board { position: relative; }
+    .tok-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    .ptok { position: absolute; left: 0; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+        border: 2px solid #000; box-shadow: 0 0 8px currentColor; transition: transform var(--dur, 0ms) ease-out, opacity .3s; }
+    .ptok.hop { animation: hop var(--dur, 160ms) ease-out; }
+    @keyframes hop { 50% { margin-top: -13px; } }
+    .ptok.gone { opacity: 0; }
+    @media (prefers-reduced-motion: reduce) { .ptok { transition: none; } .ptok.hop { animation: none; } }
+    .center { grid-column: 2 / -2; grid-row: 2 / -2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+    .dice { font-size: 34px; }
+    .controls { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .controls input[type=range] { flex: 1; min-width: 140px; accent-color: var(--accent); }
+    .plist { display: flex; flex-direction: column; gap: 6px; }
+    .prow { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: rgba(0, 0, 0, .3); border-radius: 8px; border: 1px solid transparent; font-size: 13px; }
+    .prow.turn { border-color: var(--accent); }
+    .prow.bk { opacity: .45; text-decoration: line-through; }
+    .log { margin-top: 10px; max-height: 300px; overflow-y: auto; font-size: 12px; color: var(--muted); display: flex; flex-direction: column-reverse; gap: 3px; }
+    select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+</style>
+</head>
+<body>
+<header>
+    <a href="./" style="text-decoration:none;color:inherit"><h1>DEEPPIXEL</h1></a>
+    <nav>
+        <button data-tab="leaderboard">🏆 Leaderboard</button>
+        <button data-tab="me">📊 My Stats</button>
+        <button data-tab="replays">🎬 Replays</button>
+    </nav>
+</header>
+<main>
+    <section id="tab-leaderboard" class="card hidden"></section>
+    <section id="tab-me" class="card hidden"></section>
+    <section id="tab-replays" class="card hidden"></section>
+    <section id="tab-replay" class="card hidden"></section>
+</main>
+
+<script>
+const API = new URL('api/', document.baseURI.replace(/\/(game\/)?room\/[^/]+\/?$/, '/')).href;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (n) => '$' + Number(n || 0).toLocaleString();
+const when = (t) => t ? new Date(t).toLocaleString() : '—';
+let profileId = null;
+try { profileId = localStorage.getItem('deeppixelProfileId'); } catch (e) {}
+
+async function getJson(path) {
+    const res = await fetch(API + path, { cache: 'no-store' });
+    if (!res.ok) throw Object.assign(new Error((await res.json().catch(() => ({}))).error || res.statusText), { status: res.status });
+    return res.json();
+}
+
+// ---------- routing ----------
+function route() {
+    const hash = location.hash.slice(1);
+    const m = hash.match(/^replay=(.+)$/);
+    const tab = m ? 'replay' : (['leaderboard', 'me', 'replays'].includes(hash) ? hash : 'leaderboard');
+    document.querySelectorAll('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'tab-' + tab));
+    document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    stopPlayback();
+    ({ leaderboard: showLeaderboard, me: showMe, replays: showReplays, replay: () => showReplay(decodeURIComponent(m[1])) })[tab]();
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.tab; }));
+window.addEventListener('hashchange', route);
+
+// ---------- leaderboard ----------
+async function showLeaderboard() {
+    const el = document.getElementById('tab-leaderboard');
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+        const [rows, me] = await Promise.all([getJson('leaderboard'), profileId ? getJson('stats/' + profileId).catch(() => null) : null]);
+        if (!rows.length) { el.innerHTML = '<div class="empty">No finished games yet. Play one to get on the board!</div>'; return; }
+        el.innerHTML = `<h2 style="margin-top:0">🏆 Leaderboard</h2><div class="scroll"><table>
+            <thead><tr><th>#</th><th>Player</th><th class="num">Wins</th><th class="num">Games</th><th class="num">Win %</th><th class="num">Best net worth</th><th class="num">Avg net worth</th></tr></thead>
+            <tbody>${rows.map((r, i) => `<tr class="${me && me.publicId === r.publicId ? 'me' : ''}">
+                <td>${['🥇', '🥈', '🥉'][i] || i + 1}</td><td><b>${esc(r.name)}</b>${me && me.publicId === r.publicId ? ' <span class="muted">(you)</span>' : ''}</td>
+                <td class="num">${r.wins}</td><td class="num">${r.gamesPlayed}</td><td class="num">${r.winRate}%</td>
+                <td class="num">${money(r.bestNetWorth)}</td><td class="num">${money(r.avgNetWorth)}</td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) { el.innerHTML = `<div class="empty">Couldn't load the leaderboard: ${esc(e.message)}</div>`; }
+}
+
+// ---------- my stats ----------
+async function showMe() {
+    const el = document.getElementById('tab-me');
+    if (!profileId) { el.innerHTML = '<div class="empty">Play a game from this browser and your stats will show up here.</div>'; return; }
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+        const s = await getJson('stats/' + profileId);
+        const avg = (v) => s.gamesPlayed ? Math.round(v / s.gamesPlayed) : 0;
+        const tile = (label, value) => `<div class="tile"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+        el.innerHTML = `<h2 style="margin-top:0">📊 ${esc(s.name)} ${s.rank ? `<span class="muted">— rank #${s.rank}</span>` : ''}</h2>
+            <div class="tiles">
+                ${tile('Games', s.gamesPlayed)}${tile('Wins', s.wins)}${tile('Win rate', Math.round(s.wins / s.gamesPlayed * 100) + '%')}
+                ${tile('Bankruptcies', s.bankruptcies)}${tile('Best net worth', money(s.bestNetWorth))}${tile('Avg net worth', money(avg(s.totalNetWorth)))}
+                ${tile('Rent collected', money(s.totalRentCollected))}${tile('Rent paid', money(s.totalRentPaid))}
+                ${tile('Turns played', s.totalTurns)}${tile('Avg properties', (s.totalProperties / s.gamesPlayed).toFixed(1))}
+            </div>
+            <h3>Recent games</h3><div class="scroll"><table>
+            <thead><tr><th>When</th><th>Result</th><th>Map</th><th class="num">Players</th><th class="num">Net worth</th><th></th></tr></thead>
+            <tbody>${s.recent.map(g => `<tr><td>${when(g.at)}</td>
+                <td>${g.won ? '<b style="color:var(--gold)">🏆 Won</b>' : g.bankrupt ? '<span style="color:var(--bad)">💥 Bankrupt</span>' : 'Lost'}</td>
+                <td>${esc(g.map)}</td><td class="num">${g.players}</td><td class="num">${money(g.netWorth)}</td>
+                <td>${g.replayId ? `<a href="#replay=${encodeURIComponent(g.replayId)}">🎬 Replay</a>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) {
+        el.innerHTML = e.status === 404 ? '<div class="empty">No finished games yet — finish a game and your stats will appear here.</div>' : `<div class="empty">Couldn't load stats: ${esc(e.message)}</div>`;
+    }
+}
+
+// ---------- replay list ----------
+async function showReplays() {
+    const el = document.getElementById('tab-replays');
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+        const list = await getJson('replays');
+        if (!list.length) { el.innerHTML = '<div class="empty">No replays yet. Every finished game is recorded automatically.</div>'; return; }
+        el.innerHTML = `<h2 style="margin-top:0">🎬 Recent games</h2><div class="scroll"><table>
+            <thead><tr><th>Ended</th><th>Players</th><th>Winner</th><th>Map</th><th class="num">Length</th><th></th></tr></thead>
+            <tbody>${list.map(r => `<tr><td>${when(r.endedAt)}</td>
+                <td>${r.players.map(p => `<span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}${p.isBot ? ' 🤖' : ''}`).join(' &nbsp;')}</td>
+                <td>${r.winner ? '🏆 ' + esc(r.winner) : '—'}</td><td>${esc(r.map)}</td>
+                <td class="num">${Math.round((r.endedAt - r.startedAt) / 60000)} min</td>
+                <td><a class="btn primary" href="#replay=${encodeURIComponent(r.id)}">▶ Watch</a></td></tr>`).join('')}</tbody></table></div>`;
+    } catch (e) { el.innerHTML = `<div class="empty">Couldn't load replays: ${esc(e.message)}</div>`; }
+}
+
+// ---------- replay viewer ----------
+const COLORS = { brown: '#8B4513', lightblue: '#87CEEB', light_blue: '#87CEEB', pink: '#EC4899', orange: '#F97316', red: '#EF4444', yellow: '#FACC15', green: '#22C55E', darkblue: '#1D4ED8', dark_blue: '#1D4ED8', blue: '#3B82F6', purple: '#8B5CF6' };
+const DICE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+let replay = null, frameIdx = 0, timer = null, logs = [];
+
+function stopPlayback() { clearTimeout(timer); timer = null; const b = document.getElementById('rp-play'); if (b) b.textContent = '▶ Play'; }
+
+// Lay N spaces clockwise around a square, starting bottom-right (classic board orientation)
+function ringLayout(n) {
+    const side = Math.ceil(n / 4) ; // spaces per edge, corners included once
+    const size = side + 1;
+    const cells = [];
+    for (let i = 0; i < n; i++) {
+        const edge = Math.floor(i / side), k = i % side;
+        let r, c;
+        if (edge === 0) { r = size; c = size - k; }
+        else if (edge === 1) { r = size - k; c = 1; }
+        else if (edge === 2) { r = 1; c = 1 + k; }
+        else { r = 1 + k; c = size; }
+        cells.push({ r, c });
+    }
+    return { size, cells };
+}
+
+async function showReplay(id) {
+    const el = document.getElementById('tab-replay');
+    el.innerHTML = '<div class="empty">Loading replay…</div>';
+    try { replay = await getJson('replays/' + encodeURIComponent(id)); }
+    catch (e) { el.innerHTML = `<div class="empty">Replay not found. <a href="#replays">Back to replays</a></div>`; return; }
+
+    // Pre-accumulate the log so scrubbing is O(1)
+    logs = []; let acc = [];
+    replay.frames.forEach(f => { acc = acc.concat(f.log || []); logs.push(acc.length); });
+    replay.allLog = acc;
+
+    const { size, cells } = ringLayout(replay.board.length);
+    const winner = replay.winner && replay.players[replay.winner];
+    el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+            <a class="btn" href="#replays">← Replays</a>
+            <h2 style="margin:0;font-size:18px">${when(replay.startedAt)} · ${esc(replay.map)}</h2>
+            ${winner ? `<span class="muted">Winner: <b style="color:${esc(winner.color)}">${esc(winner.name)}</b></span>` : ''}
+        </div>
+        <div class="viewer">
+            <div>
+                <div class="board" id="rp-board" style="grid-template-columns:repeat(${size},1fr);grid-template-rows:repeat(${size},1fr)">
+                    ${replay.board.map((s, i) => `<div class="space" id="sp-${i}" style="grid-row:${cells[i].r};grid-column:${cells[i].c}" title="${esc(s.name)}">
+                        ${s.color ? `<div class="band" style="background:${esc(COLORS[s.color] || s.color)}"></div>` : ''}
+                        <span class="nm">${esc(s.name)}</span><div class="own"></div><div class="houses"></div></div>`).join('')}
+                    <div class="tok-layer" id="rp-tokens"></div>
+                    <div class="center"><div class="dice" id="rp-dice"></div><div id="rp-turn" style="font-weight:700"></div><div class="muted" id="rp-time"></div></div>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="rp-prev-turn" title="Previous turn (Shift+←)">⏮ Turn</button>
+                    <button class="btn" id="rp-prev" title="Previous step (←)">◀</button>
+                    <button class="btn primary" id="rp-play">▶ Play</button>
+                    <button class="btn" id="rp-next" title="Next step (→)">▶</button>
+                    <button class="btn" id="rp-next-turn" title="Next turn (Shift+→)">Turn ⏭</button>
+                    <input type="range" id="rp-scrub" min="0" max="${replay.frames.length - 1}" value="0">
+                    <select id="rp-speed" title="Playback speed (follows the real pace of the game)"><option value="1">1×</option><option value="2" selected>2×</option><option value="5">5×</option><option value="12">12×</option></select>
+                    <span class="muted" id="rp-count"></span>
+                </div>
+            </div>
+            <div>
+                <div class="plist" id="rp-players"></div>
+                <div class="log" id="rp-log"></div>
+            </div>
+        </div>`;
+
+    const scrub = document.getElementById('rp-scrub');
+    scrub.addEventListener('input', () => { stopPlayback(); renderFrame(+scrub.value); });
+    document.getElementById('rp-prev').onclick = () => { stopPlayback(); renderFrame(frameIdx - 1); };
+    document.getElementById('rp-next').onclick = () => { stopPlayback(); renderFrame(frameIdx + 1, true); };
+    document.getElementById('rp-prev-turn').onclick = () => { stopPlayback(); renderFrame(turnStart(frameIdx - 1)); };
+    document.getElementById('rp-next-turn').onclick = () => { stopPlayback(); renderFrame(nextTurn(frameIdx)); };
+    document.getElementById('rp-play').onclick = togglePlay;
+    document.getElementById('rp-speed').onchange = () => { if (timer) { stopPlayback(); togglePlay(); } };
+    renderFrame(0);
+}
+
+const speed = () => +document.getElementById('rp-speed').value;
+const hopMs = () => Math.max(45, 170 / Math.sqrt(speed()));
+
+// A turn starts on the first frame where the current player differs from the frame before
+const isTurnStart = (i) => i <= 0 || replay.frames[i].cur !== replay.frames[i - 1].cur;
+function nextTurn(i) {
+    for (let j = i + 1; j < replay.frames.length; j++) if (isTurnStart(j)) return j;
+    return replay.frames.length - 1;
+}
+function turnStart(i) {
+    for (let j = Math.max(0, i); j > 0; j--) if (isTurnStart(j)) return j;
+    return 0;
+}
+
+function togglePlay() {
+    if (timer) return stopPlayback();
+    if (frameIdx >= replay.frames.length - 1) renderFrame(0);
+    document.getElementById('rp-play').textContent = '⏸ Pause';
+    const tick = () => {
+        if (frameIdx >= replay.frames.length - 1) return stopPlayback();
+        const animMs = renderFrame(frameIdx + 1, true);
+        const next = replay.frames[frameIdx + 1];
+        // Follow the real gap between moves, squeezed so long thinks don't drag and bursts stay readable
+        const gap = next ? next.t - replay.frames[frameIdx].t : 0;
+        const paced = Math.min(Math.max(gap, 500), 4000) / speed();
+        timer = setTimeout(tick, Math.max(paced, animMs + 120));
+    };
+    timer = setTimeout(tick, 150);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (!replay || document.getElementById('tab-replay').classList.contains('hidden')) return;
+    if (e.key === 'ArrowLeft') { stopPlayback(); renderFrame(e.shiftKey ? turnStart(frameIdx - 1) : frameIdx - 1); }
+    else if (e.key === 'ArrowRight') { stopPlayback(); renderFrame(e.shiftKey ? nextTurn(frameIdx) : frameIdx + 1, !e.shiftKey); }
+    else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+
+// ---------- tokens ----------
+let hopTimers = [];
+
+function cellPoint(pos, slot, count) {
+    const c = document.getElementById('sp-' + pos);
+    if (!c) return [0, 0];
+    // Spread tokens sharing a square into a small grid so they don't overlap
+    const cols = count > 4 ? 3 : 2, n = Math.min(count, 9);
+    const col = slot % cols, row = Math.floor(slot / cols), rows = Math.ceil(n / cols);
+    const step = Math.min(10, c.offsetWidth / (cols + 1));
+    return [c.offsetLeft + c.offsetWidth / 2 + (col - (Math.min(n, cols) - 1) / 2) * step,
+            c.offsetTop + c.offsetHeight / 2 + (row - (rows - 1) / 2) * step];
+}
+
+function moveTok(el, pos, slot, count, dur, hop) {
+    const [x, y] = cellPoint(pos, slot, count);
+    el.style.setProperty('--dur', dur + 'ms');
+    el.style.transform = `translate(${x}px, ${y}px)`;
+    if (hop) { el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); }
+}
+
+// Returns how long the animation runs, so playback can wait for it
+function placeTokens(f, prev, animate) {
+    hopTimers.forEach(clearTimeout); hopTimers = [];
+    const layer = document.getElementById('rp-tokens');
+    const n = replay.board.length, hop = hopMs();
+    const alive = f.players.filter(p => !p.b);
+    const bySpace = {};
+    alive.forEach(p => (bySpace[p.pos] ||= []).push(p.k));
+    let longest = 0;
+
+    f.players.forEach(p => {
+        const meta = replay.players[p.k];
+        let el = document.getElementById('tok-' + p.k);
+        let anim = animate;
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'tok-' + p.k; el.className = 'ptok'; el.title = meta.name;
+            el.style.background = meta.color; el.style.color = meta.color;
+            layer.appendChild(el);
+            anim = false; // first placement never animates
+        }
+        el.classList.toggle('gone', !!p.b);
+        if (p.b) return;
+        const slot = bySpace[p.pos].indexOf(p.k), count = bySpace[p.pos].length;
+        const before = prev && prev.players.find(q => q.k === p.k);
+        const steps = before ? (p.pos - before.pos + n) % n : 0;
+        const sentToJail = before && p.j && !before.j;
+
+        if (!anim || !before || steps === 0) return moveTok(el, p.pos, slot, count, anim ? 250 : 0);
+        if (sentToJail || steps > 13) {
+            // Card teleports / jail: one smooth glide instead of walking the board
+            moveTok(el, p.pos, slot, count, 500);
+            longest = Math.max(longest, 500);
+            return;
+        }
+        for (let s = 1; s <= steps; s++) {
+            const last = s === steps;
+            hopTimers.push(setTimeout(() => moveTok(el, (before.pos + s) % n, last ? slot : 0, last ? count : 1, hop, true), (s - 1) * hop));
+        }
+        longest = Math.max(longest, steps * hop);
+    });
+    return longest;
+}
+
+window.addEventListener('resize', () => { if (replay && document.getElementById('rp-tokens')) placeTokens(replay.frames[frameIdx], null, false); });
+
+function renderFrame(i, animate = false) {
+    i = Math.max(0, Math.min(replay.frames.length - 1, i));
+    // Only animate genuine single steps forward; scrubbing and jumps snap
+    const prev = animate && i === frameIdx + 1 ? replay.frames[frameIdx] : null;
+    frameIdx = i;
+    const f = replay.frames[i];
+    const P = replay.players;
+
+    replay.board.forEach((s, idx) => {
+        const cell = document.getElementById('sp-' + idx);
+        const prop = f.props[idx];
+        const owner = prop && prop[0] && P[prop[0]];
+        cell.querySelector('.own').style.background = owner ? owner.color : 'transparent';
+        const h = prop ? prop[1] : 0;
+        cell.querySelector('.houses').textContent = h >= 5 ? '🏨' : h ? '▮'.repeat(h) : '';
+        cell.classList.toggle('mort', !!(prop && prop[2]));
+    });
+    const animMs = placeTokens(f, prev, !!prev);
+
+    const current = f.players[f.cur];
+    document.getElementById('rp-dice').textContent = f.dice[0] ? DICE[f.dice[0]] + DICE[f.dice[1]] : '';
+    document.getElementById('rp-turn').innerHTML = current ? `<span style="color:${esc(P[current.k].color)}">${esc(P[current.k].name)}</span>'s turn` : '';
+    const secs = Math.round(f.t / 1000);
+    document.getElementById('rp-time').textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+    document.getElementById('rp-count').textContent = `${i + 1} / ${replay.frames.length}`;
+    document.getElementById('rp-scrub').value = i;
+
+    document.getElementById('rp-players').innerHTML = f.players.map((p, idx) => {
+        const meta = P[p.k];
+        return `<div class="prow ${idx === f.cur ? 'turn' : ''} ${p.b ? 'bk' : ''}"><span class="dot" style="background:${esc(meta.color)}"></span>
+            <b style="flex:1">${esc(meta.name)}${meta.isBot ? ' 🤖' : ''}${p.j ? ' 🔒' : ''}</b><span class="num" style="color:var(--good)">${money(p.$)}</span></div>`;
+    }).join('');
+
+    const upto = logs[i];
+    document.getElementById('rp-log').innerHTML = replay.allLog.slice(Math.max(0, upto - 60), upto).map(l => `<div>${esc(l)}</div>`).join('');
+    return animMs;
+}
+
+route();
+</script>
+</body>
+</html>

@@ -4,12 +4,35 @@ const fs = require("fs");
 const path = require("path");
 const url = require("url");
 const crypto = require("crypto");
+const persistence = require("./persistence");
 
 // Create HTTP server to serve files
 const server = http.createServer((req, res) => {
     // Parse URL to get path without query string
     const parsedUrl = url.parse(req.url);
     let pathname = parsedUrl.pathname;
+
+    // The game can be mounted under a prefix (deeppixel.online/monogame/, legacy /game/)
+    const mount = pathname.match(/^\/(game|monogame)(?=\/|$)/);
+    if (mount) {
+        if (pathname === mount[0]) {
+            res.writeHead(301, { Location: `${mount[0]}/${parsedUrl.search || ""}` });
+            res.end();
+            return;
+        }
+        pathname = pathname.slice(mount[0].length);
+    }
+
+    if (pathname.startsWith("/api/")) {
+        handleApi(pathname, res);
+        return;
+    }
+    // Server-side data (saves, stats) must never be served as static files
+    if (/(^|\/)(data|\.\.)(\/|$)/.test(pathname) || pathname.endsWith("persistence.js")) {
+        res.writeHead(404);
+        res.end("404 Not Found");
+        return;
+    }
 
     // Check if path is /room/[roomId] or /game/room/[roomId]
     const isRoomPath = pathname.match(/^\/(game\/)?room\/([a-zA-Z0-9]+)\/?$/);
@@ -22,18 +45,6 @@ const server = http.createServer((req, res) => {
         if (pathname.includes("/room/")) {
             // Strip everything up to and including /room/[roomId]/
             pathname = pathname.replace(/^\/(game\/)?room\/[a-zA-Z0-9]+\//, "/");
-        }
-
-        // Redirect /game to /game/ to handle relative paths correctly
-        if (pathname === "/game") {
-            res.writeHead(301, { Location: "/game/" });
-            res.end();
-            return;
-        }
-
-        // Strip /game prefix if present so that we resolve static files from root
-        if (pathname.startsWith("/game/")) {
-            pathname = pathname.substring(5); // Keep the leading slash
         }
 
         filePath = "." + pathname;
@@ -50,6 +61,8 @@ const server = http.createServer((req, res) => {
         ".jpg": "image/jpg",
         ".ico": "image/x-icon",
         ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+        ".mp3": "audio/mpeg",
     };
 
     const contentType = mimeTypes[extname] || "application/octet-stream";
@@ -75,12 +88,42 @@ const server = http.createServer((req, res) => {
     });
 });
 
+// 📊 JSON API: leaderboard, personal stats, replays
+function handleApi(pathname, res) {
+    const send = (status, body) => {
+        res.writeHead(status, {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+        });
+        res.end(JSON.stringify(body));
+    };
+    let m;
+    // Lets open pages notice a new deploy (the page's mtime) and refresh at a safe moment
+    if (pathname === "/api/version") {
+        let version = "0";
+        try { version = String(Math.floor(fs.statSync(path.join(__dirname, "index.html")).mtimeMs)); } catch (e) { /* keep 0 */ }
+        return send(200, { version });
+    }
+    if (pathname === "/api/leaderboard") return send(200, persistence.getLeaderboard());
+    if (pathname === "/api/replays") return send(200, persistence.listReplays());
+    if ((m = pathname.match(/^\/api\/replays\/([A-Za-z0-9_-]+)$/))) {
+        const replay = persistence.getReplay(m[1]);
+        return replay ? send(200, replay) : send(404, { error: "Replay not found" });
+    }
+    if ((m = pathname.match(/^\/api\/stats\/([A-Za-z0-9_-]+)$/))) {
+        const s = persistence.getProfileStats(m[1]);
+        return s ? send(200, s) : send(404, { error: "No games recorded yet" });
+    }
+    send(404, { error: "Unknown endpoint" });
+}
+
 console.log("🟢 Starting Monopoly WebSocket server...");
 // Create WebSocket server
 const wss = new WebSocket.Server({ server });
 
 // Game storage
 const games = new Map();
+persistence.restoreActive(games);
 
 // Helper functions
 function generateGameId() {
@@ -113,6 +156,8 @@ function assignUniqueColor(game) {
 }
 
 function broadcastToGame(gameId, message, excludeClientId = null) {
+    // Every full-state broadcast feeds autosave, replay recording and end-of-game stats
+    if (message && message.game) persistence.onGameState(message.game);
     wss.clients.forEach((client) => {
         if (
             client.readyState === WebSocket.OPEN &&
@@ -353,8 +398,8 @@ const defaultCards = {
             space: 0,
             collect: true,
         },
-        { text: "Advance to Illinois Ave.", action: "move_to", space: 24 },
-        { text: "Advance to St. Charles Place.", action: "move_to", space: 11 },
+        { text: "Advance to Beijing.", action: "move_to", space: 24 },
+        { text: "Advance to Venice.", action: "move_to", space: 11 },
         {
             text: "Bank pays you dividend of $50.",
             action: "add_money",
@@ -372,11 +417,11 @@ const defaultCards = {
         { text: "Speeding fine $50.", action: "remove_money", amount: 50 },
         { text: "Pay school fees of $50.", action: "remove_money", amount: 50 },
         {
-            text: "Take a trip to Reading Railroad.",
+            text: "Take a trip to TLV Airport.",
             action: "move_to",
             space: 5,
         },
-        { text: "Advance to Boardwalk.", action: "move_to", space: 39 },
+        { text: "Advance to New York.", action: "move_to", space: 39 },
         {
             text: "Make general repairs on all properties. $25 per house, $100 per hotel.",
             action: "repair",
@@ -525,6 +570,19 @@ wss.on("connection", (ws, req) => {
                     // Host'tan inaktivite uyarısına yanıt
                     handleInactivityResponse(ws, message);
                     break;
+                case "save_game":
+                    handleSaveGame(ws, message);
+                    break;
+                case "list_saves":
+                    ws.send(JSON.stringify({ type: "saves_list", saves: persistence.listSaves(message.profileId) }));
+                    break;
+                case "delete_save":
+                    persistence.deleteSave(message.saveId, message.profileId);
+                    ws.send(JSON.stringify({ type: "saves_list", saves: persistence.listSaves(message.profileId) }));
+                    break;
+                case "load_save":
+                    handleLoadSave(ws, message);
+                    break;
                 default:
                     ws.send(
                         JSON.stringify({
@@ -571,6 +629,12 @@ function handleCreateGame(ws, message) {
     const gameId = message.gameId || generateGameId();
     const { player, settings, private: isPrivate } = message;
 
+    // A client-chosen id (embedded rooms) must not overwrite a live game
+    if (message.gameId && games.has(gameId)) {
+        ws.send(JSON.stringify({ type: "error", message: "Game already exists" }));
+        return;
+    }
+
     const newGame = {
         gameId,
         hostId: player.id,
@@ -614,6 +678,31 @@ function handleJoinGame(ws, message) {
         return;
     }
 
+    // Same player id already seated (reload, collapsed Hoffle panel, second device): reconnect, don't duplicate
+    const existing = player && game.players.find((p) => p.id === player.id);
+    if (existing) {
+        if (player.name && !existing.isBot) existing.name = String(player.name).slice(0, 20);
+        ws.gameId = gameId;
+        ws.playerId = player.id;
+        ws.send(JSON.stringify({ type: "game_joined", gameId, game, reconnected: true }));
+        broadcastToGame(gameId, { type: "game_updated", game }, ws.clientId);
+        return;
+    }
+
+    // 💾 Loaded save: a returning player (same profile) takes back their old seat
+    const seat =
+        player.profileId &&
+        game.players.find((p) => p.profileId === player.profileId && p.id !== player.id && !p.isBot);
+    if (seat) {
+        persistence.remapPlayerId(game, seat.id, player.id);
+        ws.gameId = gameId;
+        ws.playerId = player.id;
+        ws.send(JSON.stringify({ type: "game_joined", gameId, game, reconnected: true }));
+        broadcastToGame(gameId, { type: "game_updated", game }, ws.clientId);
+        console.log(`💺 ${seat.name} reclaimed their seat in game ${gameId}`);
+        return;
+    }
+
     // Allow joining even if game is playing (late join)
     const isLateJoin = game.state === "playing";
 
@@ -639,7 +728,8 @@ function handleJoinGame(ws, message) {
     }
 
     // Her oyuncuya benzersiz renk ata
-    if (!player.color || player.color === "") {
+    const colorTaken = game.players.some((p) => p.color && p.color === player.color);
+    if (!player.color || player.color === "" || colorTaken) {
         player.color = assignUniqueColor(game);
         console.log(`🎨 Assigned color ${player.color} to ${player.name}`);
     }
@@ -787,23 +877,74 @@ function handleStartGame(ws, message) {
     if (!game.inactivityWarningShown) game.inactivityWarningShown = false;
     if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
 
-    // Broadcast game start to all players
+    // Broadcast game start to all players (includes host)
     broadcastToGame(gameId, {
         type: "game_started",
         game,
     });
 
-    // Also send to the host
-    ws.send(
-        JSON.stringify({
-            type: "game_started",
-            game,
-        }),
-    );
-
     console.log(
         `🚀 Game ${gameId} started with ${game.players.length} players`,
     );
+}
+
+// 💾 Save the current game into the requesting player's save slots
+function handleSaveGame(ws, message) {
+    const game = games.get(message.gameId || ws.gameId);
+    if (!game || !game.players.some((p) => p.id === ws.playerId)) {
+        ws.send(JSON.stringify({ type: "error", message: "You can only save a game you're in" }));
+        return;
+    }
+    try {
+        const save = persistence.saveGame(game, message.profileId, message.name);
+        ws.send(JSON.stringify({ type: "game_saved", save }));
+        console.log(`💾 Game ${game.gameId} saved as "${save.name}"`);
+    } catch (e) {
+        ws.send(JSON.stringify({ type: "error", message: e.message }));
+    }
+}
+
+// 📂 Start a new room from a save; the loader becomes host and takes their old seat
+function handleLoadSave(ws, message) {
+    const { saveId, profileId, player } = message;
+    const save = persistence.getSave(saveId, profileId);
+    if (!save || !player || !player.id) {
+        ws.send(JSON.stringify({ type: "error", message: "Save not found" }));
+        return;
+    }
+    let gameId;
+    do gameId = generateGameId();
+    while (games.has(gameId));
+
+    const game = save.game;
+    game.gameId = gameId;
+    game.voiceChat = [];
+    game.trade = null;
+    game.auction = null;
+    game.createdAt = Date.now();
+    game.lastActivity = Date.now();
+    game.inactivityWarningShown = false;
+    game.inactivityWarningTime = null;
+    game.humanPlayerMissedTurns = {};
+    delete game.replayId;
+
+    const mySeat = game.players.find((p) => p.profileId === profileId && !p.isBot);
+    if (mySeat) {
+        persistence.remapPlayerId(game, mySeat.id, player.id);
+    } else {
+        // Save predates profile tracking — join as a fresh player
+        game.players.push({ ...player, money: game.settings.startingMoney || 1500, position: 0, color: assignUniqueColor(game) });
+    }
+    game.hostId = player.id;
+    game.gameLog = game.gameLog || [];
+    game.gameLog.push(`📂 Game loaded from save "${save.name}".`);
+
+    games.set(gameId, game);
+    ws.gameId = gameId;
+    ws.playerId = player.id;
+    persistence.onGameState(game);
+    ws.send(JSON.stringify({ type: "game_joined", gameId, game, reconnected: true, loaded: true }));
+    console.log(`📂 Save ${saveId} loaded into new game ${gameId}`);
 }
 
 function handleUpdateLobbySettings(ws, message) {
@@ -871,19 +1012,13 @@ function handleUpdateGame(ws, message) {
     // Apply updates to game state
     Object.assign(game, updates);
 
-    // Broadcast to all players including sender
+    // Broadcast to all players including sender. `ack` tells the sender which of its
+    // updates this snapshot includes, so it can re-apply any still in flight.
     broadcastToGame(gameId, {
         type: "game_updated",
         game,
+        ack: message.origin ? { origin: message.origin, seq: message.seq } : undefined,
     });
-
-    // Also send to sender
-    ws.send(
-        JSON.stringify({
-            type: "game_updated",
-            game,
-        }),
-    );
 }
 
 function handleGetGame(ws, message) {
@@ -1274,13 +1409,30 @@ function handleRollDice(ws, message) {
 
     // Tax kontrolü (Income Tax, Luxury Tax)
     // NOT: tax kareleri "amount" alanı kullanır, "price" değil (price → NaN bug'ı)
+    // Tax kontrolü (Income Tax, Luxury Tax)
+    // NOT: tax kareleri "amount" alanı kullanır, "price" değil (price → NaN bug'ı)
     if (landedSpace.type === "tax") {
         const taxAmount = landedSpace.amount || 0;
         player.money -= taxAmount;
+        if (game.settings && game.settings.vacationCash) {
+            game.vacationCashPool = (game.vacationCashPool || 0) + taxAmount;
+        }
+        game.gameLog = game.gameLog || [];
         game.gameLog.push(
             `💰 ${player.name} paid $${taxAmount} in ${landedSpace.name}`,
         );
         console.log(`💰 ${player.name} paid tax: $${taxAmount}`);
+    }
+
+    // Free Parking / Vacation Cash karesi
+    if (landedSpace.type === "free_parking") {
+        if (game.settings && game.settings.vacationCash && (game.vacationCashPool || 0) > 0) {
+            const pool = game.vacationCashPool;
+            player.money += pool;
+            game.vacationCashPool = 0;
+            game.gameLog = game.gameLog || [];
+            game.gameLog.push(`🌴 ${player.name} collected $${pool} from Vacation Cash!`);
+        }
     }
 
     // Go to Jail karesi
@@ -1309,46 +1461,66 @@ function handleRollDice(ws, message) {
         ) {
             const owner = game.players.find((p) => p.id === prop.ownerId);
             if (owner && !owner.isBankrupt) {
-                let rent = 0;
-                if (landedSpace.type === "property") {
-                    // rent is an array: [base, 1 house, 2 houses, 3 houses, 4 houses, hotel]
-                    const houses = prop.houses || 0;
-                    rent = landedSpace.rent
-                        ? landedSpace.rent[houses]
-                        : Math.floor((landedSpace.price || 0) * 0.1);
-                } else if (landedSpace.type === "railroad") {
-                    const railCount = game.properties.filter(
-                        (p, i) =>
-                            p.ownerId === owner.id &&
-                            game.settings.board[i].type === "railroad",
-                    ).length;
-                    rent = 25 * Math.pow(2, Math.max(0, railCount - 1));
+                // Rule check: No Rent in Prison
+                if (game.settings && game.settings.noRentInPrison && owner.inJail) {
+                    game.gameLog = game.gameLog || [];
+                    game.gameLog.push(`🔒 ${owner.name} is in jail. No rent collected for ${landedSpace.name}!`);
                 } else {
-                    // utility
-                    const utilCount = game.properties.filter(
-                        (p, i) =>
-                            p.ownerId === owner.id &&
-                            game.settings.board[i].type === "utility",
-                    ).length;
-                    rent = total * (utilCount >= 2 ? 10 : 4);
-                }
+                    let rent = 0;
+                    if (landedSpace.type === "property") {
+                        // rent is an array: [base, 1 house, 2 houses, 3 houses, 4 houses, hotel]
+                        const houses = prop.houses || 0;
+                        rent = landedSpace.rent
+                            ? landedSpace.rent[houses]
+                            : Math.floor((landedSpace.price || 0) * 0.1);
 
-                player.money -= rent;
-                owner.money += rent;
-                game.gameLog.push(
-                    `💵 ${player.name} paid $${rent} rent to ${owner.name} for ${landedSpace.name}`,
-                );
-                console.log(
-                    `💵 ${player.name} paid rent: $${rent} to ${owner.name}`,
-                );
+                        // Double rent on full color set with 0 houses
+                        if (game.settings && game.settings.doubleRentFullSet && houses === 0 && landedSpace.color) {
+                            const groupSpaces = game.settings.board.filter(
+                                (s) => s.type === "property" && s.color === landedSpace.color,
+                            );
+                            const groupOwned = game.properties.filter(
+                                (p, i) =>
+                                    p.ownerId === owner.id &&
+                                    game.settings.board[i].color === landedSpace.color,
+                            ).length;
+                            if (groupSpaces.length === groupOwned) {
+                                rent *= 2;
+                            }
+                        }
+                    } else if (landedSpace.type === "railroad") {
+                        const railCount = game.properties.filter(
+                            (p, i) =>
+                                p.ownerId === owner.id &&
+                                game.settings.board[i].type === "railroad",
+                        ).length;
+                        rent = 25 * Math.pow(2, Math.max(0, railCount - 1));
+                    } else {
+                        // utility
+                        const utilCount = game.properties.filter(
+                            (p, i) =>
+                                p.ownerId === owner.id &&
+                                game.settings.board[i].type === "utility",
+                        ).length;
+                        rent = total * (utilCount >= 2 ? 10 : 4);
+                    }
+
+                    player.money -= rent;
+                    owner.money += rent;
+                    game.gameLog = game.gameLog || [];
+                    game.gameLog.push(
+                        `💵 ${player.name} paid $${rent} rent to ${owner.name} for ${landedSpace.name}`,
+                    );
+                    console.log(
+                        `💵 ${player.name} paid rent: $${rent} to ${owner.name}`,
+                    );
+                }
             }
         }
     }
 
     // Broadcast
     broadcastToGame(gameId, { type: "game_updated", game });
-    // Ayrıca sender'a da gönder
-    ws.send(JSON.stringify({ type: "game_updated", game }));
 }
 
 function handleBuyProperty(ws, message) {
@@ -1383,9 +1555,10 @@ function handleBuyProperty(ws, message) {
         `   Player money: $${player.money}, Price: $${space ? space.price : "N/A"}`,
     );
 
+    const isPurchasable = space && ["property", "railroad", "utility"].includes(space.type);
+
     if (
-        space &&
-        space.type === "property" &&
+        isPurchasable &&
         prop &&
         !prop.ownerId &&
         player.money >= space.price
@@ -1398,10 +1571,9 @@ function handleBuyProperty(ws, message) {
         );
         console.log(`✅ ${player.name} successfully bought ${space.name}!`);
         broadcastToGame(gameId, { type: "game_updated", game });
-        ws.send(JSON.stringify({ type: "game_updated", game }));
     } else {
         const reasons = [];
-        if (!space || space.type !== "property") reasons.push("not a property");
+        if (!isPurchasable) reasons.push("not a purchasable property");
         if (!prop) reasons.push("property data missing");
         if (prop && prop.ownerId) reasons.push("already owned");
         if (space && player.money < space.price)
@@ -1428,22 +1600,12 @@ function handleEndTurn(ws, message) {
     game.lastActivity = Date.now();
     game.inactivityWarningShown = false;
 
-    // İnsan oyuncu turunu kaçırdı mı kontrol et
+    // İnsan oyuncu kendi turunu oynadıysa kaçırdığı tur sayacını sıfırla
     if (!currentPlayer.isBot) {
-        // İnsan oyuncu turunu oynadı, sayacı sıfırla
         if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
         if (game.humanPlayerMissedTurns[currentPlayer.id]) {
             delete game.humanPlayerMissedTurns[currentPlayer.id];
         }
-    } else {
-        // Bot turunu bitirdi, diğer insan oyuncuların sayacını artır
-        if (!game.humanPlayerMissedTurns) game.humanPlayerMissedTurns = {};
-        game.players.forEach((p) => {
-            if (!p.isBot && !p.isBankrupt && p.id !== currentPlayer.id) {
-                game.humanPlayerMissedTurns[p.id] =
-                    (game.humanPlayerMissedTurns[p.id] || 0) + 1;
-            }
-        });
     }
 
     console.log(`⏭️ ${currentPlayer.name} ending turn...`);
@@ -1468,7 +1630,6 @@ function handleEndTurn(ws, message) {
         `⏭️ Turn ended. It's now ${game.players[nextPlayerIndex].name}'s turn.`,
     );
     broadcastToGame(gameId, { type: "game_updated", game });
-    ws.send(JSON.stringify({ type: "game_updated", game }));
 }
 
 // 🎤 Voice Chat Handlers
@@ -1621,6 +1782,7 @@ function endGameDueToInactivity(gameId) {
         () => {
             if (games.has(gameId)) {
                 games.delete(gameId);
+                persistence.forgetGame(gameId);
                 console.log(`🗑️ Game ${gameId} deleted due to inactivity`);
             }
         },
@@ -1659,6 +1821,7 @@ function checkHumanPlayerMissedTurns(gameId) {
                     () => {
                         if (games.has(gameId)) {
                             games.delete(gameId);
+                            persistence.forgetGame(gameId);
                             console.log(
                                 `🗑️ Game ${gameId} deleted - human player missed 5 turns`,
                             );
@@ -1753,6 +1916,15 @@ setInterval(() => {
         }
     }
 }, 30000); // Every 30 seconds
+
+// 💾 Flush autosaves every 10s and on shutdown
+setInterval(() => persistence.flushActive(games), 10000);
+for (const sig of ["SIGINT", "SIGTERM"]) {
+    process.on(sig, () => {
+        persistence.flushActive(games);
+        process.exit(0);
+    });
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, "0.0.0.0", () => {

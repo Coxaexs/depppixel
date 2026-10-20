@@ -11,20 +11,34 @@ const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url);
     let pathname = parsedUrl.pathname;
 
-    // Redirect /game to /game/ to handle relative paths correctly
-    if (pathname === "/game") {
-        res.writeHead(301, { Location: "/game/" });
-        res.end();
-        return;
-    }
+    // Check if path is /room/[roomId] or /game/room/[roomId]
+    const isRoomPath = pathname.match(/^\/(game\/)?room\/([a-zA-Z0-9]+)\/?$/);
 
-    // Strip /game prefix if present so that we resolve static files from root
-    if (pathname.startsWith("/game/")) {
-        pathname = pathname.substring(5); // Keep the leading slash
-    }
+    let filePath;
+    if (isRoomPath) {
+        filePath = "./index.html";
+    } else {
+        // If it starts with /room/ or /game/room/ but is an asset or sub-resource
+        if (pathname.includes("/room/")) {
+            // Strip everything up to and including /room/[roomId]/
+            pathname = pathname.replace(/^\/(game\/)?room\/[a-zA-Z0-9]+\//, "/");
+        }
 
-    let filePath = "." + pathname;
-    if (filePath === "./" || filePath === ".") filePath = "./index.html";
+        // Redirect /game to /game/ to handle relative paths correctly
+        if (pathname === "/game") {
+            res.writeHead(301, { Location: "/game/" });
+            res.end();
+            return;
+        }
+
+        // Strip /game prefix if present so that we resolve static files from root
+        if (pathname.startsWith("/game/")) {
+            pathname = pathname.substring(5); // Keep the leading slash
+        }
+
+        filePath = "." + pathname;
+        if (filePath === "./" || filePath === ".") filePath = "./index.html";
+    }
 
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {
@@ -1536,29 +1550,23 @@ function handleVoiceSignal(ws, message) {
         `📡 Relaying voice signal from ${message.from} to ${message.to}`,
     );
 
-    // Find the target player's WebSocket and send them the signal
-    const game = games.get(gameId);
-    const targetPlayer = game.players.find((p) => p.id === message.to);
-
-    if (targetPlayer) {
-        // Broadcast only to the target player
-        wss.clients.forEach((client) => {
-            if (
-                client.gameId === gameId &&
-                client.playerId === message.to &&
-                client.readyState === WebSocket.OPEN
-            ) {
-                client.send(
-                    JSON.stringify({
-                        type: "voice_signal",
-                        from: message.from,
-                        to: message.to,
-                        signal: message.signal,
-                    }),
-                );
-            }
-        });
-    }
+    // Relay to the target player directly via open websocket connections
+    wss.clients.forEach((client) => {
+        if (
+            client.gameId === gameId &&
+            client.playerId === message.to &&
+            client.readyState === WebSocket.OPEN
+        ) {
+            client.send(
+                JSON.stringify({
+                    type: "voice_signal",
+                    from: message.from,
+                    to: message.to,
+                    signal: message.signal,
+                }),
+            );
+        }
+    });
 }
 
 // Aktivite ping handler
